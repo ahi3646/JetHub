@@ -65,7 +65,9 @@ import java.nio.charset.StandardCharsets
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BasicLoginScreen(
-    navController: NavController, darkTheme: Boolean, context: Context
+    navController: NavController,
+    darkTheme: Boolean,
+    context: Context
 ) {
 
     val userName = remember {

@@ -51,7 +51,7 @@ fun JetHubNavHost(
             }
         ){
             LoginChooserScreen(
-                navController, darkTheme
+                navController, darkTheme, context
             )
         }
         composable(

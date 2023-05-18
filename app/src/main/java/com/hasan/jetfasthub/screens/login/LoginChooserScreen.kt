@@ -1,5 +1,7 @@
 package com.hasan.jetfasthub.screens.login
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +36,8 @@ import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 @Composable
 fun LoginChooserScreen(
     navController: NavController,
-    darkTheme: Boolean
+    darkTheme: Boolean,
+    context: Context
 ) {
 
     JetFastHubTheme {
@@ -152,7 +155,8 @@ fun LoginChooserScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             IconButton(onClick = {
-
+                val intent = Intent(Intent.ACTION_VIEW, getAuthorizationUrl())
+                context.startActivity(intent)
             }, modifier = Modifier.padding(12.dp)) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_google),
