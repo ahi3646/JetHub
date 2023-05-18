@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">JetFastHub</string>
 
-    <string name="login">Login</string>
+    <string name="login">login</string>
+    <string name="basic_auth">basic_auth</string>
 </resources>

@@ -13,10 +13,12 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.screens.LoginScreen
+import com.hasan.jetfasthub.screens.login.LoginChooserScreen
+import com.hasan.jetfasthub.screens.login.BasicLoginScreen
 
 sealed class Screen(val route: String, @StringRes val resourceId: Int) {
-    object Login : Screen("login", R.string.login)
+    object LoginChooser : Screen("login_chooser", R.string.login)
+    object BasicLogin : Screen("basic_auth", R.string.basic_auth)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -25,9 +27,9 @@ fun JetHubNavHost(
     darkTheme: Boolean
 ) {
     val navController = rememberAnimatedNavController()
-    AnimatedNavHost(navController, startDestination = Screen.Login.route) {
+    AnimatedNavHost(navController, startDestination = Screen.LoginChooser.route) {
         composable(
-            Screen.Login.route,
+            Screen.LoginChooser.route,
             exitTransition = {
                 slideOutHorizontally(
                     targetOffsetX = { -300 },
@@ -47,7 +49,32 @@ fun JetHubNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             }
         ){
-            LoginScreen(
+            LoginChooserScreen(
+                navController, darkTheme
+            )
+        }
+        composable(
+            Screen.BasicLogin.route,
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -300 },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            }
+        ){
+            BasicLoginScreen(
                 navController, darkTheme
             )
         }

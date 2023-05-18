@@ -1,7 +1,7 @@
-package com.hasan.jetfasthub.screens
+package com.hasan.jetfasthub.screens.login
 
-import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,14 +26,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 
 @Composable
-fun LoginScreen(
+fun LoginChooserScreen(
     navController: NavController,
     darkTheme: Boolean
 ) {
@@ -67,17 +66,76 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            val types = arrayOf(
-                "Basic Authentication",
-                "Access Token",
-                "Enterprise"
+            val types = mapOf<String, String>(
+                "basic_login" to "Basic Authentication",
+                "access_token" to "Access Token",
+                "enterprise" to "Enterprise"
             )
 
-            for (type in types) {
-                LoginType(type = type)
-                Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate("basic_auth")
+                    }
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Blue.copy(.08f))
+            ) {
+                Text(
+                    text = "Basic Authentication", modifier = Modifier
+                        .padding(18.dp, 12.dp, 18.dp, 12.dp)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Blue,
+                    textAlign = TextAlign.Center
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate("access_token")
+                    }
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Blue.copy(.08f))
+            ) {
+                Text(
+                    text = "Access Token", modifier = Modifier
+                        .padding(18.dp, 12.dp, 18.dp, 12.dp)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Blue,
+                    textAlign = TextAlign.Center
+                )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate("enterprise")
+                    }
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Blue.copy(.08f))
+            ) {
+                Text(
+                    text = "Enterprise", modifier = Modifier
+                        .padding(18.dp, 12.dp, 18.dp, 12.dp)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Blue,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            //OR
             Box(
                 modifier = Modifier
                     .wrapContentWidth()
@@ -104,32 +162,6 @@ fun LoginScreen(
                     tint = Color.Unspecified
                 )
             }
-
         }
-    }
-}
-
-@Composable
-fun LoginType(type: String) {
-    val color = Color.Blue
-    ChipView(type = type, color)
-}
-
-@Composable
-fun ChipView(type: String, colorResource: Color) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(colorResource.copy(.08f))
-    ) {
-        Text(
-            text = type, modifier = Modifier
-                .padding(18.dp, 12.dp, 18.dp, 12.dp)
-                .fillMaxWidth(),
-            style = MaterialTheme.typography.labelMedium,
-            color = colorResource,
-            textAlign = TextAlign.Center
-        )
     }
 }
