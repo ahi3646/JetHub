@@ -1,7 +1,6 @@
 package com.hasan.jetfasthub.networking.model
 
 open class AuthModel(
-
      private var clientId: String? = null,
      private var clientSecret: String? = null,
      private var redirectUri: String? = null,

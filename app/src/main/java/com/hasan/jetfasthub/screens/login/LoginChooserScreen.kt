@@ -90,7 +90,7 @@ fun LoginChooserScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(

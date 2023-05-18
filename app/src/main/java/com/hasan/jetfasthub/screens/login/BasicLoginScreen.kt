@@ -146,47 +146,43 @@ fun BasicLoginScreen(
                     .clickable {
                         coroutineScope.launch {
 
-                            val username = "HasanAnorov"
-                            val password = "h3373646"
-                            val usernameAndPassword = "$username:$password"
-                            val charset: Charset = StandardCharsets.ISO_8859_1
-                            val encoded = usernameAndPassword
-                                .encode(charset)
-                                .base64()
-                            val authToken = "Basic $encoded"
-
                             val authModel = AuthModel()
 
+                            /**
+                             * Later move this logic to viewModel
+                             *
                             RetrofitInstance(context).api
-                                .login(
-                                    authModel,
-                                )
-                                .enqueue(object : Callback<AccessTokenModel> {
-                                    override fun onResponse(
-                                        call: Call<AccessTokenModel>,
-                                        response: Response<AccessTokenModel>
-                                    ) {
-                                        Log.d(
-                                            "ahi3646", "onResponse: ${
-                                                response
-                                                    .body()
-                                                    .toString()
-                                            }"
-                                        )
-                                    }
+                            .login(
+                            authModel,
+                            )
+                            .enqueue(object : Callback<AccessTokenModel> {
+                            override fun onResponse(
+                            call: Call<AccessTokenModel>,
+                            response: Response<AccessTokenModel>
+                            ) {
+                            Log.d(
+                            "ahi3646", "onResponse: ${
+                            response
+                            .body()
+                            .toString()
+                            }"
+                            )
+                            }
 
-                                    override fun onFailure(
-                                        call: Call<AccessTokenModel>,
-                                        t: Throwable
-                                    ) {
-                                        Log.d(
-                                            "ahi3646", "onFailure: ${
-                                                t.stackTrace
-                                            } "
-                                        )
-                                    }
+                            override fun onFailure(
+                            call: Call<AccessTokenModel>,
+                            t: Throwable
+                            ) {
+                            Log.d(
+                            "ahi3646", "onFailure: ${
+                            t.stackTrace
+                            } "
+                            )
+                            }
 
-                                })
+                            })
+
+                             */
                         }
                     }
                     .clip(RoundedCornerShape(12.dp))
@@ -243,8 +239,6 @@ fun BasicLoginScreen(
         }
     }
 }
-
-
 
 fun getAuthorizationUrl(): Uri {
     return Uri.Builder()
