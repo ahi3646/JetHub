@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.navigation
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -24,7 +25,7 @@ sealed class Screen(val route: String, @StringRes val resourceId: Int) {
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun JetHubNavHost(
-    darkTheme: Boolean
+    darkTheme: Boolean, context: Context
 ) {
     val navController = rememberAnimatedNavController()
     AnimatedNavHost(navController, startDestination = Screen.LoginChooser.route) {
@@ -75,7 +76,7 @@ fun JetHubNavHost(
             }
         ){
             BasicLoginScreen(
-                navController, darkTheme
+                navController, darkTheme, context
             )
         }
     }

@@ -1,9 +1,5 @@
 package com.hasan.jetfasthub.networking.model
 
-import android.os.Parcel
-import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
-
 open class AuthModel(
 
      private var clientId: String? = null,

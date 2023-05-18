@@ -1,8 +1,12 @@
 package com.hasan.jetfasthub.screens.login
 
-import android.os.Parcel
-import android.util.Base64
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,12 +44,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import com.hasan.jetfasthub.MainActivity
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.networking.GitHubHelper
 import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.model.AccessTokenModel
 import com.hasan.jetfasthub.networking.model.AuthModel
-import com.hasan.jetfasthub.networking.model.LoginRequest
-import com.hasan.jetfasthub.networking.model.LoginResponse
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import kotlinx.coroutines.launch
 import okio.ByteString.Companion.encode
@@ -56,7 +65,7 @@ import java.nio.charset.StandardCharsets
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BasicLoginScreen(
-    navController: NavController, darkTheme: Boolean
+    navController: NavController, darkTheme: Boolean, context: Context
 ) {
 
     val userName = remember {
@@ -141,20 +150,21 @@ fun BasicLoginScreen(
                             val password = "h3373646"
                             val usernameAndPassword = "$username:$password"
                             val charset: Charset = StandardCharsets.ISO_8859_1
-                            val encoded = usernameAndPassword.encode(charset).base64()
+                            val encoded = usernameAndPassword
+                                .encode(charset)
+                                .base64()
                             val authToken = "Basic $encoded"
 
                             val authModel = AuthModel()
 
-                            RetrofitInstance.api
+                            RetrofitInstance(context).api
                                 .login(
-                                    authToken,
                                     authModel,
                                 )
-                                .enqueue(object : Callback<LoginResponse> {
+                                .enqueue(object : Callback<AccessTokenModel> {
                                     override fun onResponse(
-                                        call: Call<LoginResponse>,
-                                        response: Response<LoginResponse>
+                                        call: Call<AccessTokenModel>,
+                                        response: Response<AccessTokenModel>
                                     ) {
                                         Log.d(
                                             "ahi3646", "onResponse: ${
@@ -166,7 +176,7 @@ fun BasicLoginScreen(
                                     }
 
                                     override fun onFailure(
-                                        call: Call<LoginResponse>,
+                                        call: Call<AccessTokenModel>,
                                         t: Throwable
                                     ) {
                                         Log.d(
@@ -214,7 +224,8 @@ fun BasicLoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        startOAuth()
+                        val intent = Intent(Intent.ACTION_VIEW, getAuthorizationUrl())
+                        context.startActivity(intent)
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Blue.copy(.08f))
@@ -233,14 +244,18 @@ fun BasicLoginScreen(
     }
 }
 
-fun startOAuth(){
 
+
+fun getAuthorizationUrl(): Uri {
+    return Uri.Builder()
+        .scheme("https")
+        .authority("github.com")
+        .appendPath("login")
+        .appendPath("oauth")
+        .appendPath("authorize")
+        .appendQueryParameter("client_id", GitHubHelper.CLIENT_ID)
+        .appendQueryParameter("redirect_uri", GitHubHelper.REDIRECT_URL)
+        .appendQueryParameter("scope", GitHubHelper.SCOPE)
+        .appendQueryParameter("state", GitHubHelper.STATE)
+        .build()
 }
-
-//@Composable
-//@Preview
-//fun PreviewBasicLoginScree() {
-//    BasicLoginScreen(
-//        //navController = nav, darkTheme =
-//    )
-//}
