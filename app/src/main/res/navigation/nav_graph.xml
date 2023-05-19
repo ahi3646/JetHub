@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginChooserFragment">
+
+    <fragment
+        android:id="@+id/basicAuthFragment"
+        android:name="com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthFragment"
+        android:label="BasicAuthFragment" />
+    <fragment
+        android:id="@+id/loginChooserFragment"
+        android:name="com.hasan.jetfasthub.screens.login.LoginChooserFragment"
+        android:label="LoginChooserFragment" >
+        <action
+            android:id="@+id/action_loginChooserFragment_to_basicAuthFragment"
+            app:destination="@id/basicAuthFragment" />
+        <action
+            android:id="@+id/action_loginChooserFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
+    </fragment>
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.hasan.jetfasthub.screens.main.MainActivity"
+        android:label="MainActivity" />
+</navigation>

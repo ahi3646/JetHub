@@ -2,8 +2,14 @@ package com.hasan.jetfasthub.screens.login
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,28 +31,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.networking.GitHubHelper
+import com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthUiState
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 
+class LoginChooserFragment : Fragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            // Dispose of the Composition when the view's LifecycleOwner
+            // is destroyed
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                //no state in this screen
+                MainContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = colorResource(id = R.color.white))
+                        .padding(start = 30.dp, end = 30.dp),
+                    navController = findNavController(),
+                    requireContext()
+                )
+            }
+        }
+    }
+}
+
 @Composable
-fun LoginChooserScreen(
+fun MainContent(
+    modifier: Modifier = Modifier,
     navController: NavController,
-    darkTheme: Boolean,
     context: Context
 ) {
 
     JetFastHubTheme {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = colorResource(id = R.color.white))
-                .padding(start = 30.dp, end = 30.dp),
+            modifier,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -69,17 +108,11 @@ fun LoginChooserScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            val types = mapOf<String, String>(
-                "basic_login" to "Basic Authentication",
-                "access_token" to "Access Token",
-                "enterprise" to "Enterprise"
-            )
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate("basic_auth")
+                        navController.navigate(R.id.action_loginChooserFragment_to_basicAuthFragment)
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Blue.copy(.08f))
@@ -100,7 +133,7 @@ fun LoginChooserScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate("access_token")
+                        // to do
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Blue.copy(.08f))
@@ -121,7 +154,7 @@ fun LoginChooserScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate("enterprise")
+                        //to do
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Blue.copy(.08f))
@@ -168,4 +201,18 @@ fun LoginChooserScreen(
             }
         }
     }
+}
+
+private fun getAuthorizationUrl(): Uri {
+    return Uri.Builder()
+        .scheme("https")
+        .authority("github.com")
+        .appendPath("login")
+        .appendPath("oauth")
+        .appendPath("authorize")
+        .appendQueryParameter("client_id", GitHubHelper.CLIENT_ID)
+        .appendQueryParameter("redirect_uri", GitHubHelper.REDIRECT_URL)
+        .appendQueryParameter("scope", GitHubHelper.SCOPE)
+        .appendQueryParameter("state", GitHubHelper.STATE)
+        .build()
 }

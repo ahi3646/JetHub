@@ -1,6 +1,5 @@
 package com.hasan.jetfasthub.navigation
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -14,8 +13,8 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.screens.login.LoginChooserScreen
-import com.hasan.jetfasthub.screens.login.BasicLoginScreen
+import com.hasan.jetfasthub.screens.login.LoginChooserFragment
+import com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthFragment
 
 sealed class Screen(val route: String, @StringRes val resourceId: Int) {
     object LoginChooser : Screen("login_chooser", R.string.login)
@@ -24,9 +23,7 @@ sealed class Screen(val route: String, @StringRes val resourceId: Int) {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun JetHubNavHost(
-    darkTheme: Boolean, context: Context
-) {
+fun LoginNavHost(){
     val navController = rememberAnimatedNavController()
     AnimatedNavHost(navController, startDestination = Screen.LoginChooser.route) {
         composable(
@@ -50,10 +47,9 @@ fun JetHubNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             }
         ){
-            LoginChooserScreen(
-                navController, darkTheme, context
-            )
+            LoginChooserFragment()
         }
+
         composable(
             Screen.BasicLogin.route,
             exitTransition = {
@@ -75,9 +71,7 @@ fun JetHubNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             }
         ){
-            BasicLoginScreen(
-                navController, darkTheme, context
-            )
+            BasicAuthFragment()
         }
     }
 }

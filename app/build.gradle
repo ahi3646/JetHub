@@ -48,9 +48,14 @@ android {
 
 dependencies {
 
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.navigation:navigation-fragment:2.5.3'
     def nav_version = "2.5.3"
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    //app compat activity
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     //navigation
     implementation("androidx.navigation:navigation-compose:$nav_version")

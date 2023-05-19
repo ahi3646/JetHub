@@ -1,8 +1,12 @@
-package com.hasan.jetfasthub.screens.login
+package com.hasan.jetfasthub.screens.login.basic_auth
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,13 +28,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,48 +43,64 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.fragment.app.Fragment
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.networking.GitHubHelper
-import com.hasan.jetfasthub.networking.model.AuthModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
+class BasicAuthFragment : Fragment() {
+
+    private val viewModel: BasicAuthViewModel by viewModel()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            // Dispose of the Composition when the view's LifecycleOwner
+            // is destroyed
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                val basicUiState by viewModel.uiState.collectAsState()
+                MainContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = colorResource(id = R.color.white))
+                        .padding(24.dp),
+                    basicUiState = basicUiState,
+                    onUsernameChanged = viewModel::onUsernameChange,
+                    onPasswordChanged = viewModel::onPasswordChange,
+                    onPasswordVisibilityChanged = viewModel::onPasswordVisibilityChange,
+                    requireContext()
+                )
+            }
+        }
+    }
+
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BasicLoginScreen(
-    navController: NavController,
-    darkTheme: Boolean,
+private fun MainContent(
+    modifier: Modifier = Modifier,
+    basicUiState: BasicAuthUiState,
+    onUsernameChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
+    onPasswordVisibilityChanged: (visibility: Boolean) -> Unit,
     context: Context
 ) {
-
-    val userName = remember {
-        mutableStateOf("")
-    }
-
-    val password = remember {
-        mutableStateOf("")
-    }
-
-    val passwordVisibility = remember {
-        mutableStateOf(false)
-    }
-
-    val coroutineScope = rememberCoroutineScope()
-
     JetFastHubTheme {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = colorResource(id = R.color.white))
-                .padding(24.dp),
+            modifier = modifier,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             OutlinedTextField(
-                value = userName.value,
-                onValueChange = { userName.value = it },
+                value = basicUiState.userName,
+                onValueChange = onUsernameChanged,
                 label = { Text(text = "Username", color = Color.Blue) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     unfocusedBorderColor = Color.Blue
@@ -92,16 +113,14 @@ fun BasicLoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = password.value,
-                onValueChange = { password.value = it },
+                value = basicUiState.password,
+                onValueChange = onPasswordChanged,
                 trailingIcon = {
-                    IconButton(onClick = {
-                        passwordVisibility.value = !passwordVisibility.value
-                    }) {
+                    IconButton(onClick = { onPasswordVisibilityChanged(!basicUiState.passwordVisibility) }) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_remove_red_eye_24),
                             contentDescription = "See password",
-                            tint = if (passwordVisibility.value) MaterialTheme.colorScheme.primary
+                            tint = if (basicUiState.passwordVisibility) MaterialTheme.colorScheme.primary
                             else Color.Blue.copy(.6f)
                         )
                     }
@@ -115,7 +134,7 @@ fun BasicLoginScreen(
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     unfocusedBorderColor = Color.Blue
                 ),
-                visualTransformation = if (passwordVisibility.value) VisualTransformation.None
+                visualTransformation = if (basicUiState.passwordVisibility) VisualTransformation.None
                 else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 placeholder = { Text(text = "Password") },
@@ -129,46 +148,7 @@ fun BasicLoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        coroutineScope.launch {
 
-                            val authModel = AuthModel()
-
-                            /**
-                             * Later move this logic to viewModel
-                             *
-                            RetrofitInstance(context).api
-                            .login(
-                            authModel,
-                            )
-                            .enqueue(object : Callback<AccessTokenModel> {
-                            override fun onResponse(
-                            call: Call<AccessTokenModel>,
-                            response: Response<AccessTokenModel>
-                            ) {
-                            Log.d(
-                            "ahi3646", "onResponse: ${
-                            response
-                            .body()
-                            .toString()
-                            }"
-                            )
-                            }
-
-                            override fun onFailure(
-                            call: Call<AccessTokenModel>,
-                            t: Throwable
-                            ) {
-                            Log.d(
-                            "ahi3646", "onFailure: ${
-                            t.stackTrace
-                            } "
-                            )
-                            }
-
-                            })
-
-                             */
-                        }
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Blue.copy(.08f))
@@ -225,7 +205,7 @@ fun BasicLoginScreen(
     }
 }
 
-fun getAuthorizationUrl(): Uri {
+private fun getAuthorizationUrl(): Uri {
     return Uri.Builder()
         .scheme("https")
         .authority("github.com")
