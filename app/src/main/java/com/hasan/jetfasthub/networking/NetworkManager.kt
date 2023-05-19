@@ -1,7 +1,6 @@
 package com.hasan.jetfasthub.networking
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
@@ -29,7 +28,7 @@ class RetrofitInstance(context: Context) {
             .client(client)
             .build()
     }
-    val api: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
+    val api: AuthService by lazy {
+        retrofit.create(AuthService::class.java)
     }
 }

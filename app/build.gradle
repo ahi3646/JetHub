@@ -70,7 +70,12 @@ dependencies {
     //chucker
     debugImplementation "com.github.chuckerteam.chucker:library:3.5.2"
     releaseImplementation "com.github.chuckerteam.chucker:library-no-op:3.5.2"
-    
+
+    // Koin for Android
+    implementation "io.insert-koin:koin-androidx-compose:3.2.0"
+    implementation "io.insert-koin:koin-android:3.2.0"
+
+
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.activity:activity-compose:1.7.1'

@@ -3,7 +3,7 @@ package com.hasan.jetfasthub.utility
 import android.content.Context
 
 private const val SHARED_PREF = "jetfasthub_pref"
-private const val TOKEN_KEY = "jathub_pref_key"
+private const val TOKEN_KEY = "jethub_pref_key"
 
 object PreferenceHelper {
 

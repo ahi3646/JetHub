@@ -5,7 +5,7 @@ import com.hasan.jetfasthub.networking.model.AuthModel
 import retrofit2.Call
 import retrofit2.http.*
 
-interface ApiService {
+interface AuthService {
 
     @POST("authorizations")
     fun login(

@@ -1,12 +1,8 @@
 package com.hasan.jetfasthub.screens.login
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,23 +38,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
-import com.hasan.jetfasthub.MainActivity
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.networking.GitHubHelper
-import com.hasan.jetfasthub.networking.RetrofitInstance
-import com.hasan.jetfasthub.networking.model.AccessTokenModel
 import com.hasan.jetfasthub.networking.model.AuthModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import kotlinx.coroutines.launch
-import okio.ByteString.Companion.encode
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
