@@ -1,10 +1,8 @@
 package com.hasan.jetfasthub.screens.login
 
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.networking.GitHubHelper

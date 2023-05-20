@@ -20,13 +20,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -79,10 +78,8 @@ class BasicAuthFragment : Fragment() {
             }
         }
     }
-
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainContent(
     modifier: Modifier = Modifier,
@@ -102,8 +99,8 @@ private fun MainContent(
                 value = basicUiState.userName,
                 onValueChange = onUsernameChanged,
                 label = { Text(text = "Username", color = Color.Blue) },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Blue
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Blue,
                 ),
                 placeholder = { Text(text = "Username") },
                 singleLine = true,
@@ -131,8 +128,8 @@ private fun MainContent(
                         color = Color.Blue
                     )
                 },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    unfocusedBorderColor = Color.Blue
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Blue,
                 ),
                 visualTransformation = if (basicUiState.passwordVisibility) VisualTransformation.None
                 else PasswordVisualTransformation(),
