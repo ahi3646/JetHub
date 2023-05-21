@@ -8,6 +8,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+const val BASE_URL = "https://github.com/login/oauth/"
+
 class RetrofitInstance(context: Context) {
 
     private val retrofit by lazy {

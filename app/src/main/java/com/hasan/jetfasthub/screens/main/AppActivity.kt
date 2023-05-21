@@ -21,8 +21,6 @@ class AppActivity : AppCompatActivity() {
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-
     }
 
     override fun onDestroy() {

@@ -23,7 +23,4 @@ interface AuthService {
         @Field("redirect_uri") redirectUrl: String
     ) : Call<AccessTokenModel>
 
-
 }
-
-const val BASE_URL = "https://github.com/login/oauth/"
