@@ -16,15 +16,13 @@ interface HomeService {
     suspend fun getUserEvents(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
-        //@Query("page") page: Int
-    ) : Response<Events>
+    ): Response<Events>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")
     suspend fun getReceivedUserEvents(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
-        //@Query("page") page: Int
-    ) : Response<ReceivedEvents>
+    ): Response<ReceivedEvents>
 
 }

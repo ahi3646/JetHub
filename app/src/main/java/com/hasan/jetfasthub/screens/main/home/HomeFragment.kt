@@ -55,6 +55,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.AppScreens
@@ -76,9 +77,7 @@ class HomeFragment : Fragment() {
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
-        val page = 1
         homeViewModel.getReceivedEvents(token, username)
-        homeViewModel.getEvents(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -87,6 +86,11 @@ class HomeFragment : Fragment() {
                     MainContent(
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
+                        onNavigate = { login ->
+                            val bundle = Bundle()
+                            bundle.putString("login", login)
+                            findNavController().navigate(R.id.profileFragment, bundle)
+                        }
                     )
                 }
             }
@@ -98,44 +102,52 @@ class HomeFragment : Fragment() {
 private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    Scaffold(scaffoldState = scaffoldState, topBar = {
-        TopAppBar(
-            backgroundColor = Color.White,
-            content = {
-                TopAppBarContent(scaffoldState, scope)
-            },
-        )
-    }, bottomBar = {
-        BottomNav(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            onBottomBarItemSelected = onBottomBarItemSelected,
-        )
-    }, drawerContent = {
-        ModalDrawerSheet {
-            Text("Drawer title", modifier = Modifier.padding(16.dp))
-            Divider()
-            NavigationDrawerItem(label = { Text(text = "Drawer Item") },
-                selected = false,
-                onClick = { /*TODO*/ })
-            // ...other drawer items
-        }
-    }, content = { contentPadding ->
-        when (state.selectedBottomBarItem) {
-            AppScreens.Feeds -> FeedsScreen(state.receivedEventsState)
-            AppScreens.Issues -> IssuesScreen()
-            AppScreens.PullRequests -> PullRequestScreen()
-        }
-    })
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                backgroundColor = Color.White,
+                content = {
+                    TopAppBarContent(scaffoldState, scope)
+                },
+            )
+        },
+        bottomBar = {
+            BottomNav(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
+                onBottomBarItemSelected = onBottomBarItemSelected,
+            )
+        }, drawerContent = {
+            ModalDrawerSheet {
+                Text("Drawer title", modifier = Modifier.padding(16.dp))
+                Divider()
+                NavigationDrawerItem(label = { Text(text = "Drawer Item") },
+                    selected = false,
+                    onClick = { /*TODO*/ })
+                // ...other drawer items
+            }
+        }, content = { contentPadding ->
+            when (state.selectedBottomBarItem) {
+                AppScreens.Feeds -> FeedsScreen(
+                    state.receivedEventsState,
+                    onNavigate
+                )
+
+                AppScreens.Issues -> IssuesScreen()
+                AppScreens.PullRequests -> PullRequestScreen()
+            }
+        })
 }
 
 @Composable
-fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
+private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
@@ -227,7 +239,8 @@ fun BottomNav(
 
 @Composable
 fun FeedsScreen(
-    receivedEventsState: ReceivedEventsState
+    receivedEventsState: ReceivedEventsState,
+    onNavigate: (String) -> Unit
 ) {
     when (receivedEventsState) {
 
@@ -257,7 +270,7 @@ fun FeedsScreen(
                 ) {
                     items(receivedEventsState.events) { eventItem ->
                         ItemEventCard(eventItem) {
-                            Log.d("ahi3646", "FeedsScreen: click ")
+                            onNavigate(eventItem.actor.login)
                         }
                     }
                 }
@@ -328,7 +341,6 @@ fun ItemEventCard(
                     color = Color.Black,
                     style = androidx.compose.material.MaterialTheme.typography.caption
                 )
-
             }
         }
     }

@@ -24,16 +24,20 @@ class HomeViewModel(
         }
     }
 
-    fun getReceivedEvents(token: String, username: String){
+    fun getReceivedEvents(token: String, username: String) {
         viewModelScope.launch {
             repository.getReceivedUserEvents(token, username).let { receivedEvents ->
-                if (receivedEvents.isSuccessful){
+                if (receivedEvents.isSuccessful) {
                     _state.update {
                         it.copy(receivedEventsState = ReceivedEventsState.Content(receivedEvents.body()!!))
                     }
-                }else{
+                } else {
                     _state.update {
-                        it.copy(receivedEventsState = ReceivedEventsState.Error(receivedEvents.errorBody().toString()))
+                        it.copy(
+                            receivedEventsState = ReceivedEventsState.Error(
+                                receivedEvents.errorBody().toString()
+                            )
+                        )
                     }
                 }
             }
@@ -58,7 +62,6 @@ class HomeViewModel(
             }
         }
     }
-
 }
 
 data class HomeScreenState(

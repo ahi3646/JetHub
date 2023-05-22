@@ -51,6 +51,10 @@ android {
 
 dependencies {
 
+    //tablayout
+    implementation 'com.google.accompanist:accompanist-pager:0.13.0'
+    implementation 'com.google.accompanist:accompanist-pager-indicators:0.13.0'
+
     //Landscappist
     implementation "com.github.skydoves:landscapist-glide:2.2.0"
 

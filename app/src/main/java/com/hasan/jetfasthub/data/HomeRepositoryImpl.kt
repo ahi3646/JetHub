@@ -10,15 +10,12 @@ interface HomeRepository {
     suspend fun getUserEvents(
         token: String,
         username: String,
-        //page: Int
     ): Response<Events>
 
     suspend fun getReceivedUserEvents(
         token: String,
         username: String,
-        //page: Int
     ): Response<ReceivedEvents>
-
 
 }
 
@@ -27,13 +24,11 @@ class HomeRepositoryImpl(private val context: Context) : HomeRepository {
     override suspend fun getUserEvents(
         token: String,
         username: String,
-        // page: Int
     ): Response<Events> {
 
         return RetrofitInstance(context).homeService.getUserEvents(
             authToken = "Bearer $token",
             username = username,
-            //page = page
         )
     }
 
@@ -44,7 +39,6 @@ class HomeRepositoryImpl(private val context: Context) : HomeRepository {
         return RetrofitInstance(context).homeService.getReceivedUserEvents(
             authToken = token,
             username = username,
-            //page = page
         )
     }
 

@@ -38,4 +38,8 @@ class RetrofitInstance(context: Context) {
     val homeService: HomeService by lazy {
         retrofit.create(HomeService::class.java)
     }
+
+    val profileService: ProfileService by lazy {
+        retrofit.create(ProfileService::class.java)
+    }
 }
