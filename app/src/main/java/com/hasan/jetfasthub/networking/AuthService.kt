@@ -14,7 +14,7 @@ interface AuthService {
     ): Call<AccessTokenModel>
 
     @FormUrlEncoded
-    @POST("access_token")
+    @POST("login/oauth/access_token")
     @Headers("Accept: application/json")
     suspend fun getAccessToken(
         @Field("code") code: String,

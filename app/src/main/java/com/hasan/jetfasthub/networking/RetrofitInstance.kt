@@ -29,7 +29,13 @@ class RetrofitInstance(context: Context) {
             .client(client)
             .build()
     }
-    val api: AuthService by lazy {
+
+
+    val authService: AuthService by lazy {
         retrofit.create(AuthService::class.java)
+    }
+
+    val homeService: HomeService by lazy {
+        retrofit.create(HomeService::class.java)
     }
 }

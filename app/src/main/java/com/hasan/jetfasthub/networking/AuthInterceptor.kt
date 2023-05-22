@@ -20,7 +20,6 @@ class AuthInterceptor(private val context: Context) : Interceptor {
     private val gson = Gson()
     private val type = object : TypeToken<AccessTokenModel>() {}.type
 
-
     override fun intercept(chain: Interceptor.Chain): Response {
 
         val original = chain.request()
@@ -30,7 +29,7 @@ class AuthInterceptor(private val context: Context) : Interceptor {
 
         val refreshRequest = newRequestBuilder(
             original,
-            "Accept:",
+            "Accept: ",
             " application/json"
         )
 
