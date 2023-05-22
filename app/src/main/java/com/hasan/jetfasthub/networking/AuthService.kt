@@ -1,8 +1,9 @@
 package com.hasan.jetfasthub.networking
 
-import com.hasan.jetfasthub.networking.model.AccessTokenModel
-import com.hasan.jetfasthub.networking.model.AuthModel
+import com.hasan.jetfasthub.data.model.AccessTokenModel
+import com.hasan.jetfasthub.data.model.AuthModel
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 
 interface AuthService {
@@ -14,13 +15,13 @@ interface AuthService {
 
     @FormUrlEncoded
     @POST("access_token")
-    @Headers("Access: application/json")
-    fun getAccessToken(
+    @Headers("Accept: application/json")
+    suspend fun getAccessToken(
         @Field("code") code: String,
         @Field("client_id") clientId: String,
         @Field("client_secret") clientSecret: String,
-        @Field("state") state: String,
-        @Field("redirect_uri") redirectUrl: String
-    ) : Call<AccessTokenModel>
+//        @Field("state") state: String,
+//        @Field("redirect_uri") redirectUrl: String
+    ) : Response<AccessTokenModel>
 
 }

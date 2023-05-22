@@ -3,12 +3,11 @@ package com.hasan.jetfasthub.networking
 import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
+import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-const val BASE_URL = "https://github.com/login/oauth/"
 
 class RetrofitInstance(context: Context) {
 
@@ -25,7 +24,7 @@ class RetrofitInstance(context: Context) {
             .create()
 
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(Constants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .client(client)
             .build()

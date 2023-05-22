@@ -18,7 +18,7 @@ val basicAuthViewModelModule = module {
 }
 
 val homeViewModelModule = module {
-    viewModel{
+    viewModel {
         HomeViewModel()
     }
 }
