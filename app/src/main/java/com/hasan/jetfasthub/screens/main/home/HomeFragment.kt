@@ -5,7 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,37 +43,28 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.data.model.Resource
 import com.hasan.jetfasthub.screens.main.AppScreens
-import com.hasan.jetfasthub.screens.main.home.events.EventsViewModel
-import com.hasan.jetfasthub.screens.main.home.events.models.EventItem
-import com.hasan.jetfasthub.screens.main.home.events.models.Events
+import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import retrofit2.Response
 
 class HomeFragment : Fragment() {
 
@@ -86,6 +77,7 @@ class HomeFragment : Fragment() {
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
         val page = 1
+        homeViewModel.getReceivedEvents(token, username)
         homeViewModel.getEvents(token, username)
 
         return ComposeView(requireContext()).apply {
@@ -100,7 +92,6 @@ class HomeFragment : Fragment() {
             }
         }
     }
-
 }
 
 @Composable
@@ -136,7 +127,7 @@ private fun MainContent(
         }
     }, content = { contentPadding ->
         when (state.selectedBottomBarItem) {
-            AppScreens.Feeds -> FeedsScreen(state.eventsState)
+            AppScreens.Feeds -> FeedsScreen(state.receivedEventsState)
             AppScreens.Issues -> IssuesScreen()
             AppScreens.PullRequests -> PullRequestScreen()
         }
@@ -234,16 +225,17 @@ fun BottomNav(
     }
 }
 
-
 @Composable
 fun FeedsScreen(
-    eventsState: EventsState
+    receivedEventsState: ReceivedEventsState
 ) {
-    when (eventsState) {
+    when (receivedEventsState) {
 
-        is EventsState.Loading -> {
+        is ReceivedEventsState.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -251,9 +243,11 @@ fun FeedsScreen(
             }
         }
 
-        is EventsState.Content -> {
+        is ReceivedEventsState.Content -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -261,7 +255,7 @@ fun FeedsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    items(eventsState.events) { eventItem ->
+                    items(receivedEventsState.events) { eventItem ->
                         ItemEventCard(eventItem) {
                             Log.d("ahi3646", "FeedsScreen: click ")
                         }
@@ -270,20 +264,25 @@ fun FeedsScreen(
             }
         }
 
-        is EventsState.Error -> {
+        is ReceivedEventsState.Error -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong - ${eventsState.message}")
+                Text(text = "Something went wrong - ${receivedEventsState.message}")
             }
         }
     }
 }
 
 @Composable
-fun ItemEventCard(eventItem: EventItem, onItemClicked: (eventItem: EventItem) -> Unit) {
+fun ItemEventCard(
+    eventItem: ReceivedEventsItem,
+    onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,15 +290,13 @@ fun ItemEventCard(eventItem: EventItem, onItemClicked: (eventItem: EventItem) ->
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = { onItemClicked(eventItem) }),
         elevation = 0.dp,
-        backgroundColor = MaterialTheme.colorScheme.primaryContainer
+        backgroundColor = Color.White
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-
-            //val image: Painter = painterResource(id = eventItem.image)
 
             GlideImage(
                 imageModel = { eventItem.actor.avatar_url }, // loading a network image using an URL.
@@ -313,23 +310,13 @@ fun ItemEventCard(eventItem: EventItem, onItemClicked: (eventItem: EventItem) ->
                 )
             )
 
-//            Image(
-//                modifier = Modifier
-//                    .size(80.dp, 80.dp)
-//                    .clip(RoundedCornerShape(16.dp)),
-//                painter = image,
-//                alignment = Alignment.CenterStart,
-//                contentDescription = "",
-//                contentScale = ContentScale.Crop
-//            )
-
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
                 Text(
                     text = eventItem.actor.login,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = androidx.compose.material.MaterialTheme.colors.surface,
+                    color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1
                 )
@@ -338,7 +325,7 @@ fun ItemEventCard(eventItem: EventItem, onItemClicked: (eventItem: EventItem) ->
                 Text(
                     text = eventItem.repo.name,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = androidx.compose.material.MaterialTheme.colors.surface,
+                    color = Color.Black,
                     style = androidx.compose.material.MaterialTheme.typography.caption
                 )
 
@@ -346,7 +333,6 @@ fun ItemEventCard(eventItem: EventItem, onItemClicked: (eventItem: EventItem) ->
         }
     }
 }
-
 
 @Composable
 fun IssuesScreen() {

@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.networking
 
-import com.hasan.jetfasthub.data.model.AccessTokenModel
-import com.hasan.jetfasthub.data.model.AuthModel
+import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
+import com.hasan.jetfasthub.screens.login.model.AuthModel
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.*

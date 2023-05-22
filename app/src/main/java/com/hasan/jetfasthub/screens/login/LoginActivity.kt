@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.data.model.AccessTokenModel
-import com.hasan.jetfasthub.data.model.Resource
+import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.main.AppActivity
 import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -70,6 +70,7 @@ class LoginActivity : AppCompatActivity(R.layout.activity_login) {
                     navigateToMainScreen()
                 }
             }
+
             is Resource.DataError -> {
                 //binding.progressBar.visibility = View.GONE
                 Toast.makeText(

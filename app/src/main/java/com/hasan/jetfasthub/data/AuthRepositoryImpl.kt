@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
-import com.hasan.jetfasthub.data.model.AccessTokenModel
+import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Response
 
