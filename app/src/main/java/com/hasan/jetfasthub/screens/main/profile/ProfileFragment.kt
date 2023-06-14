@@ -78,6 +78,7 @@ class ProfileFragment : Fragment() {
         Log.d("ahi3646", "onCreateView: $login ")
 
         val token = PreferenceHelper.getToken(requireContext())
+        Log.d("ahi3646", "onCreateView: token - $token")
         val username = login
         profileViewModel.getUser(token, username)
 

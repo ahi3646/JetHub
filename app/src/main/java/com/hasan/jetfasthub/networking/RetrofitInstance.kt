@@ -30,7 +30,6 @@ class RetrofitInstance(context: Context) {
             .build()
     }
 
-
     val authService: AuthService by lazy {
         retrofit.create(AuthService::class.java)
     }

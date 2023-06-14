@@ -15,9 +15,10 @@ class AuthRepositoryImpl(private val context: Context) : AuthRepository {
 
     override suspend fun getAccessToken(code: String): Response<AccessTokenModel> {
         return RetrofitInstance(context).authService.getAccessToken(
-            code = code,
             Constants.CLIENT_ID,
             Constants.CLIENT_SECRET,
+            code = code,
+            Constants.REDIRECT_URL
 //                GitHubHelper.STATE,
 //                GitHubHelper.REDIRECT_URL
         )
