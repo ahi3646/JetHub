@@ -199,7 +199,6 @@ private fun MainContent(
                     textAlign = TextAlign.Center
                 )
             }
-
         }
     }
 }
