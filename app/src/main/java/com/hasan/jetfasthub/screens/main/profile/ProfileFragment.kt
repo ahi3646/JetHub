@@ -60,6 +60,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.skydoves.landscapist.ImageOptions
@@ -74,12 +76,11 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val login = arguments?.getString("login") ?: ""
-        Log.d("ahi3646", "onCreateView: $login ")
-
+        val username = arguments?.getString("username") ?: ""
+        Log.d("ahi3646", "onCreateView: $username ")
         val token = PreferenceHelper.getToken(requireContext())
         Log.d("ahi3646", "onCreateView: token - $token")
-        val username = login
+
         profileViewModel.getUser(token, username)
 
         return ComposeView(requireContext()).apply {
@@ -87,7 +88,8 @@ class ProfileFragment : Fragment() {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
-                        state
+                        state = state,
+                        onNavigate = { dest -> findNavController().navigate(dest) }
                     )
                 }
             }
@@ -96,7 +98,9 @@ class ProfileFragment : Fragment() {
 }
 
 @Composable
-private fun TopAppBarContent() {
+private fun TopAppBarContent(
+    onBackPressed: (Int) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -104,7 +108,10 @@ private fun TopAppBarContent() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = {}) {
+        IconButton(onClick = {
+
+            onBackPressed(R.id.action_profileFragment_to_homeFragment)
+        }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
 
@@ -129,7 +136,10 @@ private fun TopAppBarContent() {
 }
 
 @Composable
-private fun MainContent(state: ProfileScreenState) {
+private fun MainContent(
+    state: ProfileScreenState,
+    onNavigate: (Int) -> Unit,
+) {
     val scaffoldState = rememberScaffoldState()
 
     Scaffold(
@@ -139,7 +149,7 @@ private fun MainContent(state: ProfileScreenState) {
                 backgroundColor = Color.White,
                 elevation = 0.dp,
                 content = {
-                    TopAppBarContent()
+                    TopAppBarContent(onNavigate)
                 },
             )
         },

@@ -58,7 +58,6 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.AppScreens
 import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.skydoves.landscapist.ImageOptions
@@ -86,10 +85,10 @@ class HomeFragment : Fragment() {
                     MainContent(
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
-                        onNavigate = { login ->
+                        onNavigate = { username ->
                             val bundle = Bundle()
-                            bundle.putString("login", login)
-                            findNavController().navigate(R.id.profileFragment, bundle)
+                            bundle.putString("username", username)
+                            findNavController().navigate(R.id.action_homeFragment_to_profileFragment, bundle)
                         }
                     )
                 }

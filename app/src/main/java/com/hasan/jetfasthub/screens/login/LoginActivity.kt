@@ -67,7 +67,6 @@ class LoginActivity : AppCompatActivity(R.layout.activity_login) {
                 status.data.let { it ->
                     val token = it?.body()?.access_token.toString()
                     PreferenceHelper.saveToken(this, token)
-
                     navigateToMainScreen()
                 }
             }
@@ -84,7 +83,6 @@ class LoginActivity : AppCompatActivity(R.layout.activity_login) {
     }
 
     private fun navigateToMainScreen() {
-
         Intent(this, AppActivity::class.java).also { intent ->
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)

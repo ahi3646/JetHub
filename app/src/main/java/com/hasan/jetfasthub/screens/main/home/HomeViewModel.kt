@@ -3,7 +3,6 @@ package com.hasan.jetfasthub.screens.main.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.HomeRepository
-import com.hasan.jetfasthub.screens.main.AppScreens
 import com.hasan.jetfasthub.screens.main.home.events.models.Events
 import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEvents
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,6 +68,12 @@ data class HomeScreenState(
     val eventsState: EventsState = EventsState.Loading,
     val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading
 )
+
+sealed interface AppScreens {
+    object Feeds: AppScreens
+    object Issues: AppScreens
+    object PullRequests: AppScreens
+}
 
 sealed interface EventsState {
     object Loading : EventsState

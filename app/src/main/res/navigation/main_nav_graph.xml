@@ -10,12 +10,20 @@
         android:label="JetHub" >
         <action
             android:id="@+id/action_homeFragment_to_profileFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/homeFragment"
             app:destination="@id/profileFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.hasan.jetfasthub.screens.main.profile.ProfileFragment"
-        android:label="ProfileFragment" />
+        android:label="ProfileFragment" >
+        <action
+            android:id="@+id/action_profileFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>
