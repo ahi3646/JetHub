@@ -5,7 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Card
@@ -51,8 +54,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -88,7 +93,10 @@ class HomeFragment : Fragment() {
                         onNavigate = { username ->
                             val bundle = Bundle()
                             bundle.putString("username", username)
-                            findNavController().navigate(R.id.action_homeFragment_to_profileFragment, bundle)
+                            findNavController().navigate(
+                                R.id.action_homeFragment_to_profileFragment,
+                                bundle
+                            )
                         }
                     )
                 }
@@ -124,14 +132,7 @@ private fun MainContent(
                 onBottomBarItemSelected = onBottomBarItemSelected,
             )
         }, drawerContent = {
-            ModalDrawerSheet {
-                Text("Drawer title", modifier = Modifier.padding(16.dp))
-                Divider()
-                NavigationDrawerItem(label = { Text(text = "Drawer Item") },
-                    selected = false,
-                    onClick = { /*TODO*/ })
-                // ...other drawer items
-            }
+            DrawerContent()
         }, content = { contentPadding ->
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
@@ -143,6 +144,45 @@ private fun MainContent(
                 AppScreens.PullRequests -> PullRequestScreen()
             }
         })
+}
+
+@Composable
+private fun DrawerContent() {
+    ModalDrawerSheet {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Image(
+                painterResource(id = R.drawable.baseline_account_circle_24),
+                contentDescription = "avatar picture",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape)
+            )
+
+            Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.Start) {
+                Text("Hasan", modifier = Modifier.padding(start = 16.dp))
+                Text("HasanAnorov",  modifier = Modifier.padding(start = 16.dp) )
+            }
+        }
+        Divider()
+        NavigationDrawerItem(label = { Text(text = "Drawer Item") },
+            selected = false,
+            onClick = { /*TODO*/ })
+        // ...other drawer items
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDrawerContent() {
+    DrawerContent()
 }
 
 @Composable
