@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,15 +39,19 @@ import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Tab
+import androidx.compose.material.TabRow
+import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +64,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
@@ -146,6 +152,7 @@ private fun MainContent(
         })
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DrawerContent() {
     ModalDrawerSheet {
@@ -166,16 +173,90 @@ private fun DrawerContent() {
                     .border(2.dp, Color.Gray, CircleShape)
             )
 
-            Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.Start) {
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text("Hasan", modifier = Modifier.padding(start = 16.dp))
-                Text("HasanAnorov",  modifier = Modifier.padding(start = 16.dp) )
+                Text("HasanAnorov", modifier = Modifier.padding(start = 16.dp))
             }
         }
+
+        TabScreen()
+    }
+}
+
+
+@Composable
+fun TabScreen() {
+
+    var tabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("MENU", "PROFILE")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        TabRow(
+            selectedTabIndex = tabIndex,
+            backgroundColor = Color.Transparent,
+            contentColor = Color.Blue
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    text = {
+                        if (tabIndex == index) {
+                            Text(title, color = Color.Blue)
+                        } else {
+                            Text(title, color = Color.Black)
+                        }
+                    },
+                    selected = tabIndex == index,
+                    onClick = { tabIndex = index },
+                )
+            }
+        }
+        when (tabIndex) {
+            0 -> MenuScreen()
+            1 -> ProfileScreen()
+        }
+    }
+
+}
+
+@Composable
+fun MenuScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth(1F)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_home_24),
+                contentDescription = "home icon",
+                modifier = Modifier.padding(start = 32.dp, top = 14.dp, bottom = 14.dp)
+            )
+            Text(
+                text = "Home",
+                modifier = Modifier.padding(start = 24.dp, top = 14.dp, bottom = 14.dp),
+                fontSize = 16.sp
+            )
+        }
+
         Divider()
-        NavigationDrawerItem(label = { Text(text = "Drawer Item") },
-            selected = false,
-            onClick = { /*TODO*/ })
-        // ...other drawer items
+    }
+}
+
+@Composable
+fun ProfileScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PROFILE")
     }
 }
 

@@ -37,7 +37,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.3'
+        kotlinCompilerExtensionVersion '1.4.0'
     }
     packagingOptions {
         resources {
@@ -50,9 +50,6 @@ android {
 }
 
 dependencies {
-
-    //tablayout official api
-    implementation 'androidx.compose.foundation:foundation:1.6.0-alpha01'
 
     //tablayout
     implementation 'com.google.accompanist:accompanist-pager:0.13.0'
