@@ -93,18 +93,15 @@ class HomeFragment : Fragment() {
             setContent {
                 val state by homeViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(
-                        state = state,
+                    MainContent(state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { username ->
                             val bundle = Bundle()
                             bundle.putString("username", username)
                             findNavController().navigate(
-                                R.id.action_homeFragment_to_profileFragment,
-                                bundle
+                                R.id.action_homeFragment_to_profileFragment, bundle
                             )
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -120,39 +117,34 @@ private fun MainContent(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            TopAppBar(
-                backgroundColor = Color.White,
-                content = {
-                    TopAppBarContent(scaffoldState, scope)
-                },
+    Scaffold(scaffoldState = scaffoldState, topBar = {
+        TopAppBar(
+            backgroundColor = Color.White,
+            content = {
+                TopAppBarContent(scaffoldState, scope)
+            },
+        )
+    }, bottomBar = {
+        BottomNav(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            onBottomBarItemSelected = onBottomBarItemSelected,
+        )
+    }, drawerContent = {
+        DrawerContent()
+    }, content = { contentPadding ->
+        when (state.selectedBottomBarItem) {
+            AppScreens.Feeds -> FeedsScreen(
+                state.receivedEventsState, onNavigate
             )
-        },
-        bottomBar = {
-            BottomNav(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp),
-                onBottomBarItemSelected = onBottomBarItemSelected,
-            )
-        }, drawerContent = {
-            DrawerContent()
-        }, content = { contentPadding ->
-            when (state.selectedBottomBarItem) {
-                AppScreens.Feeds -> FeedsScreen(
-                    state.receivedEventsState,
-                    onNavigate
-                )
 
-                AppScreens.Issues -> IssuesScreen()
-                AppScreens.PullRequests -> PullRequestScreen()
-            }
-        })
+            AppScreens.Issues -> IssuesScreen()
+            AppScreens.PullRequests -> PullRequestScreen()
+        }
+    })
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DrawerContent() {
     ModalDrawerSheet {
@@ -161,7 +153,7 @@ private fun DrawerContent() {
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp)
         ) {
             Image(
                 painterResource(id = R.drawable.baseline_account_circle_24),
@@ -175,10 +167,11 @@ private fun DrawerContent() {
 
             Column(
                 verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.padding(start = 24.dp)
             ) {
-                Text("Hasan", modifier = Modifier.padding(start = 16.dp))
-                Text("HasanAnorov", modifier = Modifier.padding(start = 16.dp))
+                Text("Hasan")
+                Text("HasanAnorov")
             }
         }
 
@@ -218,7 +211,6 @@ fun TabScreen() {
             1 -> ProfileScreen()
         }
     }
-
 }
 
 @Composable
@@ -228,24 +220,215 @@ fun MenuScreen() {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.fillMaxWidth(1F)
-        ) {
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_home_24),
                 contentDescription = "home icon",
-                modifier = Modifier.padding(start = 32.dp, top = 14.dp, bottom = 14.dp)
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
             )
             Text(
                 text = "Home",
-                modifier = Modifier.padding(start = 24.dp, top = 14.dp, bottom = 14.dp),
-                fontSize = 16.sp
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+        Divider()
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_person_24),
+                contentDescription = "Profile icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Profile",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_people_alt_24),
+                contentDescription = "Organizations icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Organizations",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_notifications_24),
+                contentDescription = "Notifications icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Notifications",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
             )
         }
 
         Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_bookmark_24),
+                contentDescription = "Pinned icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Pinned",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_trending_up_24),
+                contentDescription = "Trending icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Trending",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 4.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_code_24),
+                contentDescription = "Gists icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Gists",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_fasthub_mascot),
+                contentDescription = "JetHub icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "JetHub",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_info_24),
+                contentDescription = "FAQ icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "FAQ",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_settings_24),
+                contentDescription = "Setting icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Setting",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_money),
+                contentDescription = "Restore Purchases icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Restore Purchases",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 2.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_info_24),
+                contentDescription = "About icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "About",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+            )
+        }
     }
 }
 
@@ -253,10 +436,106 @@ fun MenuScreen() {
 fun ProfileScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(text = "PROFILE")
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_logout),
+                contentDescription = "Logout icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Logout",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+
+        Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "Add Account icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Add Account",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+
+        Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_book_24),
+                contentDescription = "Repositories icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Repositories",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+
+        Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_star_24),
+                contentDescription = "Starred icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Starred",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
+
+        Divider()
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth(1F)
+                .padding(top = 4.dp, bottom = 2.dp)
+                .clickable { }) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
+                contentDescription = "Pinned icon",
+                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+            )
+            Text(
+                text = "Pinned",
+                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                fontSize = 16.sp,
+            )
+        }
     }
 }
 
@@ -359,8 +638,7 @@ fun BottomNav(
 
 @Composable
 fun FeedsScreen(
-    receivedEventsState: ReceivedEventsState,
-    onNavigate: (String) -> Unit
+    receivedEventsState: ReceivedEventsState, onNavigate: (String) -> Unit
 ) {
     when (receivedEventsState) {
 
@@ -385,8 +663,7 @@ fun FeedsScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp)
+                    modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)
                 ) {
                     items(receivedEventsState.events) { eventItem ->
                         ItemEventCard(eventItem) {
@@ -413,8 +690,7 @@ fun FeedsScreen(
 
 @Composable
 fun ItemEventCard(
-    eventItem: ReceivedEventsItem,
-    onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
+    eventItem: ReceivedEventsItem, onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
 ) {
     Card(
         modifier = Modifier
