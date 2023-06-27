@@ -1,6 +1,5 @@
 package com.hasan.jetfasthub.di
 
-import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
@@ -13,7 +12,7 @@ import com.hasan.jetfasthub.data.HomeRepositoryImpl
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
-import com.hasan.jetfasthub.networking.AuthService
+import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
 import com.hasan.jetfasthub.utility.Constants
@@ -24,6 +23,7 @@ import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 
 val appModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -43,12 +43,12 @@ val networkModule = module {
             HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
         )
     }
-    factory { provideAuthService(get()) }
+    factory { provideGitHubService(get()) }
     single { provideRetrofit(get()) }
 }
 
-fun provideAuthService(retrofit: Retrofit) : AuthService{
-    return retrofit.create(AuthService::class.java)
+fun provideGitHubService(retrofit: Retrofit) : GitHubService{
+    return retrofit.create(GitHubService::class.java)
 }
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {

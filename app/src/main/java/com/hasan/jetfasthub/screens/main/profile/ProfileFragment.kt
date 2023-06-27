@@ -98,6 +98,29 @@ class ProfileFragment : Fragment() {
 }
 
 @Composable
+private fun MainContent(
+    state: ProfileScreenState,
+    onNavigate: (Int) -> Unit,
+) {
+    val scaffoldState = rememberScaffoldState()
+
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                backgroundColor = Color.White,
+                elevation = 0.dp,
+                content = {
+                    TopAppBarContent(onNavigate)
+                },
+            )
+        },
+    ) { contentPadding ->
+        TabScreen(state.userScreenState)
+    }
+}
+
+@Composable
 private fun TopAppBarContent(
     onBackPressed: (Int) -> Unit
 ) {
@@ -135,28 +158,6 @@ private fun TopAppBarContent(
     }
 }
 
-@Composable
-private fun MainContent(
-    state: ProfileScreenState,
-    onNavigate: (Int) -> Unit,
-) {
-    val scaffoldState = rememberScaffoldState()
-
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            TopAppBar(
-                backgroundColor = Color.White,
-                elevation = 0.dp,
-                content = {
-                    TopAppBarContent(onNavigate)
-                },
-            )
-        },
-    ) { contentPadding ->
-        TabScreen(state.userScreenState)
-    }
-}
 
 @Composable
 fun TabScreen(userScreenState: UserScreenState) {
@@ -190,7 +191,6 @@ fun TabScreen(userScreenState: UserScreenState) {
 
 @Composable
 fun OverviewScreen(userScreenState: UserScreenState) {
-
     when (userScreenState) {
         is UserScreenState.Loading -> {
             Column(

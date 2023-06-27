@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.screens.main.home.events.models.Events
 import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEvents
+import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
+import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,12 +25,28 @@ class HomeViewModel(
         }
     }
 
+    fun getUser(token: String, username: String){
+        viewModelScope.launch {
+            repository.getUser(token, username).let { gitHubUser ->
+                if(gitHubUser.isSuccessful){
+                    _state.update {
+                        it.copy( user = Resource.Success(gitHubUser.body()!!))
+                    }
+                }else{
+                    _state.update {
+                        it.copy( user = Resource.DataError(gitHubUser.errorBody().toString()))
+                    }
+                }
+            }
+        }
+    }
+
     fun getReceivedEvents(token: String, username: String) {
         viewModelScope.launch {
             repository.getReceivedUserEvents(token, username).let { receivedEvents ->
                 if (receivedEvents.isSuccessful) {
                     _state.update {
-                        it.copy(receivedEventsState = ReceivedEventsState.Content(receivedEvents.body()!!))
+                        it.copy(receivedEventsState = ReceivedEventsState.Success(receivedEvents.body()!!))
                     }
                 } else {
                     _state.update {
@@ -42,30 +60,11 @@ class HomeViewModel(
             }
         }
     }
-
-    fun getEvents(token: String, username: String) {
-        viewModelScope.launch {
-            repository.getUserEvents(
-                token = token,
-                username = username
-            ).let { events ->
-                if (events.isSuccessful) {
-                    _state.update {
-                        it.copy(eventsState = EventsState.Content(events.body()!!))
-                    }
-                } else {
-                    _state.update {
-                        it.copy(eventsState = EventsState.Error(events.errorBody().toString()))
-                    }
-                }
-            }
-        }
-    }
 }
 
 data class HomeScreenState(
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
-    val eventsState: EventsState = EventsState.Loading,
+    val user : Resource<GitHubUser> = Resource.Loading(),
     val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading
 )
 
@@ -75,14 +74,14 @@ sealed interface AppScreens {
     object PullRequests: AppScreens
 }
 
-sealed interface EventsState {
-    object Loading : EventsState
-    data class Content(val events: Events) : EventsState
-    data class Error(val message: String) : EventsState
+sealed interface GitHubUserState{
+    object Loading: GitHubUserState
+    data class Success(val user: GitHubUser): GitHubUserState
+    data class Error(val message: String) : GitHubUserState
 }
 
 sealed interface ReceivedEventsState {
     object Loading : ReceivedEventsState
-    data class Content(val events: ReceivedEvents) : ReceivedEventsState
+    data class Success(val events: ReceivedEvents) : ReceivedEventsState
     data class Error(val message: String) : ReceivedEventsState
 }

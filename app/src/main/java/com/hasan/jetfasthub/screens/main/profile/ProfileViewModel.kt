@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
+import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,7 +44,7 @@ data class ProfileScreenState(
 sealed interface UserScreenState {
 
     object Loading : UserScreenState
-    data class Content(val user: User) : UserScreenState
+    data class Content(val user: GitHubUser) : UserScreenState
     data class Error(val message: String) : UserScreenState
 
 }

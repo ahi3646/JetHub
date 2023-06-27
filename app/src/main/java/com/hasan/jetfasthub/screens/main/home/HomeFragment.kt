@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,7 +61,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -70,9 +68,12 @@ import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEventsItem
+import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import com.skydoves.landscapist.glide.GlideImageState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -87,6 +88,8 @@ class HomeFragment : Fragment() {
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
+
+        homeViewModel.getUser(token, username)
         homeViewModel.getReceivedEvents(token, username)
 
         return ComposeView(requireContext()).apply {
@@ -117,36 +120,260 @@ private fun MainContent(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    Scaffold(scaffoldState = scaffoldState, topBar = {
-        TopAppBar(
-            backgroundColor = Color.White,
-            content = {
-                TopAppBarContent(scaffoldState, scope)
-            },
-        )
-    }, bottomBar = {
-        BottomNav(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            onBottomBarItemSelected = onBottomBarItemSelected,
-        )
-    }, drawerContent = {
-        DrawerContent()
-    }, content = { contentPadding ->
-        when (state.selectedBottomBarItem) {
-            AppScreens.Feeds -> FeedsScreen(
-                state.receivedEventsState, onNavigate
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                backgroundColor = Color.White,
+                content = {
+                    TopAppBarContent(scaffoldState, scope)
+                },
             )
+        },
+        bottomBar = {
+            BottomNav(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
+                onBottomBarItemSelected = onBottomBarItemSelected,
+            )
+        },
+        drawerContent = { DrawerContent(state.user) },
+        content = { contentPadding ->
+            when (state.selectedBottomBarItem) {
+                AppScreens.Feeds -> FeedsScreen(state.receivedEventsState, onNavigate)
+                AppScreens.Issues -> IssuesScreen()
+                AppScreens.PullRequests -> PullRequestScreen()
+            }
+        })
+}
 
-            AppScreens.Issues -> IssuesScreen()
-            AppScreens.PullRequests -> PullRequestScreen()
+
+@Composable
+private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(onClick = {
+            scope.launch {
+                state.drawerState.apply {
+                    if (isClosed) open() else close()
+                }
+            }
+            Log.d("ahi3646", "TopAppBarContent:${state.drawerState.currentValue} ")
+        }) {
+            Icon(Icons.Rounded.Menu, contentDescription = "Localized description")
         }
-    })
+
+        Text(
+            color = Color.Black,
+            modifier = Modifier
+                .weight(1F)
+                .padding(start = 10.dp, end = 10.dp),
+            text = "JetHub",
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        IconButton(onClick = { }) {
+            Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
+        }
+
+        IconButton(onClick = { }) {
+            Icon(Icons.Rounded.Search, contentDescription = "Search")
+        }
+
+    }
+}
+
+
+@Composable
+fun BottomNav(
+    modifier: Modifier,
+    onBottomBarItemSelected: (AppScreens) -> Unit,
+) {
+    Surface(elevation = 16.dp) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            BottomAppBar(containerColor = Color.White) {
+                BottomNavigationItem(
+                    icon = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_github),
+                            contentDescription = "Feed Screen"
+                        )
+                    },
+                    label = { Text("Feeds") },
+                    selected = false,
+                    onClick = { onBottomBarItemSelected(AppScreens.Feeds) },
+                )
+
+                BottomNavigationItem(
+                    icon = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
+                            contentDescription = "Issues Screen"
+                        )
+                    },
+                    label = { Text("Issues") },
+                    selected = false,
+                    onClick = { onBottomBarItemSelected(AppScreens.Issues) },
+                )
+
+                BottomNavigationItem(
+                    icon = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
+                            contentDescription = "PullRequest Screen"
+                        )
+                    },
+                    label = { Text("Pull Requests") },
+                    selected = false,
+                    onClick = { onBottomBarItemSelected(AppScreens.PullRequests) },
+                )
+            }
+        }
+    }
 }
 
 @Composable
-private fun DrawerContent() {
+fun FeedsScreen(
+    receivedEventsState: ReceivedEventsState, onNavigate: (String) -> Unit
+) {
+    when (receivedEventsState) {
+
+        is ReceivedEventsState.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is ReceivedEventsState.Success -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)
+                ) {
+                    items(receivedEventsState.events) { eventItem ->
+                        ItemEventCard(eventItem) {
+                            onNavigate(eventItem.actor.login)
+                        }
+                    }
+                }
+            }
+        }
+
+        is ReceivedEventsState.Error -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong - ${receivedEventsState.message}")
+            }
+        }
+    }
+}
+
+@Composable
+fun IssuesScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Issues Screen")
+    }
+}
+
+@Composable
+fun PullRequestScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PullScreen Screen")
+    }
+}
+
+
+// events item card
+@Composable
+fun ItemEventCard(
+    eventItem: ReceivedEventsItem, onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = { onItemClicked(eventItem) }),
+        elevation = 0.dp,
+        backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            GlideImage(
+                imageModel = { eventItem.actor.avatar_url }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(80.dp, 80.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = eventItem.actor.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = eventItem.repo.name,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.caption
+                )
+            }
+        }
+    }
+}
+
+
+//things related to drawer content
+@Composable
+private fun DrawerContent(user: Resource<GitHubUser>) {
     ModalDrawerSheet {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -155,14 +382,16 @@ private fun DrawerContent() {
                 .fillMaxWidth()
                 .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp)
         ) {
-            Image(
-                painterResource(id = R.drawable.baseline_account_circle_24),
-                contentDescription = "avatar picture",
-                contentScale = ContentScale.Crop,
+            GlideImage(
+                imageModel = { user.data?.avatar_url },
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .border(2.dp, Color.Gray, CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape),
+                imageOptions = ImageOptions(
+                    contentDescription = "avatar picture",
+                    contentScale = ContentScale.Crop,
+                )
             )
 
             Column(
@@ -170,15 +399,14 @@ private fun DrawerContent() {
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier.padding(start = 24.dp)
             ) {
-                Text("Hasan")
-                Text("HasanAnorov")
+                Text(user.data?.name.toString())
+                Text(user.data?.login.toString())
             }
         }
 
         TabScreen()
     }
 }
-
 
 @Composable
 fun TabScreen() {
@@ -536,230 +764,5 @@ fun ProfileScreen() {
                 fontSize = 16.sp,
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun PreviewDrawerContent() {
-    DrawerContent()
-}
-
-@Composable
-private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
-    Row(
-        modifier = Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(onClick = {
-            scope.launch {
-                state.drawerState.apply {
-                    if (isClosed) open() else close()
-                }
-            }
-            Log.d("ahi3646", "TopAppBarContent:${state.drawerState.currentValue} ")
-        }) {
-            Icon(Icons.Rounded.Menu, contentDescription = "Localized description")
-        }
-
-        Text(
-            color = Color.Black,
-            modifier = Modifier
-                .weight(1F)
-                .padding(start = 10.dp, end = 10.dp),
-            text = "JetHub",
-            style = MaterialTheme.typography.titleLarge,
-        )
-
-        IconButton(onClick = { }) {
-            Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
-        }
-
-        IconButton(onClick = { }) {
-            Icon(Icons.Rounded.Search, contentDescription = "Notification")
-        }
-
-    }
-}
-
-@Composable
-fun BottomNav(
-    modifier: Modifier,
-    onBottomBarItemSelected: (AppScreens) -> Unit,
-) {
-    Surface(elevation = 16.dp) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            BottomAppBar(containerColor = Color.White) {
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_github),
-                            contentDescription = "Feed Screen"
-                        )
-                    },
-                    label = { Text("Feeds") },
-                    selected = false,
-                    onClick = { onBottomBarItemSelected(AppScreens.Feeds) },
-                )
-
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                            contentDescription = "Issues Screen"
-                        )
-                    },
-                    label = { Text("Issues") },
-                    selected = false,
-                    onClick = { onBottomBarItemSelected(AppScreens.Issues) },
-                )
-
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                            contentDescription = "PullRequest Screen"
-                        )
-                    },
-                    label = { Text("Pull Requests") },
-                    selected = false,
-                    onClick = { onBottomBarItemSelected(AppScreens.PullRequests) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun FeedsScreen(
-    receivedEventsState: ReceivedEventsState, onNavigate: (String) -> Unit
-) {
-    when (receivedEventsState) {
-
-        is ReceivedEventsState.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...")
-            }
-        }
-
-        is ReceivedEventsState.Content -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)
-                ) {
-                    items(receivedEventsState.events) { eventItem ->
-                        ItemEventCard(eventItem) {
-                            onNavigate(eventItem.actor.login)
-                        }
-                    }
-                }
-            }
-        }
-
-        is ReceivedEventsState.Error -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong - ${receivedEventsState.message}")
-            }
-        }
-    }
-}
-
-@Composable
-fun ItemEventCard(
-    eventItem: ReceivedEventsItem, onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = { onItemClicked(eventItem) }),
-        elevation = 0.dp,
-        backgroundColor = Color.White
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-
-            GlideImage(
-                imageModel = { eventItem.actor.avatar_url }, // loading a network image using an URL.
-                modifier = Modifier
-                    .size(80.dp, 80.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.CenterStart,
-                    contentDescription = "Actor Avatar"
-                )
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-                Text(
-                    text = eventItem.actor.login,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    style = androidx.compose.material.MaterialTheme.typography.subtitle1
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = eventItem.repo.name,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    style = androidx.compose.material.MaterialTheme.typography.caption
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun IssuesScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Issues Screen")
-    }
-}
-
-@Composable
-fun PullRequestScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "PullScreen Screen")
     }
 }
