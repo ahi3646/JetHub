@@ -11,9 +11,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,13 +23,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Card
-import androidx.compose.material3.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
+import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -38,12 +37,12 @@ import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Tab
-import androidx.compose.material.TabRow
-import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,8 +58,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -70,13 +74,14 @@ import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.EventsType
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.glide.GlideImageState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -123,29 +128,29 @@ private fun MainContent(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                backgroundColor = Color.White,
-                content = {
-                    TopAppBarContent(scaffoldState, scope)
-                },
-            )
-        },
+        TopAppBar(
+            backgroundColor = Color.White,
+            content = {
+                TopAppBarContent(scaffoldState, scope)
+            },
+        )
+    },
         bottomBar = {
-            BottomNav(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp),
-                onBottomBarItemSelected = onBottomBarItemSelected,
-            )
-        },
+        BottomNav(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            onBottomBarItemSelected = onBottomBarItemSelected,
+        )
+    },
         drawerContent = { DrawerContent(state.user) },
         content = { contentPadding ->
-            when (state.selectedBottomBarItem) {
-                AppScreens.Feeds -> FeedsScreen(state.receivedEventsState, onNavigate)
-                AppScreens.Issues -> IssuesScreen()
-                AppScreens.PullRequests -> PullRequestScreen()
-            }
-        })
+        when (state.selectedBottomBarItem) {
+            AppScreens.Feeds -> FeedsScreen(state.receivedEventsState, onNavigate)
+            AppScreens.Issues -> IssuesScreen()
+            AppScreens.PullRequests -> PullRequestScreen()
+        }
+    })
 }
 
 
@@ -263,17 +268,15 @@ fun FeedsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     items(receivedEventsState.events) { eventItem ->
-                        ItemEventCard(eventItem) {
-                            onNavigate(eventItem.actor.login)
-                        }
+                        ItemEventCard(eventItem) { onNavigate(eventItem.actor.login) }
                     }
                 }
             }
@@ -324,22 +327,25 @@ fun ItemEventCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = { onItemClicked(eventItem) }),
-        elevation = 0.dp,
-        backgroundColor = Color.White
+            .clickable(onClick = {
+                //onItemClicked(eventItem)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(6.dp)
         ) {
             GlideImage(
-                imageModel = { eventItem.actor.avatar_url }, // loading a network image using an URL.
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    eventItem.actor.avatar_url
+                }, // loading a network image using an URL.
                 modifier = Modifier
-                    .size(80.dp, 80.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
                 imageOptions = ImageOptions(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.CenterStart,
@@ -351,25 +357,160 @@ fun ItemEventCard(
 
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
                 Text(
-                    text = eventItem.actor.login,
+                    text = buildAnnotatedString {
+                        append(eventItem.actor.login)
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(" " + stringResource(id = chooseFromEvents(eventItem.type).action).lowercase(
+                                Locale.getDefault()
+                            ) + " ")
+                        }
+                        append(eventItem.repo.name)
+                    },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    style = androidx.compose.material.MaterialTheme.typography.subtitle1
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = eventItem.repo.name,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    style = androidx.compose.material.MaterialTheme.typography.caption
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(id = chooseFromEvents(eventItem.type).icon),
+                        contentDescription = stringResource(
+                            id = chooseFromEvents(eventItem.type).action
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "unicode-org/icu ",
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.caption,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
 }
 
+private fun chooseFromEvents(type: String): EventsType {
+    return when (type) {
+        "WatchEvent" -> {
+            EventsType.WatchEvent
+        }
+
+        "CreateEvent" -> {
+            EventsType.CreateEvent
+        }
+
+        "CommitCommentEvent" -> {
+            EventsType.CommitCommentEvent
+        }
+
+        "DownloadEvent" -> {
+            EventsType.DownloadEvent
+        }
+
+        "FollowEvent" -> {
+            EventsType.FollowEvent
+        }
+
+        "ForkEvent" -> {
+            EventsType.ForkEvent
+        }
+
+        "GistEvent" -> {
+            EventsType.GistEvent
+        }
+
+        "GollumEvent" -> {
+            EventsType.GollumEvent
+        }
+
+        "IssueCommentEvent" -> {
+            EventsType.IssueCommentEvent
+        }
+
+        "IssuesEvent" -> {
+            EventsType.IssuesEvent
+        }
+
+        "MemberEvent" -> {
+            EventsType.MemberEvent
+        }
+
+        "PublicEvent" -> {
+            EventsType.PublicEvent
+        }
+
+        "PullRequestEvent" -> {
+            EventsType.PullRequestEvent
+        }
+
+        "PullRequestReviewCommentEvent" -> {
+            EventsType.PullRequestReviewCommentEvent
+        }
+
+        "PullRequestReviewEvent" -> {
+            EventsType.PullRequestReviewEvent
+        }
+
+        "RepositoryEvent" -> {
+            EventsType.RepositoryEvent
+        }
+
+        "PushEvent" -> {
+            EventsType.PushEvent
+        }
+
+        "TeamAddEvent" -> {
+            EventsType.TeamAddEvent
+        }
+
+        "DeleteEvent" -> {
+            EventsType.DeleteEvent
+        }
+
+        "ReleaseEvent" -> {
+            EventsType.ReleaseEvent
+        }
+
+        "ForkApplyEvent" -> {
+            EventsType.ForkApplyEvent
+        }
+
+        "OrgBlockEvent" -> {
+            EventsType.OrgBlockEvent
+        }
+
+        "ProjectCardEvent" -> {
+            EventsType.ProjectCardEvent
+        }
+
+        "ProjectColumnEvent" -> {
+            EventsType.ProjectColumnEvent
+        }
+
+        "OrganizationEvent" -> {
+            EventsType.OrganizationEvent
+        }
+
+        "ProjectEvent" -> {
+            EventsType.ProjectEvent
+        }
+
+        else -> {
+            EventsType.Undefined
+        }
+    }
+}
 
 //things related to drawer content
 @Composable
@@ -383,6 +524,7 @@ private fun DrawerContent(user: Resource<GitHubUser>) {
                 .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp)
         ) {
             GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                 imageModel = { user.data?.avatar_url },
                 modifier = Modifier
                     .size(64.dp)
@@ -403,13 +545,12 @@ private fun DrawerContent(user: Resource<GitHubUser>) {
                 Text(user.data?.login.toString())
             }
         }
-
-        TabScreen()
+        DrawerTabScreen()
     }
 }
 
 @Composable
-fun TabScreen() {
+fun DrawerTabScreen() {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
@@ -435,14 +576,14 @@ fun TabScreen() {
             }
         }
         when (tabIndex) {
-            0 -> MenuScreen()
-            1 -> ProfileScreen()
+            0 -> DrawerMenuScreen()
+            1 -> DrawerProfileScreen()
         }
     }
 }
 
 @Composable
-fun MenuScreen() {
+fun DrawerMenuScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -661,7 +802,7 @@ fun MenuScreen() {
 }
 
 @Composable
-fun ProfileScreen() {
+fun DrawerProfileScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
