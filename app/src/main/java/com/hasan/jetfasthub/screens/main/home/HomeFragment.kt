@@ -75,6 +75,7 @@ import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEven
 import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.EventsType
+import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -387,7 +388,7 @@ fun ItemEventCard(
 
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "unicode-org/icu ",
+                        text = ParseDateFormat.getTimeAgo(eventItem.created_at).toString(),
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                         color = Color.Black,
                         style = androidx.compose.material.MaterialTheme.typography.caption,
