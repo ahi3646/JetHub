@@ -58,6 +58,7 @@ class NotificationsFragment : Fragment() {
         Log.d("ahi3646", "onCreateView: token - $token")
 
         notificationsViewModel.getAllNotifications(token)
+        notificationsViewModel.getJetHubNotifications(token,"enter_preferred_date")
 
         return ComposeView(requireContext()).apply {
             setContent {
