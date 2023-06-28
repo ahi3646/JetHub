@@ -17,10 +17,9 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.Date
 
 interface GitHubService {
-
-    //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
 
     @POST("authorizations")
     fun login(
@@ -38,7 +37,7 @@ interface GitHubService {
         @Field("client_secret") clientSecret: String,
         @Field("code") code: String,
         //other parameters are optional
-    ) : Response<AccessTokenModel>
+    ): Response<AccessTokenModel>
 
 
     @Headers("Accept: application/vnd.github+json")
@@ -62,6 +61,13 @@ interface GitHubService {
         @Query("all") all: Boolean,
         @Query("per_page") perPage: Int,
         @Header("Authorization") authToken: String,
+    ): Response<Notification>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("notifications")
+    suspend fun getJetHubNotification(
+        @Header("Authorization") authToken: String,
+        @Query("since") since: String
     ): Response<Notification>
 
 }

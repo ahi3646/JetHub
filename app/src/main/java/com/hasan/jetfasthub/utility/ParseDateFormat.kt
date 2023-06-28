@@ -71,7 +71,7 @@ class ParseDateFormat private constructor() {
 
         private fun getDateByDays(days: Int): String {
             val cal = Calendar.getInstance()
-            val s = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
+            val s = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             cal.add(Calendar.DAY_OF_YEAR, days)
             return s.format(Date(cal.timeInMillis))
         }

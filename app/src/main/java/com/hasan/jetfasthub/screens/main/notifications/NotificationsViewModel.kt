@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.NotificationRepository
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,11 +23,27 @@ class NotificationsViewModel(private val repository: NotificationRepository) : V
             repository.getAllNotifications(token).let { allNotifications ->
                 if (allNotifications.isSuccessful){
                     _state.update {
-                        it.copy(allNotifications = AllNotifications.Success(allNotifications.body()!!))
+                        it.copy(allNotifications = Resource.Success(allNotifications.body()!!))
                     }
                 }else{
                     _state.update {
-                        it.copy(allNotifications = AllNotifications.Failure(allNotifications.errorBody().toString()))
+                        it.copy(allNotifications = Resource.Failure(allNotifications.errorBody().toString()))
+                    }
+                }
+            }
+        }
+    }
+
+    fun getJetHubNotifications(token: String, date: String){
+        viewModelScope.launch {
+            repository.getJetHubNotifications(token, date).let { jetHubNotifications ->
+                if (jetHubNotifications.isSuccessful){
+                    _state.update {
+                        it.copy(jetHubNotifications = Resource.Success(jetHubNotifications.body()!!))
+                    }
+                }else{
+                    _state.update {
+                        it.copy(jetHubNotifications = Resource.Failure(jetHubNotifications.errorBody().toString()))
                     }
                 }
             }
@@ -36,12 +53,15 @@ class NotificationsViewModel(private val repository: NotificationRepository) : V
 
 
 data class NotificationsScreenState(
-    val allNotifications: AllNotifications = AllNotifications.Loading
+//    val allNotifications: AllNotifications = AllNotifications.Loading
+    val unreadNotifications: Resource<Notification> = Resource.Loading(),
+    val allNotifications: Resource<Notification> = Resource.Loading(),
+    val jetHubNotifications: Resource<Notification> = Resource.Loading()
 )
 
 
-sealed interface AllNotifications {
-    object Loading : AllNotifications
-    data class Success(val notification: Notification) : AllNotifications
-    data class Failure(val errorMessage: String) : AllNotifications
-}
+//sealed interface AllNotifications {
+//    object Loading : AllNotifications
+//    data class Success(val notification: Notification) : AllNotifications
+//    data class Failure(val errorMessage: String) : AllNotifications
+//}

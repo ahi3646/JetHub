@@ -39,9 +39,10 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Resource
 import org.koin.androidx.viewmodel.ext.android.viewModel
-
 
 class NotificationsFragment : Fragment() {
 
@@ -90,7 +91,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, notifications = state.allNotifications)
+        TabScreen(contentPadding, state = state)
     }
 }
 
@@ -123,7 +124,7 @@ private fun TopAppBarContent(
 }
 
 @Composable
-fun TabScreen(contentPaddingValues: PaddingValues, notifications: AllNotifications) {
+fun TabScreen(contentPaddingValues: PaddingValues, state: NotificationsScreenState) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs =
@@ -144,17 +145,17 @@ fun TabScreen(contentPaddingValues: PaddingValues, notifications: AllNotificatio
             }
         }
         when (tabIndex) {
-            0 -> Unread(notifications)
-            1 -> All(notifications)
-            2 -> JetHub(notifications)
+            0 -> Unread(state.unreadNotifications)
+            1 -> All(state.allNotifications)
+            2 -> JetHub(state.jetHubNotifications)
         }
     }
 }
 
 @Composable
-fun Unread(unreadNotifications: AllNotifications) {
+fun Unread(unreadNotifications: Resource<Notification>) {
     when (unreadNotifications) {
-        is AllNotifications.Loading -> {
+        is Resource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -166,7 +167,7 @@ fun Unread(unreadNotifications: AllNotifications) {
             }
         }
 
-        is AllNotifications.Success -> {
+        is Resource.Success -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -178,7 +179,7 @@ fun Unread(unreadNotifications: AllNotifications) {
             }
         }
 
-        is AllNotifications.Failure -> {
+        is Resource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -194,9 +195,9 @@ fun Unread(unreadNotifications: AllNotifications) {
 }
 
 @Composable
-fun All(allNotifications: AllNotifications) {
+fun All(allNotifications: Resource<Notification>) {
     when (allNotifications) {
-        is AllNotifications.Loading -> {
+        is Resource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -208,7 +209,7 @@ fun All(allNotifications: AllNotifications) {
             }
         }
 
-        is AllNotifications.Success -> {
+        is Resource.Success -> {
 
             Column(
                 modifier = Modifier
@@ -217,11 +218,11 @@ fun All(allNotifications: AllNotifications) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-
+                Text(text = "Success ...")
             }
         }
 
-        is AllNotifications.Failure -> {
+        is Resource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -237,9 +238,9 @@ fun All(allNotifications: AllNotifications) {
 }
 
 @Composable
-fun JetHub(jetHubNotifications: AllNotifications) {
+fun JetHub(jetHubNotifications: Resource<Notification>) {
     when (jetHubNotifications) {
-        is AllNotifications.Loading -> {
+        is Resource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -251,7 +252,7 @@ fun JetHub(jetHubNotifications: AllNotifications) {
             }
         }
 
-        is AllNotifications.Success -> {
+        is Resource.Success -> {
 
             Column(
                 modifier = Modifier
@@ -260,11 +261,11 @@ fun JetHub(jetHubNotifications: AllNotifications) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-
+                Text(text = "Success ...")
             }
         }
 
-        is AllNotifications.Failure -> {
+        is Resource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

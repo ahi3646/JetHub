@@ -34,7 +34,7 @@ class HomeViewModel(
                     }
                 } else {
                     _state.update {
-                        it.copy(user = Resource.DataError(gitHubUser.errorBody().toString()))
+                        it.copy(user = Resource.Failure(gitHubUser.errorBody().toString()))
                     }
                 }
             }
