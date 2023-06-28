@@ -16,9 +16,11 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface GitHubService {
 
+    //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
 
     @POST("authorizations")
     fun login(
@@ -28,11 +30,14 @@ interface GitHubService {
 
     @FormUrlEncoded
     @POST("${Constants.BASIC_AUTH_URL}login/oauth/access_token")
-    @Headers("Accept: application/json")
+    @Headers(
+        "Accept: application/json",
+    )
     suspend fun getAccessToken(
         @Field("client_id") clientId: String,
         @Field("client_secret") clientSecret: String,
         @Field("code") code: String,
+        //other parameters are optional
     ) : Response<AccessTokenModel>
 
 
@@ -52,8 +57,10 @@ interface GitHubService {
     ): Response<ReceivedEvents>
 
     @Headers("Accept: application/vnd.github+json")
-    @GET("notifications?all=true&per_page=200")
+    @GET("notifications")
     suspend fun getAllNotifications(
+        @Query("all") all: Boolean,
+        @Query("per_page") perPage: Int,
         @Header("Authorization") authToken: String,
     ): Response<Notification>
 
