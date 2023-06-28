@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -116,7 +117,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(state.userScreenState)
+        TabScreen(contentPadding, state.userScreenState)
     }
 }
 
@@ -132,7 +133,6 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-
             onBackPressed(R.id.action_profileFragment_to_homeFragment)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
@@ -160,13 +160,16 @@ private fun TopAppBarContent(
 
 
 @Composable
-fun TabScreen(userScreenState: UserScreenState) {
+fun TabScreen(contentPaddingValues: PaddingValues, userScreenState: UserScreenState) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs =
         listOf("OVERVIEW", "FEED", "REPOSITORIES", "STARRED", "GISTS", "FOLLOWERS", "FOLLOWING")
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier
+        .padding(contentPaddingValues)
+        .fillMaxWidth()
+    ) {
         ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
                 Tab(

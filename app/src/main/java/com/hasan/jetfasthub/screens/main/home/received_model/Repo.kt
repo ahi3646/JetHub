@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home.events.models
+package com.hasan.jetfasthub.screens.main.home.received_model
 
 data class Repo(
     val id: Int,

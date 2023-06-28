@@ -11,12 +11,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -71,8 +72,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEventsItem
-import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEventsItem
+import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.EventsType
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -110,7 +111,13 @@ class HomeFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_homeFragment_to_profileFragment, bundle
                             )
-                        })
+                        },
+                        onToolbarItemCLick = {destination ->
+                            findNavController().navigate(
+                                destination
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -121,7 +128,8 @@ class HomeFragment : Fragment() {
 private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    onToolbarItemCLick: (Int) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
@@ -129,34 +137,40 @@ private fun MainContent(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-        TopAppBar(
-            backgroundColor = Color.White,
-            content = {
-                TopAppBarContent(scaffoldState, scope)
-            },
-        )
-    },
-        bottomBar = {
-        BottomNav(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp),
-            onBottomBarItemSelected = onBottomBarItemSelected,
-        )
-    },
+            TopAppBar(
+                backgroundColor = Color.White,
+                content = {
+                    TopAppBarContent(scaffoldState, scope, onToolbarItemCLick )
+                },
+            )
+        },
         drawerContent = { DrawerContent(state.user) },
         content = { contentPadding ->
-        when (state.selectedBottomBarItem) {
-            AppScreens.Feeds -> FeedsScreen(state.receivedEventsState, onNavigate)
-            AppScreens.Issues -> IssuesScreen()
-            AppScreens.PullRequests -> PullRequestScreen()
-        }
-    })
+            when (state.selectedBottomBarItem) {
+                AppScreens.Feeds -> FeedsScreen(
+                    contentPadding,
+                    state.receivedEventsState,
+                    onNavigate
+                )
+                AppScreens.Issues -> IssuesScreen()
+                AppScreens.PullRequests -> PullRequestScreen()
+            }
+        },
+        bottomBar = {
+            BottomNav(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .fillMaxWidth()
+                    .height(58.dp),
+                onBottomBarItemSelected = onBottomBarItemSelected,
+            )
+        },
+    )
 }
 
 
 @Composable
-private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
+private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope, onToolbarItemCLick: (Int) -> Unit) {
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
@@ -182,7 +196,9 @@ private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope) {
             style = MaterialTheme.typography.titleLarge,
         )
 
-        IconButton(onClick = { }) {
+        IconButton(onClick = {
+            onToolbarItemCLick(R.id.action_homeFragment_to_notificationsFragment)
+        }) {
             Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
         }
 
@@ -205,7 +221,6 @@ fun BottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             BottomAppBar(containerColor = Color.White) {
                 BottomNavigationItem(
                     icon = {
@@ -249,6 +264,7 @@ fun BottomNav(
 
 @Composable
 fun FeedsScreen(
+    contentPaddingValues: PaddingValues,
     receivedEventsState: ReceivedEventsState, onNavigate: (String) -> Unit
 ) {
     when (receivedEventsState) {
@@ -257,7 +273,7 @@ fun FeedsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -266,19 +282,16 @@ fun FeedsScreen(
         }
 
         is ReceivedEventsState.Success -> {
-            Column(
+            LazyColumn(
                 modifier = Modifier
+                    .padding(contentPaddingValues)
                     .fillMaxSize()
                     .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(receivedEventsState.events) { eventItem ->
-                        ItemEventCard(eventItem) { onNavigate(eventItem.actor.login) }
-                    }
+                items(receivedEventsState.events) { eventItem ->
+                    ItemEventCard(eventItem) { onNavigate(eventItem.actor.login) }
                 }
             }
         }
@@ -329,7 +342,7 @@ fun ItemEventCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                //onItemClicked(eventItem)
+                onItemClicked(eventItem)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -361,9 +374,11 @@ fun ItemEventCard(
                     text = buildAnnotatedString {
                         append(eventItem.actor.login)
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append(" " + stringResource(id = chooseFromEvents(eventItem.type).action).lowercase(
-                                Locale.getDefault()
-                            ) + " ")
+                            append(
+                                " " + stringResource(id = chooseFromEvents(eventItem.type).action).lowercase(
+                                    Locale.getDefault()
+                                ) + " "
+                            )
                         }
                         append(eventItem.repo.name)
                     },

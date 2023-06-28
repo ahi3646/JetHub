@@ -1,9 +1,10 @@
-package com.hasan.jetfasthub.screens.main.home.events.models
+package com.hasan.jetfasthub.screens.main.home.received_model
 
-data class EventItem(
+data class ReceivedEventsItem(
     val actor: Actor,
     val created_at: String,
     val id: String,
+    val org: Org,
     val payload: Payload,
     val `public`: Boolean,
     val repo: Repo,

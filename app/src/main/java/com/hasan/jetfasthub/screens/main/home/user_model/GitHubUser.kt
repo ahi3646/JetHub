@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home.user
+package com.hasan.jetfasthub.screens.main.home.user_model
 
 data class GitHubUser(
     val avatar_url: String,

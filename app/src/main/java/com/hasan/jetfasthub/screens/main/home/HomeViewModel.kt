@@ -3,10 +3,10 @@ package com.hasan.jetfasthub.screens.main.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.HomeRepository
-import com.hasan.jetfasthub.screens.main.home.events.models.Events
-import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEvents
-import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
+import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.utility.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,16 +25,16 @@ class HomeViewModel(
         }
     }
 
-    fun getUser(token: String, username: String){
-        viewModelScope.launch {
+    fun getUser(token: String, username: String) {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getUser(token, username).let { gitHubUser ->
-                if(gitHubUser.isSuccessful){
+                if (gitHubUser.isSuccessful) {
                     _state.update {
-                        it.copy( user = Resource.Success(gitHubUser.body()!!))
+                        it.copy(user = Resource.Success(gitHubUser.body()!!))
                     }
-                }else{
+                } else {
                     _state.update {
-                        it.copy( user = Resource.DataError(gitHubUser.errorBody().toString()))
+                        it.copy(user = Resource.DataError(gitHubUser.errorBody().toString()))
                     }
                 }
             }
@@ -42,7 +42,7 @@ class HomeViewModel(
     }
 
     fun getReceivedEvents(token: String, username: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getReceivedUserEvents(token, username).let { receivedEvents ->
                 if (receivedEvents.isSuccessful) {
                     _state.update {
@@ -64,19 +64,20 @@ class HomeViewModel(
 
 data class HomeScreenState(
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
-    val user : Resource<GitHubUser> = Resource.Loading(),
+    val user: Resource<GitHubUser> = Resource.Loading(),
     val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading
 )
 
 sealed interface AppScreens {
-    object Feeds: AppScreens
-    object Issues: AppScreens
-    object PullRequests: AppScreens
+    object Feeds : AppScreens
+    object Issues : AppScreens
+    object PullRequests : AppScreens
 }
 
-sealed interface GitHubUserState{
-    object Loading: GitHubUserState
-    data class Success(val user: GitHubUser): GitHubUserState
+//you have  used Resource instead (generics)
+sealed interface GitHubUserState {
+    object Loading : GitHubUserState
+    data class Success(val user: GitHubUser) : GitHubUserState
     data class Error(val message: String) : GitHubUserState
 }
 

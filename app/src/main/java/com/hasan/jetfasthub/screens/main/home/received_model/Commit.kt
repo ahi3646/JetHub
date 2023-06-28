@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home.events.received_model
+package com.hasan.jetfasthub.screens.main.home.received_model
 
 data class Commit(
     val author: Author,

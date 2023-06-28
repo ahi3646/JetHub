@@ -3,8 +3,7 @@ package com.hasan.jetfasthub.screens.main.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
-import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
-import com.hasan.jetfasthub.screens.main.profile.model.User
+import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -35,6 +34,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             }
         }
     }
+
 }
 
 data class ProfileScreenState(

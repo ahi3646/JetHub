@@ -9,11 +9,14 @@ import com.hasan.jetfasthub.screens.login.LoginViewModel
 import com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthViewModel
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.data.HomeRepositoryImpl
+import com.hasan.jetfasthub.data.NotificationRepository
+import com.hasan.jetfasthub.data.NotificationsRepositoryImpl
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
+import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
@@ -23,7 +26,6 @@ import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 
 val appModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -79,6 +81,11 @@ val profileModule = module {
 val eventsModule = module {
     single<HomeRepository> { HomeRepositoryImpl(get()) }
     viewModel { HomeViewModel(get()) }
+}
+
+val notificationsModule = module {
+    single<NotificationRepository> { NotificationsRepositoryImpl(get()) }
+    viewModel{ NotificationsViewModel(get()) }
 }
 
 val basicAuthViewModelModule = module {

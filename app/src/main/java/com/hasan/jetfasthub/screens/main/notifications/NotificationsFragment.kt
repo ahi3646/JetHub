@@ -1,37 +1,29 @@
 package com.hasan.jetfasthub.screens.main.notifications
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,24 +38,29 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.screens.main.profile.ProfileScreenState
-import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
-import com.hasan.jetfasthub.screens.main.profile.UserScreenState
+import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+
 class NotificationsFragment : Fragment() {
 
-    private val profileViewModel: ProfileViewModel by viewModel()
+    private val notificationsViewModel: NotificationsViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        val token = PreferenceHelper.getToken(requireContext())
+        Log.d("ahi3646", "onCreateView: token - $token")
+
+        notificationsViewModel.getAllNotifications(token)
+
         return ComposeView(requireContext()).apply {
             setContent {
-                val state by profileViewModel.state.collectAsState()
+                val state by notificationsViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
                         state = state,
@@ -76,7 +73,7 @@ class NotificationsFragment : Fragment() {
 
 @Composable
 private fun MainContent(
-    state: ProfileScreenState,
+    state: NotificationsScreenState,
     onNavigate: (Int) -> Unit,
 ) {
     val scaffoldState = rememberScaffoldState()
@@ -93,7 +90,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(userScreenState = state.userScreenState )
+        TabScreen(contentPadding, notifications = state.allNotifications)
     }
 }
 
@@ -109,7 +106,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(R.id.action_profileFragment_to_homeFragment)
+            onBackPressed(R.id.action_notificationsFragment_to_homeFragment)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -126,14 +123,18 @@ private fun TopAppBarContent(
 }
 
 @Composable
-fun TabScreen(userScreenState: UserScreenState) {
+fun TabScreen(contentPaddingValues: PaddingValues, notifications: AllNotifications) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs =
         listOf("UNREAD", "ALL", "JETHUB")
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
+    Column(
+        modifier = Modifier
+            .padding(contentPaddingValues)
+            .fillMaxWidth()
+    ) {
+        TabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     text = { Text(title) },
@@ -143,21 +144,21 @@ fun TabScreen(userScreenState: UserScreenState) {
             }
         }
         when (tabIndex) {
-            0 -> Unread(userScreenState)
-            1 -> All(userScreenState)
-            2 -> JetHub(userScreenState)
+            0 -> Unread(notifications)
+            1 -> All(notifications)
+            2 -> JetHub(notifications)
         }
     }
 }
 
 @Composable
-fun Unread(userScreenState: UserScreenState) {
-    when (userScreenState) {
-        is UserScreenState.Loading -> {
+fun Unread(unreadNotifications: AllNotifications) {
+    when (unreadNotifications) {
+        is AllNotifications.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -165,7 +166,7 @@ fun Unread(userScreenState: UserScreenState) {
             }
         }
 
-        is UserScreenState.Content -> {
+        is AllNotifications.Success -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -173,74 +174,33 @@ fun Unread(userScreenState: UserScreenState) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-
+                Text(text = "Success ...")
             }
         }
 
-        is UserScreenState.Error -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong - ${userScreenState.message}")
-            }
-        }
-    }
-}
-
-@Composable
-fun All(userScreenState: UserScreenState) {
-    when (userScreenState) {
-        is UserScreenState.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...")
-            }
-        }
-
-        is UserScreenState.Content -> {
-
+        is AllNotifications.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-
-            }
-        }
-
-        is UserScreenState.Error -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong - ${userScreenState.message}")
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${unreadNotifications.errorMessage}")
             }
         }
     }
 }
 
 @Composable
-fun JetHub(userScreenState: UserScreenState) {
-    when (userScreenState) {
-        is UserScreenState.Loading -> {
+fun All(allNotifications: AllNotifications) {
+    when (allNotifications) {
+        is AllNotifications.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -248,7 +208,7 @@ fun JetHub(userScreenState: UserScreenState) {
             }
         }
 
-        is UserScreenState.Content -> {
+        is AllNotifications.Success -> {
 
             Column(
                 modifier = Modifier
@@ -261,15 +221,59 @@ fun JetHub(userScreenState: UserScreenState) {
             }
         }
 
-        is UserScreenState.Error -> {
+        is AllNotifications.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong - ${userScreenState.message}")
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${allNotifications.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+fun JetHub(jetHubNotifications: AllNotifications) {
+    when (jetHubNotifications) {
+        is AllNotifications.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is AllNotifications.Success -> {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+
+            }
+        }
+
+        is AllNotifications.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${jetHubNotifications.errorMessage}")
             }
         }
     }

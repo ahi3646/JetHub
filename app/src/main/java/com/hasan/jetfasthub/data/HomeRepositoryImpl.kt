@@ -2,9 +2,8 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
-import com.hasan.jetfasthub.screens.main.home.events.models.Events
-import com.hasan.jetfasthub.screens.main.home.events.received_model.ReceivedEvents
-import com.hasan.jetfasthub.screens.main.home.user.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
+import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import retrofit2.Response
 
 interface HomeRepository {

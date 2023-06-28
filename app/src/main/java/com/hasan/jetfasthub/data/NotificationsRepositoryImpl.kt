@@ -1,11 +1,16 @@
 package com.hasan.jetfasthub.data
 
-interface NotificationRepository{
-    fun getNotifications()
+import android.content.Context
+import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import retrofit2.Response
+
+interface NotificationRepository {
+    suspend fun getAllNotifications(token: String): Response<Notification>
 }
 
-class NotificationsRepositoryImpl: NotificationRepository {
-    override fun getNotifications() {
-        TODO("Not yet implemented")
+class NotificationsRepositoryImpl(private val context: Context) : NotificationRepository {
+    override suspend fun getAllNotifications(token: String): Response<Notification> {
+        return RetrofitInstance(context = context).gitHubService.getAllNotifications(token)
     }
 }
