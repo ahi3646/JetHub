@@ -17,7 +17,6 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-import java.util.Date
 
 interface GitHubService {
 
@@ -47,7 +46,6 @@ interface GitHubService {
         @Path("username") username: String
     ): Response<GitHubUser>
 
-
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")
     suspend fun getReceivedUserEvents(
@@ -65,7 +63,7 @@ interface GitHubService {
 
     @Headers("Accept: application/vnd.github+json")
     @GET("notifications")
-    suspend fun getJetHubNotification(
+    suspend fun getUnreadNotifications(
         @Header("Authorization") authToken: String,
         @Query("since") since: String
     ): Response<Notification>

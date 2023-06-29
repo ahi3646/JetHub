@@ -5,14 +5,18 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -34,13 +38,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import com.hasan.jetfasthub.screens.main.notifications.model.NotificationItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -58,7 +68,7 @@ class NotificationsFragment : Fragment() {
         Log.d("ahi3646", "onCreateView: token - $token")
 
         notificationsViewModel.getAllNotifications(token)
-        notificationsViewModel.getJetHubNotifications(token,"enter_preferred_date")
+        notificationsViewModel.getUnreadNotifications(token, "enter_preferred_date")
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -146,15 +156,15 @@ fun TabScreen(contentPaddingValues: PaddingValues, state: NotificationsScreenSta
             }
         }
         when (tabIndex) {
-            0 -> Unread(state.unreadNotifications)
-            1 -> All(state.allNotifications)
-            2 -> JetHub(state.jetHubNotifications)
+            0 -> UnreadNotifications(state.unreadNotifications)
+            1 -> AllNotifications(state.allNotifications)
+            2 -> JetHubNotifications(state.jetHubNotifications)
         }
     }
 }
 
 @Composable
-fun Unread(unreadNotifications: Resource<Notification>) {
+fun UnreadNotifications(unreadNotifications: Resource<Notification>) {
     when (unreadNotifications) {
         is Resource.Loading -> {
             Column(
@@ -169,14 +179,24 @@ fun Unread(unreadNotifications: Resource<Notification>) {
         }
 
         is Resource.Success -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Text(text = "Success ...")
+            if (!unreadNotifications.data!!.isEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(unreadNotifications.data!!) { notification ->
+                        UnreadNotificationsItem(notification)
+                    }
+                }
+            } else {
+                Text(
+                    text = "No news",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
 
@@ -196,7 +216,7 @@ fun Unread(unreadNotifications: Resource<Notification>) {
 }
 
 @Composable
-fun All(allNotifications: Resource<Notification>) {
+fun AllNotifications(allNotifications: Resource<Notification>) {
     when (allNotifications) {
         is Resource.Loading -> {
             Column(
@@ -212,14 +232,24 @@ fun All(allNotifications: Resource<Notification>) {
 
         is Resource.Success -> {
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Text(text = "Success ...")
+            if (!allNotifications.data!!.isEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(allNotifications.data!!) { notification ->
+                        AllNotificationsItem(notification)
+                    }
+                }
+            } else {
+                Text(
+                    text = "No news",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
 
@@ -239,7 +269,7 @@ fun All(allNotifications: Resource<Notification>) {
 }
 
 @Composable
-fun JetHub(jetHubNotifications: Resource<Notification>) {
+fun JetHubNotifications(jetHubNotifications: Resource<Notification>) {
     when (jetHubNotifications) {
         is Resource.Loading -> {
             Column(
@@ -254,7 +284,6 @@ fun JetHub(jetHubNotifications: Resource<Notification>) {
         }
 
         is Resource.Success -> {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -276,6 +305,89 @@ fun JetHub(jetHubNotifications: Resource<Notification>) {
             ) {
                 Text(text = "Something went wrong !")
                 Log.d("ahi3646", "Unread: ${jetHubNotifications.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+fun UnreadNotificationsItem(notification: NotificationItem) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .background(Color.White)
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_issues),
+            contentDescription = "issues image",
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+        )
+        Column {
+            Text(
+                text = notification.subject.title, maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = notification.repository.full_name, fontSize = 10.sp, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = ParseDateFormat.getTimeAgo(notification.updated_at).toString(),
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(end = 4.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                IconButton(onClick = { }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_done),
+                        contentDescription = "mark as read"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AllNotificationsItem(notification: NotificationItem) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .background(Color.White)
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_issues),
+            contentDescription = "issues image",
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+        )
+        Column {
+            Text(
+                text = notification.subject.title, maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = ParseDateFormat.getTimeAgo(notification.updated_at).toString(),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(4.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

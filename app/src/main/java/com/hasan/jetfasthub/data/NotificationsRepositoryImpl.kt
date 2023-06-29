@@ -6,12 +6,11 @@ import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import retrofit2.Response
-import java.util.Date
 
 interface NotificationRepository {
     suspend fun getAllNotifications(token: String): Response<Notification>
 
-    suspend fun getJetHubNotifications(token: String, since: String):Response<Notification>
+    suspend fun getUnreadNotifications(token: String, since: String):Response<Notification>
 }
 
 class NotificationsRepositoryImpl(private val context: Context) : NotificationRepository {
@@ -24,11 +23,11 @@ class NotificationsRepositoryImpl(private val context: Context) : NotificationRe
         )
     }
 
-    override suspend fun getJetHubNotifications(
+    override suspend fun getUnreadNotifications(
         token: String,
         since: String
     ): Response<Notification> {
-        return RetrofitInstance(context).gitHubService.getJetHubNotification(
+        return RetrofitInstance(context).gitHubService.getUnreadNotifications(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             since = ParseDateFormat.lastWeekDate
         )

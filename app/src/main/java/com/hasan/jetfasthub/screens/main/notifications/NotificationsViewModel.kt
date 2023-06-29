@@ -6,7 +6,6 @@ import com.hasan.jetfasthub.data.NotificationRepository
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,16 +33,16 @@ class NotificationsViewModel(private val repository: NotificationRepository) : V
         }
     }
 
-    fun getJetHubNotifications(token: String, date: String){
+    fun getUnreadNotifications(token: String, date: String){
         viewModelScope.launch {
-            repository.getJetHubNotifications(token, date).let { jetHubNotifications ->
-                if (jetHubNotifications.isSuccessful){
+            repository.getUnreadNotifications(token, date).let { unreadNotifications ->
+                if (unreadNotifications.isSuccessful){
                     _state.update {
-                        it.copy(jetHubNotifications = Resource.Success(jetHubNotifications.body()!!))
+                        it.copy(unreadNotifications = Resource.Success(unreadNotifications.body()!!))
                     }
                 }else{
                     _state.update {
-                        it.copy(jetHubNotifications = Resource.Failure(jetHubNotifications.errorBody().toString()))
+                        it.copy(unreadNotifications = Resource.Failure(unreadNotifications.errorBody().toString()))
                     }
                 }
             }
