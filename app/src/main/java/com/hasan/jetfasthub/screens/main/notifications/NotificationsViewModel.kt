@@ -54,8 +54,10 @@ class NotificationsViewModel(private val repository: NotificationRepository) : V
         viewModelScope.launch {
             repository.markAsRead(token, threadId).let { resetContent ->
                 if (resetContent.isSuccessful){
+                    getUnreadNotifications(token, "it will get a week before by default")
                     Log.d("ahi3646", "markAsRead: ${resetContent.body()} ")
                 }else{
+                    getUnreadNotifications(token, "it will get a week before by default")
                     Log.d("ahi3646", "markAsRead: ${resetContent.errorBody()} ")
                 }
             }
