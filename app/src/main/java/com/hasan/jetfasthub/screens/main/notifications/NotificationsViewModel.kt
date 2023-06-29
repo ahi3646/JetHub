@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.notifications
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.NotificationRepository
@@ -48,19 +49,24 @@ class NotificationsViewModel(private val repository: NotificationRepository) : V
             }
         }
     }
+
+    fun markAsRead(token: String, threadId: String){
+        viewModelScope.launch {
+            repository.markAsRead(token, threadId).let { resetContent ->
+                if (resetContent.isSuccessful){
+                    Log.d("ahi3646", "markAsRead: ${resetContent.body()} ")
+                }else{
+                    Log.d("ahi3646", "markAsRead: ${resetContent.errorBody()} ")
+                }
+            }
+        }
+    }
+
 }
 
 
 data class NotificationsScreenState(
-//    val allNotifications: AllNotifications = AllNotifications.Loading
     val unreadNotifications: Resource<Notification> = Resource.Loading(),
     val allNotifications: Resource<Notification> = Resource.Loading(),
     val jetHubNotifications: Resource<Notification> = Resource.Loading()
 )
-
-
-//sealed interface AllNotifications {
-//    object Loading : AllNotifications
-//    data class Success(val notification: Notification) : AllNotifications
-//    data class Failure(val errorMessage: String) : AllNotifications
-//}

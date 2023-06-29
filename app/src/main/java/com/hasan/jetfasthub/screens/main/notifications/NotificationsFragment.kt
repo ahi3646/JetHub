@@ -47,6 +47,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.di.homeViewModelModule
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.screens.main.notifications.model.NotificationItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
@@ -76,7 +77,12 @@ class NotificationsFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(
                         state = state,
-                        onNavigate = { dest -> findNavController().navigate(dest) })
+                        onNavigate = { dest -> findNavController().navigate(dest) },
+                        onRecyclerItemClick = { id ->
+                            notificationsViewModel.markAsRead(token, id)
+                            Log.d("ahi3646", "onRecyclerviewItem Click : $id ")
+                        }
+                    )
                 }
             }
         }
@@ -87,6 +93,7 @@ class NotificationsFragment : Fragment() {
 private fun MainContent(
     state: NotificationsScreenState,
     onNavigate: (Int) -> Unit,
+    onRecyclerItemClick: (String) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
 
@@ -102,7 +109,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, state = state)
+        TabScreen(contentPadding, state = state, onRecyclerItemClick)
     }
 }
 
@@ -135,7 +142,11 @@ private fun TopAppBarContent(
 }
 
 @Composable
-fun TabScreen(contentPaddingValues: PaddingValues, state: NotificationsScreenState) {
+fun TabScreen(
+    contentPaddingValues: PaddingValues,
+    state: NotificationsScreenState,
+    onRecyclerItemClick: (String) -> Unit
+) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs =
@@ -156,7 +167,7 @@ fun TabScreen(contentPaddingValues: PaddingValues, state: NotificationsScreenSta
             }
         }
         when (tabIndex) {
-            0 -> UnreadNotifications(state.unreadNotifications)
+            0 -> UnreadNotifications(state.unreadNotifications, onRecyclerItemClick)
             1 -> AllNotifications(state.allNotifications)
             2 -> JetHubNotifications(state.jetHubNotifications)
         }
@@ -164,7 +175,7 @@ fun TabScreen(contentPaddingValues: PaddingValues, state: NotificationsScreenSta
 }
 
 @Composable
-fun UnreadNotifications(unreadNotifications: Resource<Notification>) {
+fun UnreadNotifications(unreadNotifications: Resource<Notification>, markAsRead: (String) -> Unit) {
     when (unreadNotifications) {
         is Resource.Loading -> {
             Column(
@@ -187,8 +198,8 @@ fun UnreadNotifications(unreadNotifications: Resource<Notification>) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    items(unreadNotifications.data!!) { notification ->
-                        UnreadNotificationsItem(notification)
+                    items(unreadNotifications.data) { notification ->
+                        UnreadNotificationsItem(notification, markAsRead)
                     }
                 }
             } else {
@@ -311,7 +322,7 @@ fun JetHubNotifications(jetHubNotifications: Resource<Notification>) {
 }
 
 @Composable
-fun UnreadNotificationsItem(notification: NotificationItem) {
+fun UnreadNotificationsItem(notification: NotificationItem, markAsRead: (String) -> Unit) {
     Row(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.Start,
@@ -346,7 +357,7 @@ fun UnreadNotificationsItem(notification: NotificationItem) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                IconButton(onClick = { }) {
+                IconButton(onClick = { markAsRead(notification.id) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_done),
                         contentDescription = "mark as read"

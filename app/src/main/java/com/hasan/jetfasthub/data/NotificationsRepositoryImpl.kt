@@ -10,7 +10,9 @@ import retrofit2.Response
 interface NotificationRepository {
     suspend fun getAllNotifications(token: String): Response<Notification>
 
-    suspend fun getUnreadNotifications(token: String, since: String):Response<Notification>
+    suspend fun getUnreadNotifications(token: String, since: String): Response<Notification>
+
+    suspend fun markAsRead(token: String, threadId: String): Response<Int>
 }
 
 class NotificationsRepositoryImpl(private val context: Context) : NotificationRepository {
@@ -32,4 +34,12 @@ class NotificationsRepositoryImpl(private val context: Context) : NotificationRe
             since = ParseDateFormat.lastWeekDate
         )
     }
+
+    override suspend fun markAsRead(token: String, threadId: String): Response<Int> {
+        return RetrofitInstance(context).gitHubService.markAsRead(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            threadId
+        )
+    }
+
 }

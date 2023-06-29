@@ -14,6 +14,7 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -24,7 +25,6 @@ interface GitHubService {
     fun login(
         @Body authModel: AuthModel
     ): Call<AccessTokenModel>
-
 
     @FormUrlEncoded
     @POST("${Constants.BASIC_AUTH_URL}login/oauth/access_token")
@@ -67,5 +67,12 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Query("since") since: String
     ): Response<Notification>
+
+    @Headers("Accept: application/vnd.github+json")
+    @PATCH("notifications/threads/{thread_id}")
+    suspend fun markAsRead(
+        @Header("Authorization") authToken: String,
+        @Path("thread_id") threadId: String
+    ): Response<Int>
 
 }
