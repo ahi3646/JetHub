@@ -5,6 +5,7 @@ import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Call
 import retrofit2.Response
@@ -74,5 +75,13 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Path("thread_id") threadId: String
     ): Response<Int>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("search/repositories")
+    suspend fun searchRepositories(
+        @Header("Authorization") authToken: String,
+        @Query(value = "q", encoded = true) query: String,
+        @Query("page") page: Long
+    ):Response<RepositoryModel>
 
 }

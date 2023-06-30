@@ -202,14 +202,16 @@ private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope, onTool
             Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
         }
 
-        IconButton(onClick = { }) {
+        IconButton(onClick = {
+            onToolbarItemCLick(R.id.action_homeFragment_to_searchFragment)
+        }) {
             Icon(Icons.Rounded.Search, contentDescription = "Search")
         }
 
     }
 }
 
-
+//Bottom Nav stuffs
 @Composable
 fun BottomNav(
     modifier: Modifier,
