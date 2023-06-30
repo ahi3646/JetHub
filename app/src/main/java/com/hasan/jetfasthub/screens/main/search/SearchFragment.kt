@@ -5,13 +5,25 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material3.TextField
@@ -26,36 +38,68 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
+import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.FileSizeCalculator
+import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.utility.Resource
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment() {
 
+    private val viewModel: SearchViewModel by viewModel()
+
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
+        val token = PreferenceHelper.getToken(requireContext())
+        Log.d("ahi3646", "onCreateView: token - $token")
 
         return ComposeView(requireContext()).apply {
             setContent {
+                val state by viewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent()
+                    MainContent(
+                        state = state,
+                        onRepositoryClick = { username ->
+                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
+                        },
+                        onSearchClick = { query ->
+                            if (query.isEmpty() || query.length < 2)
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Enter minimum 2 characters !",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            else
+                                viewModel.searchRepositories(token, query, 1L)
+                        },
+                        onBackPressed = { dest -> findNavController().navigate(dest) }
+                    )
                 }
             }
         }
@@ -63,7 +107,12 @@ class SearchFragment : Fragment() {
 }
 
 @Composable
-fun MainContent() {
+fun MainContent(
+    state: SearchScreenState,
+    onRepositoryClick: (String) -> Unit,
+    onSearchClick: (String) -> Unit,
+    onBackPressed: (Int) -> Unit
+) {
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         scaffoldState = scaffoldState,
@@ -72,18 +121,23 @@ fun MainContent() {
                 backgroundColor = Color.White,
                 elevation = 0.dp,
                 content = {
-                    TopAppBarContent()
+                    TopAppBarContent(
+                        onBackPressed = onBackPressed, onSearchItemClick = onSearchClick
+                    )
                 },
             )
         },
-
-        ) { contentPadding ->
-        TabScreen(contentPadding)
+    ) { contentPadding ->
+        TabScreen(contentPadding, onRepositoryClick, state)
     }
 }
 
 @Composable
-fun TabScreen(contentPaddingValues: PaddingValues) {
+fun TabScreen(
+    contentPaddingValues: PaddingValues,
+    onRepositoryClick: (String) -> Unit,
+    state: SearchScreenState
+) {
     val tabs = listOf("REPOSITORIES", "USERS", "ISSUES", "CODE")
     var tabIndex by remember { mutableStateOf(0) }
     Column(
@@ -94,14 +148,28 @@ fun TabScreen(contentPaddingValues: PaddingValues) {
         ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
                 Tab(
-                    text = { Text(title) },
+                    text = {
+                        when (index) {
+                            0 -> {
+                                val count = state.Repositories.data?.total_count.toString()
+                                Log.d("ahi3646gg", "TabScreen: ${count}")
+                        if(count.isNotEmpty() || count!="null")
+                                Text("$title ($count)")
+                                else Text(title)
+                            }
+                            1 -> {Text(title)}
+                            2 -> {Text(title)}
+                            3 -> {Text(title)}
+                        }
+
+                    },
                     selected = tabIndex == index,
                     onClick = { tabIndex = index },
                 )
             }
         }
         when (tabIndex) {
-            0 -> RepositoriesContent()
+            0 -> RepositoriesContent(contentPaddingValues, state.Repositories, onRepositoryClick)
             1 -> UsersContent()
             2 -> IssuesContent()
             3 -> CodeContent()
@@ -110,8 +178,159 @@ fun TabScreen(contentPaddingValues: PaddingValues) {
 }
 
 @Composable
-fun RepositoriesContent() {
+fun RepositoriesContent(
+    contentPaddingValues: PaddingValues,
+    repositories: Resource<RepositoryModel>,
+    onNavigate: (String) -> Unit
+) {
+    when (repositories) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                items(repositories.data!!.items) { repository ->
+                    RepositoryItem(repository, onNavigate)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${repositories.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+fun RepositoryItem(
+    repository: Item, onItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked(repository.full_name)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    repository.owner.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = repository.full_name,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.stargazers_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_fork_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.forks_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_time_small),
+                        contentDescription = "time icon"
+                    )
+
+                    Text(
+                        text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_storage_small),
+                        contentDescription = "storage icon"
+                    )
+
+                    Text(
+                        text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Text(
+                        text = repository.language ?: "",
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -131,7 +350,10 @@ fun CodeContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBarContent() {
+fun TopAppBarContent(
+    onSearchItemClick: (String) -> Unit,
+    onBackPressed: (Int) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -140,7 +362,7 @@ fun TopAppBarContent() {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            //onBackPressed(R.id.action_searchFragment_to_homeFragment)
+            onBackPressed(R.id.action_searchFragment_to_homeFragment)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -174,7 +396,7 @@ fun TopAppBarContent() {
             modifier = Modifier.weight(1F)
         )
 
-        IconButton(onClick = { }) {
+        IconButton(onClick = { onSearchItemClick(text) }) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_search),
                 contentDescription = "search icon"
@@ -183,9 +405,4 @@ fun TopAppBarContent() {
     }
 }
 
-@Preview
-@Composable
-fun PreviewMainContent() {
-    MainContent()
-}
 

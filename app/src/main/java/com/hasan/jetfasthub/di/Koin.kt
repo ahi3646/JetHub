@@ -13,11 +13,14 @@ import com.hasan.jetfasthub.data.NotificationRepository
 import com.hasan.jetfasthub.data.NotificationsRepositoryImpl
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
+import com.hasan.jetfasthub.data.SearchRepository
+import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
+import com.hasan.jetfasthub.screens.main.search.SearchViewModel
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -86,6 +89,11 @@ val eventsModule = module {
 val notificationsModule = module {
     single<NotificationRepository> { NotificationsRepositoryImpl(get()) }
     viewModel{ NotificationsViewModel(get()) }
+}
+
+val searchModule = module {
+    single<SearchRepository>{SearchRepositoryImpl(get())}
+    viewModel{SearchViewModel(get())}
 }
 
 val basicAuthViewModelModule = module {

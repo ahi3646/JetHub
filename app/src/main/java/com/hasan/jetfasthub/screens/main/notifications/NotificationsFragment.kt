@@ -47,7 +47,6 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.di.homeViewModelModule
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.screens.main.notifications.model.NotificationItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
@@ -251,7 +250,7 @@ fun AllNotifications(allNotifications: Resource<Notification>) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    items(allNotifications.data!!) { notification ->
+                    items(allNotifications.data) { notification ->
                         AllNotificationsItem(notification)
                     }
                 }

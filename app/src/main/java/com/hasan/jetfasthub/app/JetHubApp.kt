@@ -7,6 +7,7 @@ import com.hasan.jetfasthub.di.eventsModule
 import com.hasan.jetfasthub.di.homeViewModelModule
 import com.hasan.jetfasthub.di.notificationsModule
 import com.hasan.jetfasthub.di.profileModule
+import com.hasan.jetfasthub.di.searchModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -23,6 +24,7 @@ class JetHubApp: Application() {
                 appModule,
                 eventsModule,
                 notificationsModule,
+                searchModule,
                 profileModule,
                 basicAuthViewModelModule,
                 homeViewModelModule
