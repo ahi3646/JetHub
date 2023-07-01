@@ -60,6 +60,8 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
+import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
+import com.hasan.jetfasthub.screens.main.search.models.users_model.UsersItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -85,8 +87,8 @@ class SearchFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(
                         state = state,
-                        onRepositoryClick = { username ->
-                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
+                        onListItemClick = { stringResource ->
+                            Toast.makeText(requireContext(), stringResource, Toast.LENGTH_SHORT).show()
                         },
                         onSearchClick = { query ->
                             if (query.isEmpty() || query.length < 2)
@@ -95,8 +97,10 @@ class SearchFragment : Fragment() {
                                     "Enter minimum 2 characters !",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                            else
+                            else{
                                 viewModel.searchRepositories(token, query, 1L)
+                                viewModel.searchUsers(token, query, 1L)
+                            }
                         },
                         onBackPressed = { dest -> findNavController().navigate(dest) }
                     )
@@ -109,7 +113,7 @@ class SearchFragment : Fragment() {
 @Composable
 fun MainContent(
     state: SearchScreenState,
-    onRepositoryClick: (String) -> Unit,
+    onListItemClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
     onBackPressed: (Int) -> Unit
 ) {
@@ -128,14 +132,14 @@ fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, onRepositoryClick, state)
+        TabScreen(contentPadding, onListItemClick, state)
     }
 }
 
 @Composable
 fun TabScreen(
     contentPaddingValues: PaddingValues,
-    onRepositoryClick: (String) -> Unit,
+    onListItemClick: (String) -> Unit,
     state: SearchScreenState
 ) {
     val tabs = listOf("REPOSITORIES", "USERS", "ISSUES", "CODE")
@@ -152,14 +156,27 @@ fun TabScreen(
                         when (index) {
                             0 -> {
                                 val count = state.Repositories.data?.total_count
-                                Log.d("ahi3646gg", "TabScreen: ${count}")
-                                if(count!=null)
-                                Text("$title ($count)")
+                                Log.d("ahi3646gg", "TabScreen: $count")
+                                if (count != null)
+                                    Text("$title ($count)")
                                 else Text(title)
                             }
-                            1 -> {Text(title)}
-                            2 -> {Text(title)}
-                            3 -> {Text(title)}
+
+                            1 -> {
+                                val count = state.Users.data?.total_count
+                                Log.d("ahi3646gg", "TabScreen: $count")
+                                if (count != null)
+                                    Text("$title ($count)")
+                                else Text(title)
+                            }
+
+                            2 -> {
+                                Text(title)
+                            }
+
+                            3 -> {
+                                Text(title)
+                            }
                         }
 
                     },
@@ -169,8 +186,13 @@ fun TabScreen(
             }
         }
         when (tabIndex) {
-            0 -> RepositoriesContent(contentPaddingValues, state.Repositories, onRepositoryClick)
-            1 -> UsersContent()
+            0 -> RepositoriesContent(contentPaddingValues, state.Repositories, onListItemClick)
+            1 -> UsersContent(
+                contentPaddingValues = contentPaddingValues,
+                onUsersItemClicked = onListItemClick,
+                users = state.Users
+            )
+
             2 -> IssuesContent()
             3 -> CodeContent()
         }
@@ -334,8 +356,102 @@ fun RepositoryItem(
 }
 
 @Composable
-fun UsersContent() {
+fun UsersContent(
+    users: Resource<UserModel>,
+    contentPaddingValues: PaddingValues,
+    onUsersItemClicked: (String) -> Unit
+) {
+    when (users) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                items(users.data!!.items) { user ->
+                    UsersItem(user, onUsersItemClicked)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${users.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+fun UsersItem(
+    userModel: UsersItem, onUsersItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onUsersItemClicked(userModel.login)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    userModel.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = userModel.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
 }
 
 @Composable

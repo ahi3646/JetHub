@@ -1,15 +1,16 @@
 package com.hasan.jetfasthub.screens.main.search
 
-import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
+import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class SearchViewModel(private val repository: SearchRepository) : ViewModel() {
 
@@ -31,8 +32,32 @@ class SearchViewModel(private val repository: SearchRepository) : ViewModel() {
             }
         }
     }
+
+    fun searchUsers(token: String, query: String, page:Long){
+        viewModelScope.launch {
+            try {
+                repository.searchUsers(token, query, page).let { userModel ->
+                    if (userModel.isSuccessful){
+                        _state.update {
+                            it.copy(Users = Resource.Success(userModel.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(Users = Resource.Failure(userModel.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(Users = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class SearchScreenState(
-    val Repositories: Resource<RepositoryModel> = Resource.Loading()
+    val Repositories: Resource<RepositoryModel> = Resource.Loading(),
+    val Users: Resource<UserModel> = Resource.Loading()
 )
