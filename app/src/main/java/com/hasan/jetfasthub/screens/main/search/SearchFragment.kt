@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -31,6 +33,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,6 +62,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeItem
+import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
@@ -91,7 +96,8 @@ class SearchFragment : Fragment() {
                     MainContent(
                         state = state,
                         onListItemClick = { stringResource ->
-                            Toast.makeText(requireContext(), stringResource, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), stringResource, Toast.LENGTH_SHORT)
+                                .show()
                         },
                         onSearchClick = { query ->
                             if (query.isEmpty() || query.length < 2)
@@ -100,10 +106,11 @@ class SearchFragment : Fragment() {
                                     "Enter minimum 2 characters !",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                            else{
+                            else {
                                 viewModel.searchRepositories(token, query, 1L)
                                 viewModel.searchUsers(token, query, 1L)
-                                viewModel.searchIssues(token,query, 1L)
+                                viewModel.searchIssues(token, query, 1L)
+                                viewModel.searchCodes(token, query, 1L)
                             }
                         },
                         onBackPressed = { dest -> findNavController().navigate(dest) }
@@ -183,7 +190,11 @@ fun TabScreen(
                             }
 
                             3 -> {
-                                Text(title)
+                                val count = state.Codes.data?.total_count
+                                Log.d("ahi3646gg", "TabScreen: $count")
+                                if (count != null)
+                                    Text("$title ($count)")
+                                else Text(title)
                             }
                         }
 
@@ -206,7 +217,12 @@ fun TabScreen(
                 onIssueItemClicked = onListItemClick,
                 issues = state.Issues
             )
-            3 -> CodeContent()
+
+            3 -> CodeContent(
+                contentPaddingValues = contentPaddingValues,
+                onCodeItemClicked = onListItemClick,
+                codes = state.Codes
+            )
         }
     }
 }
@@ -472,7 +488,7 @@ fun IssuesContent(
     contentPaddingValues: PaddingValues,
     onIssueItemClicked: (String) -> Unit
 ) {
-    when(issues){
+    when (issues) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier
@@ -484,6 +500,7 @@ fun IssuesContent(
                 Text(text = "Loading ...")
             }
         }
+
         is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier
@@ -498,6 +515,7 @@ fun IssuesContent(
                 }
             }
         }
+
         is Resource.Failure -> {
             Column(
                 modifier = Modifier
@@ -517,7 +535,7 @@ fun IssuesContent(
 @Composable
 fun IssuesItem(
     issuesItem: IssuesItem, onIssueItemClicked: (String) -> Unit
-){
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -534,9 +552,9 @@ fun IssuesItem(
             GlideImage(
                 failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                 imageModel = {
-                    if (issuesItem.state == "open"){
+                    if (issuesItem.state == "open") {
                         R.drawable.ic_issue_opened_small
-                    }else{
+                    } else {
                         R.drawable.ic_issue_closed_small
                     }
                 }, // loading a network image using an URL.
@@ -573,7 +591,7 @@ fun IssuesItem(
                     Text(
                         text = buildAnnotatedString {
                             append(issuesItem.user.login + "/")
-                            append(issuesItem.title + "#" )
+                            append(issuesItem.title + "#")
                             append(issuesItem.number.toString())
                         },
                         color = Color.Black,
@@ -584,7 +602,7 @@ fun IssuesItem(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (issuesItem.comments!=0 && issuesItem.comments>0){
+                    if (issuesItem.comments != 0 && issuesItem.comments > 0) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_comment_small),
                             contentDescription = "storage icon"
@@ -603,8 +621,103 @@ fun IssuesItem(
 }
 
 @Composable
-fun CodeContent() {
+fun CodeContent(
+    codes: Resource<CodeModel>,
+    contentPaddingValues: PaddingValues,
+    onCodeItemClicked: (String) -> Unit
+) {
+    when (codes) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(codes.data!!.items) { index, code ->
+                    CodesItem(code, onCodeItemClicked)
+                    if (index < codes.data.items.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${codes.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+fun CodesItem(
+    code: CodeItem, onCodeItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .wrapContentHeight()
+            .clickable(onClick = {
+                onCodeItemClicked(code.name)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        ) {
+
+            Text(
+                text = code.repository.full_name,
+                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                color = Color.Black,
+                style = MaterialTheme.typography.subtitle1,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = code.name,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(start = 2.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
