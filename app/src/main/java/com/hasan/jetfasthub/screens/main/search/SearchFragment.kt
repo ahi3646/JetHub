@@ -151,9 +151,9 @@ fun TabScreen(
                     text = {
                         when (index) {
                             0 -> {
-                                val count = state.Repositories.data?.total_count.toString()
+                                val count = state.Repositories.data?.total_count
                                 Log.d("ahi3646gg", "TabScreen: ${count}")
-                        if(count.isNotEmpty() || count!="null")
+                                if(count!=null)
                                 Text("$title ($count)")
                                 else Text(title)
                             }
