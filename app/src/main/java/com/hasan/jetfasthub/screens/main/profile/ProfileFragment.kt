@@ -59,6 +59,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -166,9 +167,10 @@ fun TabScreen(contentPaddingValues: PaddingValues, userScreenState: UserScreenSt
     val tabs =
         listOf("OVERVIEW", "FEED", "REPOSITORIES", "STARRED", "GISTS", "FOLLOWERS", "FOLLOWING")
 
-    Column(modifier = Modifier
-        .padding(contentPaddingValues)
-        .fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .padding(contentPaddingValues)
+            .fillMaxWidth()
     ) {
         ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
@@ -180,7 +182,10 @@ fun TabScreen(contentPaddingValues: PaddingValues, userScreenState: UserScreenSt
             }
         }
         when (tabIndex) {
-            0 -> OverviewScreen(userScreenState)
+            0 -> OverviewScreen(
+//                userScreenState
+            )
+
             1 -> FeedScreen()
             2 -> RepositoriesScreen()
             3 -> StarredScreen()
@@ -193,188 +198,347 @@ fun TabScreen(contentPaddingValues: PaddingValues, userScreenState: UserScreenSt
 }
 
 @Composable
-fun OverviewScreen(userScreenState: UserScreenState) {
+fun OverviewScreen(
+//    userScreenState: UserScreenState
+) {
+    /**
     when (userScreenState) {
-        is UserScreenState.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...")
-            }
-        }
+    is UserScreenState.Loading -> {
+    Column(
+    modifier = Modifier
+    .fillMaxSize()
+    .background(MaterialTheme.colorScheme.primaryContainer),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center
+    ) {
+    Text(text = "Loading ...")
+    }
+    }
 
-        is UserScreenState.Content -> {
+    is UserScreenState.Content -> {
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
+    Column(
+    modifier = Modifier
+    .fillMaxSize()
+    .background(Color.White),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Top
+    ) {
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
+    Row(
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(16.dp)
+    ) {
 
-                    GlideImage(
-                        imageModel = { userScreenState.user.avatar_url }, // loading a network image using an URL.
-                        modifier = Modifier
-                            .size(80.dp, 80.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.CenterStart,
-                            contentDescription = "Actor Avatar"
-                        )
-                    )
+    GlideImage(
+    imageModel = { userScreenState.user.avatar_url }, // loading a network image using an URL.
+    modifier = Modifier
+    .size(80.dp, 80.dp)
+    .clip(RoundedCornerShape(16.dp)),
+    imageOptions = ImageOptions(
+    contentScale = ContentScale.Crop,
+    alignment = Alignment.CenterStart,
+    contentDescription = "Actor Avatar"
+    )
+    )
 
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-                        Text(
-                            text = userScreenState.user.name,
-                            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold,
-                            style = androidx.compose.material.MaterialTheme.typography.subtitle1
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.width(16.dp))
+    Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+    Text(
+    text = userScreenState.user.name,
+    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+    color = Color.Black,
+    fontWeight = FontWeight.Bold,
+    style = androidx.compose.material.MaterialTheme.typography.subtitle1
+    )
+    Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = userScreenState.user.login,
-                            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                            color = Color.Black,
-                            style = androidx.compose.material.MaterialTheme.typography.caption
-                        )
+    Text(
+    text = userScreenState.user.login,
+    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+    color = Color.Black,
+    style = androidx.compose.material.MaterialTheme.typography.caption
+    )
 
-                    }
-                }
+    }
+    }
+
+    Text(
+    text = userScreenState.user.bio,
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(start = 16.dp),
+    textAlign = TextAlign.Start
+    )
+
+    Row(
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(24.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+    Text(
+    text = "Following - ${userScreenState.user.following}",
+    modifier = Modifier.padding(8.dp)
+    )
+
+    Divider(
+    color = Color.Black,
+    modifier = Modifier
+    .height(16.dp)
+    .width(2.dp),
+    )
+
+    Text(
+    text = "Followers - ${userScreenState.user.followers}",
+    modifier = Modifier.padding(8.dp)
+    )
+    }
+
+    Button(onClick = {
+
+    }, modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
+    Text(text = "Unfollow")
+    }
+
+    Row(
+    modifier = Modifier
+    .padding(16.dp)
+    .fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Start
+    ) {
+    Icon(imageVector = Icons.Filled.Person, contentDescription = "Corporation")
+    Text(
+    text = userScreenState.user.company,
+    modifier = Modifier.padding(start = 16.dp)
+    )
+    }
+
+    Divider(
+    color = Color.Black,
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+    )
+
+    Row(
+    modifier = Modifier
+    .padding(16.dp)
+    .fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Start
+    ) {
+    Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
+    Text(
+    text = userScreenState.user.location,
+    modifier = Modifier.padding(start = 16.dp)
+    )
+    }
+
+    Divider(
+    color = Color.Black,
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+    )
+
+    Row(
+    modifier = Modifier
+    .padding(16.dp)
+    .fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Start
+    ) {
+    Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Corporation")
+    Text(
+    text = userScreenState.user.updated_at,
+    modifier = Modifier.padding(start = 16.dp)
+    )
+    }
+
+    Divider(
+    color = Color.Black,
+    modifier = Modifier
+    .fillMaxWidth()
+    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+    )
+
+
+    }
+
+    }
+
+    is UserScreenState.Error -> {
+    Column(
+    modifier = Modifier
+    .fillMaxSize()
+    .background(MaterialTheme.colorScheme.primaryContainer),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center
+    ) {
+    Text(text = "Something went wrong - ${userScreenState.message}")
+    }
+    }
+    } */
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+
+//            GlideImage(
+//                imageModel = { userScreenState.user.avatar_url }, // loading a network image using an URL.
+//                modifier = Modifier
+//                    .size(80.dp, 80.dp)
+//                    .clip(RoundedCornerShape(16.dp)),
+//                imageOptions = ImageOptions(
+//                    contentScale = ContentScale.Crop,
+//                    alignment = Alignment.CenterStart,
+//                    contentDescription = "Actor Avatar"
+//                )
+//            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = "UserName",
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = userScreenState.user.bio,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp),
-                    textAlign = TextAlign.Start
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Text(
-                        text = "Following - ${userScreenState.user.following}",
-                        modifier = Modifier.padding(8.dp)
-                    )
-
-                    Divider(
-                        color = Color.Black,
-                        modifier = Modifier
-                            .height(16.dp)
-                            .width(2.dp),
-                    )
-
-                    Text(
-                        text = "Followers - ${userScreenState.user.followers}",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-
-                Button(onClick = {
-
-                }, modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
-                    Text(text = "Unfollow")
-                }
-
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(imageVector = Icons.Filled.Person, contentDescription = "Corporation")
-                    Text(
-                        text = userScreenState.user.company,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-
-                Divider(
+                    text = "UserLogin",
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+                    style = androidx.compose.material.MaterialTheme.typography.caption
                 )
-
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
-                    Text(
-                        text = userScreenState.user.location,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-
-                Divider(
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Corporation")
-                    Text(
-                        text = userScreenState.user.updated_at,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-
-                Divider(
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
-                )
-
 
             }
-
         }
 
-        is UserScreenState.Error -> {
-            Column(
+        Text(
+            text = "Here should be user's bio",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp),
+            textAlign = TextAlign.Start
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                text = "Following - 1020323",
+                modifier = Modifier.padding(8.dp)
+            )
+
+            Divider(
+                color = Color.Black,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong - ${userScreenState.message}")
-            }
+                    .height(16.dp)
+                    .width(2.dp),
+            )
+
+            Text(
+                text = "Followers - 1213",
+                modifier = Modifier.padding(8.dp)
+            )
         }
+
+        Button(onClick = {
+
+        }, modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
+            Text(text = "Unfollow")
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(imageVector = Icons.Filled.Person, contentDescription = "Corporation")
+            Text(
+                text = "UserCompany",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+
+        Divider(
+            color = Color.Black,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
+            Text(
+                text = "UserLocation",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+
+        Divider(
+            color = Color.Black,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Corporation")
+            Text(
+                text = "UserUpdatedAt",
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+
+        Divider(
+            color = Color.Black,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
+        )
     }
+}
+
+@Preview
+@Composable
+fun PreviewOverview(){
+    OverviewScreen()
 }
 
 @Composable
