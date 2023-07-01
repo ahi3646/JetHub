@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +59,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
@@ -100,6 +103,7 @@ class SearchFragment : Fragment() {
                             else{
                                 viewModel.searchRepositories(token, query, 1L)
                                 viewModel.searchUsers(token, query, 1L)
+                                viewModel.searchIssues(token,query, 1L)
                             }
                         },
                         onBackPressed = { dest -> findNavController().navigate(dest) }
@@ -171,7 +175,11 @@ fun TabScreen(
                             }
 
                             2 -> {
-                                Text(title)
+                                val count = state.Issues.data?.total_count
+                                Log.d("ahi3646gg", "TabScreen: $count")
+                                if (count != null)
+                                    Text("$title ($count)")
+                                else Text(title)
                             }
 
                             3 -> {
@@ -193,7 +201,11 @@ fun TabScreen(
                 users = state.Users
             )
 
-            2 -> IssuesContent()
+            2 -> IssuesContent(
+                contentPaddingValues = contentPaddingValues,
+                onIssueItemClicked = onListItemClick,
+                issues = state.Issues
+            )
             3 -> CodeContent()
         }
     }
@@ -455,8 +467,139 @@ fun UsersItem(
 }
 
 @Composable
-fun IssuesContent() {
+fun IssuesContent(
+    issues: Resource<IssuesModel>,
+    contentPaddingValues: PaddingValues,
+    onIssueItemClicked: (String) -> Unit
+) {
+    when(issues){
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                items(issues.data!!.items) { issue ->
+                    IssuesItem(issue, onIssueItemClicked)
+                }
+            }
+        }
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${issues.errorMessage}")
+            }
+        }
+    }
+}
 
+
+@Composable
+fun IssuesItem(
+    issuesItem: IssuesItem, onIssueItemClicked: (String) -> Unit
+){
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onIssueItemClicked(issuesItem.title)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    if (issuesItem.state == "open"){
+                        R.drawable.ic_issue_opened_small
+                    }else{
+                        R.drawable.ic_issue_closed_small
+                    }
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(24.dp, 24.dp)
+                    .size(24.dp, 24.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = issuesItem.title,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Text(
+                        text = buildAnnotatedString {
+                            append(issuesItem.user.login + "/")
+                            append(issuesItem.title + "#" )
+                            append(issuesItem.number.toString())
+                        },
+                        color = Color.Black,
+                        modifier = Modifier
+                            .padding(start = 2.dp)
+                            .weight(1F)
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    if (issuesItem.comments!=0 && issuesItem.comments>0){
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_comment_small),
+                            contentDescription = "storage icon"
+                        )
+
+                        Text(
+                            text = issuesItem.comments.toString(),
+                            color = Color.Black,
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

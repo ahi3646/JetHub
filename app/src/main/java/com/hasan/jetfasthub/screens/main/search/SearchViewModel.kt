@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.SearchRepository
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
 import com.hasan.jetfasthub.utility.Resource
@@ -55,9 +56,32 @@ class SearchViewModel(private val repository: SearchRepository) : ViewModel() {
         }
     }
 
+    fun searchIssues(token: String, query: String, page: Long){
+        viewModelScope.launch {
+           // try {
+                repository.searchIssues(token, query, page).let { issuesModel ->
+                    if(issuesModel.isSuccessful){
+                        _state.update {
+                            it.copy(Issues = Resource.Success(issuesModel.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(Issues = Resource.Failure(issuesModel.errorBody().toString()))
+                        }
+                    }
+                }
+            ///}catch (e:Exception){
+//                _state.update {
+//                    it.copy(Issues = Resource.Failure(e.message.toString()))
+//                }
+            //}
+        }
+    }
+
 }
 
 data class SearchScreenState(
     val Repositories: Resource<RepositoryModel> = Resource.Loading(),
-    val Users: Resource<UserModel> = Resource.Loading()
+    val Users: Resource<UserModel> = Resource.Loading(),
+    val Issues: Resource<IssuesModel> = Resource.Loading()
 )
