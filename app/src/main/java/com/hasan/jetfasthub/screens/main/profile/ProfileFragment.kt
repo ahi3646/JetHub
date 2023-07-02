@@ -5,7 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -20,9 +22,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -52,22 +57,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
+import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEventsItem
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Locale
 
 class ProfileFragment : Fragment() {
 
@@ -84,13 +98,19 @@ class ProfileFragment : Fragment() {
 
         profileViewModel.getUser(token, username)
         profileViewModel.getUserOrganisations(token, username)
+        profileViewModel.getUserEvents(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(state = state,
-                        onNavigate = { dest -> findNavController().navigate(dest) })
+                    MainContent(
+                        state = state,
+                        onNavigate = { dest -> findNavController().navigate(dest) },
+                        onListItemClicked = { dest ->
+                            Toast.makeText(requireContext(), dest, Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 }
             }
         }
@@ -101,6 +121,7 @@ class ProfileFragment : Fragment() {
 private fun MainContent(
     state: ProfileScreenState,
     onNavigate: (Int) -> Unit,
+    onListItemClicked: (String) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
 
@@ -116,7 +137,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, state)
+        TabScreen(contentPadding, state, onListItemClicked)
     }
 }
 
@@ -157,9 +178,12 @@ private fun TopAppBarContent(
     }
 }
 
-
 @Composable
-fun TabScreen(contentPaddingValues: PaddingValues, state: ProfileScreenState) {
+fun TabScreen(
+    contentPaddingValues: PaddingValues,
+    state: ProfileScreenState,
+    onListItemClicked: (String) -> Unit
+) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs =
@@ -185,7 +209,7 @@ fun TabScreen(contentPaddingValues: PaddingValues, state: ProfileScreenState) {
                 state.Organisations
             )
 
-            1 -> FeedScreen()
+            1 -> FeedScreen(state.UserEvents, onFeedsItemClicked = onListItemClicked)
             2 -> RepositoriesScreen()
             3 -> StarredScreen()
             4 -> GistsScreen()
@@ -216,160 +240,6 @@ fun OverviewScreen(
         }
 
         is UserOverviewScreen.Content -> {
-            /**
-            Column(
-            modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-            ) {
-
-            Row(
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            ) {
-
-            GlideImage(
-            imageModel = { userScreenState.user.avatar_url }, // loading a network image using an URL.
-            modifier = Modifier
-            .size(80.dp, 80.dp)
-            .clip(RoundedCornerShape(16.dp)),
-            imageOptions = ImageOptions(
-            contentScale = ContentScale.Crop,
-            alignment = Alignment.CenterStart,
-            contentDescription = "Actor Avatar"
-            )
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-            Text(
-            text = userScreenState.user.name,
-            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-            color = Color.Black,
-            fontWeight = FontWeight.Bold,
-            style = androidx.compose.material.MaterialTheme.typography.subtitle1
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-            text = userScreenState.user.login,
-            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-            color = Color.Black,
-            style = androidx.compose.material.MaterialTheme.typography.caption
-            )
-
-            }
-            }
-
-            Text(
-            text = userScreenState.user.bio,
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp),
-            textAlign = TextAlign.Start
-            )
-
-            Row(
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-            Text(
-            text = "Following - ${userScreenState.user.following}",
-            modifier = Modifier.padding(8.dp)
-            )
-
-            Divider(
-            color = Color.Black,
-            modifier = Modifier
-            .height(16.dp)
-            .width(2.dp),
-            )
-
-            Text(
-            text = "Followers - ${userScreenState.user.followers}",
-            modifier = Modifier.padding(8.dp)
-            )
-            }
-
-            Button(onClick = {
-
-            }, modifier = Modifier.padding(start = 24.dp, end = 24.dp)) {
-            Text(text = "Unfollow")
-            }
-
-            Row(
-            modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-            ) {
-            Icon(imageVector = Icons.Filled.Person, contentDescription = "Corporation")
-            Text(
-            text = userScreenState.user.company,
-            modifier = Modifier.padding(start = 16.dp)
-            )
-            }
-
-            Divider(
-            color = Color.Black,
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
-            )
-
-            Row(
-            modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-            ) {
-            Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
-            Text(
-            text = userScreenState.user.location,
-            modifier = Modifier.padding(start = 16.dp)
-            )
-            }
-
-            Divider(
-            color = Color.Black,
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
-            )
-
-            Row(
-            modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-            ) {
-            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Corporation")
-            Text(
-            text = userScreenState.user.updated_at,
-            modifier = Modifier.padding(start = 16.dp)
-            )
-            }
-
-            Divider(
-            color = Color.Black,
-            modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp)
-            )
-
-
-            }
-             */
-
             var offset by remember { mutableStateOf(0f) }
 
             Column(
@@ -550,7 +420,9 @@ fun OverviewScreen(
                     )
                 }
 
-                if (overviewScreenState.user.blog != null && overviewScreenState.user.blog.toString().isNotEmpty()) {
+                if (overviewScreenState.user.blog != null && overviewScreenState.user.blog.toString()
+                        .isNotEmpty()
+                ) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -694,13 +566,141 @@ fun OrganisationItem(organisation: OrgModelItem) {
 }
 
 @Composable
-fun FeedScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (String) -> Unit) {
+    when (userEvents) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(userEvents.data!!) { index, UserEventsItem ->
+                    FeedsItem(onFeedsItemClicked = onFeedsItemClicked, UserEventsItem)
+                    if (index < userEvents.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+}
+
+@Composable
+fun FeedsItem(
+    onFeedsItemClicked: (String) -> Unit,
+    userEventsItem: UserEventsItem
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onFeedsItemClicked(userEventsItem.actor.login)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
-        Text(text = "Feed")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = buildAnnotatedString {
+                        append(userEventsItem.actor.login)
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(
+                                " " + stringResource(id = chooseFromEvents(userEventsItem.type).action).lowercase(
+                                    Locale.getDefault()
+                                ) + " "
+                            )
+                        }
+                        append(userEventsItem.repo.name)
+                    },
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                if (userEventsItem.payload.commits != null) {
+                    Text(
+                        text = userEventsItem.payload.commits.size.toString() + " commits",
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.caption,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = userEventsItem.payload.commits[0].message,
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.caption,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(id = chooseFromEvents("eventItem.type").icon),
+                        contentDescription = stringResource(
+                            id = chooseFromEvents(userEventsItem.type).action
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = ParseDateFormat.getTimeAgo(userEventsItem.created_at).toString(),
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.caption,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -758,7 +758,3 @@ fun FollowingScreen() {
         Text(text = "Following")
     }
 }
-
-
-
-

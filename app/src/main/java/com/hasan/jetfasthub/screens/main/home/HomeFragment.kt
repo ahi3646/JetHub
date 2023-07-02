@@ -75,6 +75,7 @@ import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
 import com.hasan.jetfasthub.utility.EventsType
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
@@ -418,117 +419,6 @@ fun ItemEventCard(
     }
 }
 
-private fun chooseFromEvents(type: String): EventsType {
-    return when (type) {
-        "WatchEvent" -> {
-            EventsType.WatchEvent
-        }
-
-        "CreateEvent" -> {
-            EventsType.CreateEvent
-        }
-
-        "CommitCommentEvent" -> {
-            EventsType.CommitCommentEvent
-        }
-
-        "DownloadEvent" -> {
-            EventsType.DownloadEvent
-        }
-
-        "FollowEvent" -> {
-            EventsType.FollowEvent
-        }
-
-        "ForkEvent" -> {
-            EventsType.ForkEvent
-        }
-
-        "GistEvent" -> {
-            EventsType.GistEvent
-        }
-
-        "GollumEvent" -> {
-            EventsType.GollumEvent
-        }
-
-        "IssueCommentEvent" -> {
-            EventsType.IssueCommentEvent
-        }
-
-        "IssuesEvent" -> {
-            EventsType.IssuesEvent
-        }
-
-        "MemberEvent" -> {
-            EventsType.MemberEvent
-        }
-
-        "PublicEvent" -> {
-            EventsType.PublicEvent
-        }
-
-        "PullRequestEvent" -> {
-            EventsType.PullRequestEvent
-        }
-
-        "PullRequestReviewCommentEvent" -> {
-            EventsType.PullRequestReviewCommentEvent
-        }
-
-        "PullRequestReviewEvent" -> {
-            EventsType.PullRequestReviewEvent
-        }
-
-        "RepositoryEvent" -> {
-            EventsType.RepositoryEvent
-        }
-
-        "PushEvent" -> {
-            EventsType.PushEvent
-        }
-
-        "TeamAddEvent" -> {
-            EventsType.TeamAddEvent
-        }
-
-        "DeleteEvent" -> {
-            EventsType.DeleteEvent
-        }
-
-        "ReleaseEvent" -> {
-            EventsType.ReleaseEvent
-        }
-
-        "ForkApplyEvent" -> {
-            EventsType.ForkApplyEvent
-        }
-
-        "OrgBlockEvent" -> {
-            EventsType.OrgBlockEvent
-        }
-
-        "ProjectCardEvent" -> {
-            EventsType.ProjectCardEvent
-        }
-
-        "ProjectColumnEvent" -> {
-            EventsType.ProjectColumnEvent
-        }
-
-        "OrganizationEvent" -> {
-            EventsType.OrganizationEvent
-        }
-
-        "ProjectEvent" -> {
-            EventsType.ProjectEvent
-        }
-
-        else -> {
-            EventsType.Undefined
-        }
-    }
-}
 
 //things related to drawer content
 @Composable
