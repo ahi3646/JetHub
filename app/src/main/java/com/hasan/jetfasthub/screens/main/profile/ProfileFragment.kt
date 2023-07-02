@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
@@ -72,13 +73,14 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEventsItem
+import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
+import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.RepositoryModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModelItem
-import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
 import com.hasan.jetfasthub.utility.FileSizeCalculator
@@ -107,6 +109,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserEvents(token, username)
         profileViewModel.getUserRepositories(token, username)
         profileViewModel.getUserStarredRepos(token, username, 1)
+        profileViewModel.getUserFollowings(token, username, 1)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -227,9 +230,13 @@ fun TabScreen(
                 state.UserStarredRepositories,
                 onStarredRepoItemClicked = onListItemClicked
             )
+
             4 -> GistsScreen()
             5 -> FollowersScreen()
-            6 -> FollowingScreen()
+            6 -> FollowingScreen(
+                state.UserFollowings,
+                onFollowingsItemClicked = onListItemClicked
+            )
         }
     }
 
@@ -865,7 +872,7 @@ fun StarredScreen(
     userStarredRepoModel: Resource<StarredRepoModel>,
     onStarredRepoItemClicked: (String) -> Unit
 ) {
-    when(userStarredRepoModel){
+    when (userStarredRepoModel) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -875,6 +882,7 @@ fun StarredScreen(
                 Text(text = "Loading ...")
             }
         }
+
         is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier
@@ -885,7 +893,7 @@ fun StarredScreen(
             ) {
                 itemsIndexed(userStarredRepoModel.data!!) { index, StarredUserRepo ->
                     StarredRepositoryItem(
-                        StarredUserRepo  ,
+                        StarredUserRepo,
                         onStarredRepositoryItemClicked = onStarredRepoItemClicked
                     )
                     if (index < userStarredRepoModel.data.lastIndex) {
@@ -897,6 +905,7 @@ fun StarredScreen(
                 }
             }
         }
+
         is Resource.Failure -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1022,12 +1031,102 @@ fun FollowersScreen() {
 }
 
 @Composable
-fun FollowingScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun FollowingScreen(
+    userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (String) -> Unit
+) {
+    when(userFollowings){
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
+                    FollowingsItemCard(
+                        StarredUserRepo,
+                        onItemClicked = onFollowingsItemClicked
+                    )
+                    if (index < userFollowings.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+        is Resource.Failure -> {
+            Log.d("ahi3646", "FollowingScreen: ${userFollowings.errorMessage.toString()}")
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong!")
+            }
+        }
+    }
+}
+
+@Composable
+fun FollowingsItemCard(
+    followingModelItem: FollowingModelItem, onItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked(followingModelItem.login)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
-        Text(text = "Following")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    followingModelItem.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = followingModelItem.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+            }
+        }
     }
 }

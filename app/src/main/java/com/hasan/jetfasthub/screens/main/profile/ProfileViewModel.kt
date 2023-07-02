@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
+import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -121,29 +122,57 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
-    fun getUserStarredRepos(token: String, username: String, page: Int){
+    fun getUserStarredRepos(token: String, username: String, page: Int) {
         viewModelScope.launch {
             try {
                 repository.getUserStarredRepos(token, username, page).let { userStarredRepos ->
-                    if (userStarredRepos.isSuccessful){
+                    if (userStarredRepos.isSuccessful) {
                         _state.update {
                             it.copy(
                                 UserStarredRepositories = Resource.Success(userStarredRepos.body()!!)
                             )
                         }
-                    }else{
+                    } else {
                         _state.update {
                             it.copy(
-                                UserStarredRepositories = Resource.Failure(userStarredRepos.errorBody().toString())
+                                UserStarredRepositories = Resource.Failure(
+                                    userStarredRepos.errorBody().toString()
+                                )
                             )
                         }
                     }
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         UserStarredRepositories = Resource.Failure(e.message.toString())
                     )
+                }
+            }
+        }
+    }
+
+    fun getUserFollowings(token: String, username: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getUserFollowings(token, username, page).let { userFollowings ->
+                    if (userFollowings.isSuccessful) {
+                        _state.update {
+                            it.copy(UserFollowings = Resource.Success(userFollowings.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                UserFollowings = Resource.Failure(
+                                    userFollowings.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(UserFollowings = Resource.Failure(e.message.toString()))
                 }
             }
         }
@@ -156,7 +185,8 @@ data class ProfileScreenState(
     val Organisations: Resource<OrgModel> = Resource.Loading(),
     val UserEvents: Resource<UserEvents> = Resource.Loading(),
     val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading(),
-    val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading()
+    val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading(),
+    val UserFollowings: Resource<FollowingModel> = Resource.Loading()
 )
 
 sealed interface UserOverviewScreen {
