@@ -7,6 +7,7 @@ import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
+import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,33 +41,37 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
-    fun getUserOrganisations(token: String, username: String){
+    fun getUserOrganisations(token: String, username: String) {
         viewModelScope.launch {
             repository.getUserOrgs(token, username).let { organisations ->
-                if (organisations.isSuccessful){
+                if (organisations.isSuccessful) {
                     _state.update {
                         it.copy(Organisations = Resource.Success(organisations.body()!!))
                     }
-                }else{
+                } else {
                     _state.update {
-                        it.copy(Organisations = Resource.Failure(organisations.errorBody().toString()))
+                        it.copy(
+                            Organisations = Resource.Failure(
+                                organisations.errorBody().toString()
+                            )
+                        )
                     }
                 }
             }
         }
     }
 
-    fun getUserEvents(token: String, username: String){
+    fun getUserEvents(token: String, username: String) {
         viewModelScope.launch {
             try {
                 repository.getUserEvents(token, username).let { userEvents ->
-                    if (userEvents.isSuccessful){
+                    if (userEvents.isSuccessful) {
                         _state.update {
                             it.copy(
                                 UserEvents = Resource.Success(userEvents.body()!!)
                             )
                         }
-                    }else{
+                    } else {
                         _state.update {
                             it.copy(
                                 UserEvents = Resource.Failure(userEvents.errorBody()!!.toString())
@@ -74,7 +79,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         }
                     }
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         UserEvents = Resource.Failure(e.message.toString())
@@ -84,12 +89,44 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             }
         }
     }
+
+    fun getUserRepositories(token: String, username: String) {
+        viewModelScope.launch {
+            try {
+                repository.getUserRepository(token, username).let { userRepositories ->
+                    if (userRepositories.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                UserRepositories = Resource.Success(userRepositories.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                UserRepositories = Resource.Failure(
+                                    userRepositories.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        UserRepositories = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 data class ProfileScreenState(
     val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
     val Organisations: Resource<OrgModel> = Resource.Loading(),
-    val UserEvents: Resource<UserEvents> = Resource.Loading()
+    val UserEvents: Resource<UserEvents> = Resource.Loading(),
+    val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading()
 )
 
 sealed interface UserOverviewScreen {
