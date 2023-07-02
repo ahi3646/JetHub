@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
+import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
@@ -73,6 +74,14 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Path("username") username: String
     ): Response<UserRepositoryModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("users/{username}/starred")
+    suspend fun getUserStarredRepos(
+        @Header("Authorization") token: String,
+        @Path("username") username: String,
+        @Query("page") page: Int,
+    ): Response<StarredRepoModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")

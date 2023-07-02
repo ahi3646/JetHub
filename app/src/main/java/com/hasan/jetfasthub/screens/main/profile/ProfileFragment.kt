@@ -76,6 +76,8 @@ import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.RepositoryModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
+import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
+import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModelItem
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
@@ -104,6 +106,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserOrganisations(token, username)
         profileViewModel.getUserEvents(token, username)
         profileViewModel.getUserRepositories(token, username)
+        profileViewModel.getUserStarredRepos(token, username, 1)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -220,7 +223,10 @@ fun TabScreen(
                 onRepositoryItemClicked = onListItemClicked
             )
 
-            3 -> StarredScreen()
+            3 -> StarredScreen(
+                state.UserStarredRepositories,
+                onStarredRepoItemClicked = onListItemClicked
+            )
             4 -> GistsScreen()
             5 -> FollowersScreen()
             6 -> FollowingScreen()
@@ -855,13 +861,141 @@ fun RepositoryItem(
 }
 
 @Composable
-fun StarredScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun StarredScreen(
+    userStarredRepoModel: Resource<StarredRepoModel>,
+    onStarredRepoItemClicked: (String) -> Unit
+) {
+    when(userStarredRepoModel){
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(userStarredRepoModel.data!!) { index, StarredUserRepo ->
+                    StarredRepositoryItem(
+                        StarredUserRepo  ,
+                        onStarredRepositoryItemClicked = onStarredRepoItemClicked
+                    )
+                    if (index < userStarredRepoModel.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong!")
+            }
+        }
+    }
+}
+
+@Composable
+fun StarredRepositoryItem(
+    repository: StarredRepoModelItem, onStarredRepositoryItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onStarredRepositoryItemClicked(repository.full_name)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
-        Text(text = "Starred")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = repository.full_name,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.stargazers_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_fork_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.forks_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_time_small),
+                        contentDescription = "time icon"
+                    )
+
+                    Text(
+                        text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_storage_small),
+                        contentDescription = "storage icon"
+                    )
+
+                    Text(
+                        text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Text(
+                        text = repository.language ?: "",
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+                }
+            }
+        }
     }
 }
 

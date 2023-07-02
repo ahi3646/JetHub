@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
+import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -120,13 +121,42 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
+    fun getUserStarredRepos(token: String, username: String, page: Int){
+        viewModelScope.launch {
+            try {
+                repository.getUserStarredRepos(token, username, page).let { userStarredRepos ->
+                    if (userStarredRepos.isSuccessful){
+                        _state.update {
+                            it.copy(
+                                UserStarredRepositories = Resource.Success(userStarredRepos.body()!!)
+                            )
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(
+                                UserStarredRepositories = Resource.Failure(userStarredRepos.errorBody().toString())
+                            )
+                        }
+                    }
+                }
+            }catch (e:Exception){
+                _state.update {
+                    it.copy(
+                        UserStarredRepositories = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
 }
 
 data class ProfileScreenState(
     val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
     val Organisations: Resource<OrgModel> = Resource.Loading(),
     val UserEvents: Resource<UserEvents> = Resource.Loading(),
-    val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading()
+    val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading(),
+    val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading()
 )
 
 sealed interface UserOverviewScreen {
