@@ -73,6 +73,8 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEventsItem
+import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
+import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
@@ -110,6 +112,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserRepositories(token, username)
         profileViewModel.getUserStarredRepos(token, username, 1)
         profileViewModel.getUserFollowings(token, username, 1)
+        profileViewModel.getUserFollowers(token, username, 1)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -232,7 +235,10 @@ fun TabScreen(
             )
 
             4 -> GistsScreen()
-            5 -> FollowersScreen()
+            5 -> FollowersScreen(
+                state.UserFollowers,
+                onFollowersItemClicked = onListItemClicked
+            )
             6 -> FollowingScreen(
                 state.UserFollowings,
                 onFollowingsItemClicked = onListItemClicked
@@ -1020,13 +1026,102 @@ fun GistsScreen() {
 }
 
 @Composable
-fun FollowersScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun FollowersScreen(
+    userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (String) -> Unit
+) {
+    when(userFollowers){
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
+                    FollowersItemCard(
+                        StarredUserRepo,
+                        onItemClicked = onFollowersItemClicked
+                    )
+                    if (index < userFollowers.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+}
+
+@Composable
+fun FollowersItemCard(
+    followersModelItem: FollowersModelItem, onItemClicked: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked(followersModelItem.login)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
-        Text(text = "Followers")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    followersModelItem.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = followersModelItem.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+            }
+        }
     }
 }
 

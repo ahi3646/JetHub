@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
+import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
@@ -178,6 +179,32 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
+    fun getUserFollowers(token: String, username: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getUserFollowers(token, username, page).let { userFollowers ->
+                    if (userFollowers.isSuccessful) {
+                        _state.update {
+                            it.copy(UserFollowers = Resource.Success(userFollowers.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                UserFollowers = Resource.Failure(
+                                    userFollowers.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(UserFollowers = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class ProfileScreenState(
@@ -186,7 +213,8 @@ data class ProfileScreenState(
     val UserEvents: Resource<UserEvents> = Resource.Loading(),
     val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading(),
     val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading(),
-    val UserFollowings: Resource<FollowingModel> = Resource.Loading()
+    val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
+    val UserFollowers: Resource<FollowersModel> = Resource.Loading()
 )
 
 sealed interface UserOverviewScreen {

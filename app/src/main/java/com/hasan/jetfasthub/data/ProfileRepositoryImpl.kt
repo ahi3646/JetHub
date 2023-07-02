@@ -4,6 +4,7 @@ import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
+import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
@@ -21,6 +22,7 @@ interface ProfileRepository {
     suspend fun getUserRepository(token: String, username: String): Response<UserRepositoryModel>
     suspend fun getUserStarredRepos(token: String, username: String, page: Int): Response<StarredRepoModel>
     suspend fun getUserFollowings(token: String, username: String, page: Int): Response<FollowingModel>
+    suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -75,6 +77,18 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         page: Int
     ): Response<FollowingModel> {
         return RetrofitInstance(context).gitHubService.getUserFollowings(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username,
+            page = page
+        )
+    }
+
+    override suspend fun getUserFollowers(
+        token: String,
+        username: String,
+        page: Int
+    ): Response<FollowersModel> {
+        return RetrofitInstance(context).gitHubService.getUserFollowers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
