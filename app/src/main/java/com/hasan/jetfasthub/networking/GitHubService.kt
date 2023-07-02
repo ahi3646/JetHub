@@ -5,6 +5,7 @@ import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
@@ -49,6 +50,13 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Path("username") username: String
     ): Response<GitHubUser>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("users/{username}/orgs")
+    suspend fun getUserOrgs(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String
+    ): Response<OrgModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")

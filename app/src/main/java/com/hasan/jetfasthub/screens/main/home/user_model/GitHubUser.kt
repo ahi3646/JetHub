@@ -2,13 +2,13 @@ package com.hasan.jetfasthub.screens.main.home.user_model
 
 data class GitHubUser(
     val avatar_url: String,
-    val bio: String,
-    val blog: String,
+    val bio: String?,
+    val blog: String?,
     val collaborators: Int,
-    val company: String,
+    val company: String?,
     val created_at: String,
     val disk_usage: Int,
-    val email: Any,
+    val email: Any?,
     val events_url: String,
     val followers: Int,
     val followers_url: String,

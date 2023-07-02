@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.profile.model.ProfileModel
+import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
+import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,12 +23,12 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             repository.getUser(token, username).let { user ->
                 if (user.isSuccessful) {
                     _state.update {
-                        it.copy(userScreenState = UserScreenState.Content(user.body()!!))
+                        it.copy(OverviewScreenState = UserOverviewScreen.Content(user.body()!!))
                     }
                 } else {
                     _state.update {
                         it.copy(
-                            userScreenState = UserScreenState.Error(
+                            OverviewScreenState = UserOverviewScreen.Error(
                                 user.errorBody().toString()
                             )
                         )
@@ -35,16 +38,33 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
+    fun getUserOrganisations(token: String, username: String){
+        viewModelScope.launch {
+            repository.getUserOrgs(token, username).let { organisations ->
+                if (organisations.isSuccessful){
+                    _state.update {
+                        it.copy(Organisations = Resource.Success(organisations.body()!!))
+                    }
+                }else{
+                    _state.update {
+                        it.copy(Organisations = Resource.Failure(organisations.errorBody().toString()))
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 data class ProfileScreenState(
-    val userScreenState: UserScreenState = UserScreenState.Loading
+    val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
+    val Organisations: Resource<OrgModel> = Resource.Loading()
 )
 
-sealed interface UserScreenState {
+sealed interface UserOverviewScreen {
 
-    object Loading : UserScreenState
-    data class Content(val user: GitHubUser) : UserScreenState
-    data class Error(val message: String) : UserScreenState
+    object Loading : UserOverviewScreen
+    data class Content(val user: GitHubUser) : UserOverviewScreen
+    data class Error(val message: String) : UserOverviewScreen
 
 }
