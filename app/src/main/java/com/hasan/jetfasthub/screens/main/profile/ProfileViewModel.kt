@@ -172,7 +172,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(UserFollowings = Resource.Failure(e.message.toString()))
                 }
@@ -198,7 +198,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(UserFollowers = Resource.Failure(e.message.toString()))
                 }
@@ -224,11 +224,24 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(UserGists = Resource.Failure(e.message.toString()))
                 }
             }
+        }
+    }
+
+    fun followUser(token: String, username: String): Boolean {
+        Log.d("ahi3646", "followUser:  triggered")
+        try {
+            repository.followUser(token, username).let { res ->
+                Log.d("ahi3646", "followUser: ${res.code()} ")
+                return res.code() == 204
+            }
+        } catch (e: Exception) {
+            Log.d("ahi3646", "followUser:  ${e.message}")
+            return false
         }
     }
 

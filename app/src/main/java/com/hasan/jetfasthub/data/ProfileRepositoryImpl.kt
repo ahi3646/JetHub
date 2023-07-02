@@ -21,10 +21,16 @@ interface ProfileRepository {
     suspend fun getUserEvents(token: String, username: String): Response<UserEvents>
 
     suspend fun getUserRepository(token: String, username: String): Response<UserRepositoryModel>
+
     suspend fun getUserStarredRepos(token: String, username: String, page: Int): Response<StarredRepoModel>
+
     suspend fun getUserFollowings(token: String, username: String, page: Int): Response<FollowingModel>
+
     suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
+
     suspend fun getUserGists(token: String, username: String, page: Int): Response<GistModel>
+
+    fun followUser(token: String, username: String): Response<Int>
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -108,5 +114,13 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
             page = page
         )
     }
+
+    override fun followUser(token: String, username: String): Response<Int> {
+        return RetrofitInstance(context).gitHubService.followUser(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username,
+        )
+    }
+
 
 }

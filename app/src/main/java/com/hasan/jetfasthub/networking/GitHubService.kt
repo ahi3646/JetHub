@@ -27,6 +27,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -117,6 +118,13 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
     ): Response<ReceivedEvents>
+
+    @Headers("Accept: application/vnd.github+json")
+    @PUT("user/following/{username}")
+    fun followUser(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String,
+    ): Response<Int>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("notifications")

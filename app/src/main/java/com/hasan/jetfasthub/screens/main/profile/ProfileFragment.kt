@@ -69,6 +69,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -93,8 +94,12 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
+import kotlin.math.log
 
 class ProfileFragment : Fragment() {
 
@@ -125,8 +130,13 @@ class ProfileFragment : Fragment() {
                     MainContent(
                         state = state,
                         onNavigate = { dest -> findNavController().navigate(dest) },
-                        onListItemClicked = { dest ->
-                            Toast.makeText(requireContext(), dest, Toast.LENGTH_SHORT).show()
+                        onListItemClicked = { username ->
+                            var isFollowed = false
+                            lifecycleScope.launch {
+                                isFollowed = profileViewModel.followUser(token, username)
+                            }
+                            Toast.makeText(requireContext(), isFollowed.toString(), Toast.LENGTH_SHORT).show()
+
                         },
                         username = username
                     )
