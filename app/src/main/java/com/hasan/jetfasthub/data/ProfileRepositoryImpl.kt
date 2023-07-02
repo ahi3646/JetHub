@@ -6,6 +6,7 @@ import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -23,6 +24,7 @@ interface ProfileRepository {
     suspend fun getUserStarredRepos(token: String, username: String, page: Int): Response<StarredRepoModel>
     suspend fun getUserFollowings(token: String, username: String, page: Int): Response<FollowingModel>
     suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
+    suspend fun getUserGists(token: String, username: String, page: Int): Response<GistModel>
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -89,6 +91,18 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         page: Int
     ): Response<FollowersModel> {
         return RetrofitInstance(context).gitHubService.getUserFollowers(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username,
+            page = page
+        )
+    }
+
+    override suspend fun getUserGists(
+        token: String,
+        username: String,
+        page: Int
+    ): Response<GistModel> {
+        return RetrofitInstance(context).gitHubService.getUserGists(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page

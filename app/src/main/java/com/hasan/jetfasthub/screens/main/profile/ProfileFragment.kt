@@ -65,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -77,6 +78,8 @@ import com.hasan.jetfasthub.screens.main.profile.model.followers_model.Followers
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModelItem
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.RepositoryModelItem
@@ -113,6 +116,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserStarredRepos(token, username, 1)
         profileViewModel.getUserFollowings(token, username, 1)
         profileViewModel.getUserFollowers(token, username, 1)
+        profileViewModel.getUserGists(token, username, 1)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -220,7 +224,7 @@ fun TabScreen(
         when (tabIndex) {
             0 -> OverviewScreen(
                 state.OverviewScreenState,
-                state.Organisations
+                state.UserOrganisations
             )
 
             1 -> FeedScreen(state.UserEvents, onFeedsItemClicked = onListItemClicked)
@@ -234,7 +238,10 @@ fun TabScreen(
                 onStarredRepoItemClicked = onListItemClicked
             )
 
-            4 -> GistsScreen()
+            4 -> GistsScreen(
+                state.UserGists,
+                onGistItemClick = onListItemClicked
+            )
             5 -> FollowersScreen(
                 state.UserFollowers,
                 onFollowersItemClicked = onListItemClicked
@@ -1015,13 +1022,90 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun GistsScreen(gists: Resource<GistModel>, onGistItemClick : (String) -> Unit) {
+    when(gists){
+        is Resource.Loading ->{
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+        is Resource.Success ->{
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(gists.data!!) { index, gist ->
+                    GistItemCard(
+                        gist,
+                        onGistItemClick = onGistItemClick
+                    )
+                    if (index < gists.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+        is Resource.Failure ->{
+            Log.d("ahi3646", "GistsScreen: ${gists.errorMessage} ")
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+}
+
+@Composable
+fun GistItemCard(
+    gistModelItem: GistModelItem, onGistItemClick: (String) -> Unit
+){
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onGistItemClick(gistModelItem.url)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
-        Text(text = "Gists")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+
+        ) {
+
+            Text(
+                text = gistModelItem.description,
+                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                color = Color.Black,
+                fontSize = 18.sp,
+                style = androidx.compose.material.MaterialTheme.typography.subtitle2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
+                color = Color.Black,
+                modifier = Modifier.padding(start = 2.dp)
+            )
+
+        }
     }
 }
 

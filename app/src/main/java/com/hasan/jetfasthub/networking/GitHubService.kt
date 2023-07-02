@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -100,6 +101,14 @@ interface GitHubService {
         @Path("username") username: String,
         @Query("page") page: Int,
     ): Response<FollowersModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("users/{username}/gists")
+    suspend fun getUserGists(
+        @Header("Authorization") token: String,
+        @Path("username") username: String,
+        @Query("page") page: Int,
+    ): Response<GistModel>
 
 
     @Headers("Accept: application/vnd.github+json")

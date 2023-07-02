@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -49,12 +50,12 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             repository.getUserOrgs(token, username).let { organisations ->
                 if (organisations.isSuccessful) {
                     _state.update {
-                        it.copy(Organisations = Resource.Success(organisations.body()!!))
+                        it.copy(UserOrganisations = Resource.Success(organisations.body()!!))
                     }
                 } else {
                     _state.update {
                         it.copy(
-                            Organisations = Resource.Failure(
+                            UserOrganisations = Resource.Failure(
                                 organisations.errorBody().toString()
                             )
                         )
@@ -205,16 +206,43 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
+    fun getUserGists(token: String, username: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getUserGists(token, username, page).let { gists ->
+                    if (gists.isSuccessful) {
+                        _state.update {
+                            it.copy(UserGists = Resource.Success(gists.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                UserGists = Resource.Failure(
+                                    gists.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(UserGists = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class ProfileScreenState(
     val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
-    val Organisations: Resource<OrgModel> = Resource.Loading(),
+    val UserOrganisations: Resource<OrgModel> = Resource.Loading(),
     val UserEvents: Resource<UserEvents> = Resource.Loading(),
     val UserRepositories: Resource<UserRepositoryModel> = Resource.Loading(),
     val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading(),
     val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
-    val UserFollowers: Resource<FollowersModel> = Resource.Loading()
+    val UserFollowers: Resource<FollowersModel> = Resource.Loading(),
+    val UserGists: Resource<GistModel> = Resource.Loading()
 )
 
 sealed interface UserOverviewScreen {
