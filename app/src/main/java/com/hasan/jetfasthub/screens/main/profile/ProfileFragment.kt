@@ -127,7 +127,8 @@ class ProfileFragment : Fragment() {
                         onNavigate = { dest -> findNavController().navigate(dest) },
                         onListItemClicked = { dest ->
                             Toast.makeText(requireContext(), dest, Toast.LENGTH_SHORT).show()
-                        }
+                        },
+                        username = username
                     )
                 }
             }
@@ -139,7 +140,8 @@ class ProfileFragment : Fragment() {
 private fun MainContent(
     state: ProfileScreenState,
     onNavigate: (Int) -> Unit,
-    onListItemClicked: (String) -> Unit
+    onListItemClicked: (String) -> Unit,
+    username: String
 ) {
     val scaffoldState = rememberScaffoldState()
 
@@ -150,7 +152,7 @@ private fun MainContent(
                 backgroundColor = Color.White,
                 elevation = 0.dp,
                 content = {
-                    TopAppBarContent(onNavigate)
+                    TopAppBarContent(onNavigate, username)
                 },
             )
         },
@@ -161,7 +163,8 @@ private fun MainContent(
 
 @Composable
 private fun TopAppBarContent(
-    onBackPressed: (Int) -> Unit
+    onBackPressed: (Int) -> Unit,
+    username: String
 ) {
     Row(
         modifier = Modifier
@@ -181,7 +184,7 @@ private fun TopAppBarContent(
             modifier = Modifier
                 .weight(1F)
                 .padding(start = 10.dp, end = 10.dp),
-            text = "JetHub",
+            text = username,
             style = MaterialTheme.typography.titleLarge,
         )
 
