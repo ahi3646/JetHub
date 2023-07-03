@@ -65,11 +65,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -94,12 +92,8 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
-import kotlin.math.log
 
 class ProfileFragment : Fragment() {
 
@@ -112,7 +106,7 @@ class ProfileFragment : Fragment() {
         val username = arguments?.getString("username") ?: ""
         Log.d("ahi3646", "onCreateView: $username ")
         val token = PreferenceHelper.getToken(requireContext())
-        Log.d("ahi3646", "onCreateView: token - $token")
+
 
         profileViewModel.getUser(token, username)
         profileViewModel.getUserOrganisations(token, username)
@@ -131,12 +125,24 @@ class ProfileFragment : Fragment() {
                         state = state,
                         onNavigate = { dest -> findNavController().navigate(dest) },
                         onListItemClicked = { username ->
-                            var isFollowed = false
-                            lifecycleScope.launch {
-                                isFollowed = profileViewModel.followUser(token, username)
+                            profileViewModel.followUser(token, username).observe(viewLifecycleOwner){hasFollowed ->
+                                if (hasFollowed) {
+                                    Log.d("ahi3646", "onCreateView:  has followed")
+                                } else
+                                    Log.d("ahi3646", "onCreateView: has not followed")
                             }
-                            Toast.makeText(requireContext(), isFollowed.toString(), Toast.LENGTH_SHORT).show()
+                            profileViewModel.isFollowing.observe(viewLifecycleOwner) { isFollowing ->
+                                if (isFollowing) {
+                                    Log.d("ahi3646", "onCreateView: followed")
+                                } else
+                                    Log.d("ahi3646", "onCreateView: not followed")
+                            }
+                            if (state.isFollowing) {
+                                Log.d("ahi3646", "onCreateView: state followed")
+                            } else
+                                Log.d("ahi3646", "onCreateView: state not followed")
 
+                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
                         },
                         username = username
                     )
@@ -240,7 +246,11 @@ fun TabScreen(
                 state.UserOrganisations
             )
 
-            1 -> FeedScreen(state.UserEvents, onFeedsItemClicked = onListItemClicked)
+            1 -> FeedScreen(
+                state.UserEvents,
+                onFeedsItemClicked = onListItemClicked
+            )
+
             2 -> RepositoriesScreen(
                 state.UserRepositories,
                 onRepositoryItemClicked = onListItemClicked
@@ -255,14 +265,17 @@ fun TabScreen(
                 state.UserGists,
                 onGistItemClick = onListItemClicked
             )
+
             5 -> FollowersScreen(
                 state.UserFollowers,
                 onFollowersItemClicked = onListItemClicked
             )
+
             6 -> FollowingScreen(
                 state.UserFollowings,
                 onFollowingsItemClicked = onListItemClicked
             )
+
         }
     }
 
@@ -366,10 +379,6 @@ fun OverviewScreen(
                     Text(
                         text = "Following - ${overviewScreenState.user.following}",
                         modifier = Modifier.padding(8.dp)
-                    )
-                    Log.d(
-                        "ahi3646",
-                        "OverviewScreen: following - ${overviewScreenState.user.following} "
                     )
 
                     Divider(
@@ -1035,9 +1044,9 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen(gists: Resource<GistModel>, onGistItemClick : (String) -> Unit) {
-    when(gists){
-        is Resource.Loading ->{
+fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (String) -> Unit) {
+    when (gists) {
+        is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1046,7 +1055,8 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick : (String) -> Unit) 
                 Text(text = "Loading ...")
             }
         }
-        is Resource.Success ->{
+
+        is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1068,8 +1078,8 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick : (String) -> Unit) 
                 }
             }
         }
-        is Resource.Failure ->{
-            Log.d("ahi3646", "GistsScreen: ${gists.errorMessage} ")
+
+        is Resource.Failure -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1084,7 +1094,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick : (String) -> Unit) 
 @Composable
 fun GistItemCard(
     gistModelItem: GistModelItem, onGistItemClick: (String) -> Unit
-){
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1126,7 +1136,7 @@ fun GistItemCard(
 fun FollowersScreen(
     userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (String) -> Unit
 ) {
-    when(userFollowers){
+    when (userFollowers) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1136,6 +1146,7 @@ fun FollowersScreen(
                 Text(text = "Loading ...")
             }
         }
+
         is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier
@@ -1158,6 +1169,7 @@ fun FollowersScreen(
                 }
             }
         }
+
         is Resource.Failure -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1226,7 +1238,7 @@ fun FollowersItemCard(
 fun FollowingScreen(
     userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (String) -> Unit
 ) {
-    when(userFollowings){
+    when (userFollowings) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1236,6 +1248,7 @@ fun FollowingScreen(
                 Text(text = "Loading ...")
             }
         }
+
         is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier
@@ -1258,8 +1271,8 @@ fun FollowingScreen(
                 }
             }
         }
+
         is Resource.Failure -> {
-            Log.d("ahi3646", "FollowingScreen: ${userFollowings.errorMessage.toString()}")
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,

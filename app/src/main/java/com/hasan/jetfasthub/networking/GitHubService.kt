@@ -121,10 +121,10 @@ interface GitHubService {
 
     @Headers("Accept: application/vnd.github+json")
     @PUT("user/following/{username}")
-    fun followUser(
+    suspend fun followUser(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
-    ): Response<Int>
+    ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("notifications")

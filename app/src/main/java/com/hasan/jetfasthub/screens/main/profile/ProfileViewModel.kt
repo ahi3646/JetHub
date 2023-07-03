@@ -1,6 +1,8 @@
 package com.hasan.jetfasthub.screens.main.profile
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
@@ -24,6 +26,9 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
     private var _state: MutableStateFlow<ProfileScreenState> =
         MutableStateFlow(ProfileScreenState())
     val state = _state.asStateFlow()
+
+    private var _isFollowing : MutableLiveData<Boolean> = MutableLiveData(false)
+    val isFollowing : LiveData<Boolean> = _isFollowing
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch {
@@ -89,7 +94,6 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         UserEvents = Resource.Failure(e.message.toString())
                     )
                 }
-                Log.d("ahi3646", "getUserEvents: ${e.message} ")
             }
         }
     }
@@ -232,17 +236,44 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
-    fun followUser(token: String, username: String): Boolean {
-        Log.d("ahi3646", "followUser:  triggered")
-        try {
-            repository.followUser(token, username).let { res ->
-                Log.d("ahi3646", "followUser: ${res.code()} ")
-                return res.code() == 204
-            }
-        } catch (e: Exception) {
-            Log.d("ahi3646", "followUser:  ${e.message}")
-            return false
+    fun followUser(token: String, username: String) :LiveData<Boolean>{
+        _state.update {
+            it.copy(
+                isFollowing = true
+            )
         }
+        _isFollowing.postValue(false)
+        viewModelScope.launch {
+            try {
+                repository.followUser(token, username).let { res ->
+                    Log.d("ahi3646", "followUser: ${res.code()} ")
+                    if(res.code() == 204){
+                        _state.update {
+                            it.copy(
+                                isFollowing = true
+                            )
+                        }
+                        _isFollowing.postValue(true)
+                    }else{
+                        _state.update {
+                            it.copy(
+                                isFollowing = true
+                            )
+                        }
+                        _isFollowing.postValue(false)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("ahi3646", "followUser:  ${e.message}")
+                _isFollowing.postValue(false)
+                _state.update {
+                    it.copy(
+                        isFollowing = true
+                    )
+                }
+            }
+        }
+        return isFollowing
     }
 
 }
@@ -255,8 +286,10 @@ data class ProfileScreenState(
     val UserStarredRepositories: Resource<StarredRepoModel> = Resource.Loading(),
     val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
     val UserFollowers: Resource<FollowersModel> = Resource.Loading(),
-    val UserGists: Resource<GistModel> = Resource.Loading()
+    val UserGists: Resource<GistModel> = Resource.Loading(),
+    val isFollowing: Boolean = false
 )
+
 
 sealed interface UserOverviewScreen {
 

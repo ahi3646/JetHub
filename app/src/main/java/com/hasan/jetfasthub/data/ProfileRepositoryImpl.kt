@@ -11,7 +11,9 @@ import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
+import kotlinx.coroutines.flow.flow
 import retrofit2.Response
+import java.util.concurrent.Flow
 
 interface ProfileRepository {
     suspend fun getUser(token: String, username: String): Response<GitHubUser>
@@ -30,7 +32,7 @@ interface ProfileRepository {
 
     suspend fun getUserGists(token: String, username: String, page: Int): Response<GistModel>
 
-    fun followUser(token: String, username: String): Response<Int>
+    suspend fun followUser(token: String, username: String): Response<Boolean>
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -115,12 +117,11 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         )
     }
 
-    override fun followUser(token: String, username: String): Response<Int> {
+    override suspend fun followUser(token: String, username: String): Response<Boolean> {
         return RetrofitInstance(context).gitHubService.followUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
         )
     }
-
 
 }
