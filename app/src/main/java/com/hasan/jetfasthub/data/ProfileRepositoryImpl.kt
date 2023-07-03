@@ -33,6 +33,8 @@ interface ProfileRepository {
     suspend fun getUserGists(token: String, username: String, page: Int): Response<GistModel>
 
     suspend fun followUser(token: String, username: String): Response<Boolean>
+
+    suspend fun getFollowStatus(token: String, username: String): Response<Boolean>
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -121,6 +123,13 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         return RetrofitInstance(context).gitHubService.followUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
+        )
+    }
+
+    override suspend fun getFollowStatus(token: String, username: String): Response<Boolean> {
+        return RetrofitInstance(context = context).gitHubService.getFollowStatus(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username
         )
     }
 

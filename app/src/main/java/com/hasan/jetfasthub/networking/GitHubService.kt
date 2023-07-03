@@ -127,6 +127,13 @@ interface GitHubService {
     ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
+    @GET("user/following/{username}")
+    suspend fun getFollowStatus(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String,
+    ):Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
     @GET("notifications")
     suspend fun getAllNotifications(
         @Query("all") all: Boolean,

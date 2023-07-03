@@ -116,6 +116,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserFollowings(token, username, 1)
         profileViewModel.getUserFollowers(token, username, 1)
         profileViewModel.getUserGists(token, username, 1)
+        profileViewModel.getFollowStatus(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -125,24 +126,24 @@ class ProfileFragment : Fragment() {
                         state = state,
                         onNavigate = { dest -> findNavController().navigate(dest) },
                         onListItemClicked = { username ->
-                            profileViewModel.followUser(token, username).observe(viewLifecycleOwner){hasFollowed ->
-                                if (hasFollowed) {
-                                    Log.d("ahi3646", "onCreateView:  has followed")
-                                } else
-                                    Log.d("ahi3646", "onCreateView: has not followed")
-                            }
-                            profileViewModel.isFollowing.observe(viewLifecycleOwner) { isFollowing ->
-                                if (isFollowing) {
-                                    Log.d("ahi3646", "onCreateView: followed")
-                                } else
-                                    Log.d("ahi3646", "onCreateView: not followed")
-                            }
-                            if (state.isFollowing) {
-                                Log.d("ahi3646", "onCreateView: state followed")
-                            } else
-                                Log.d("ahi3646", "onCreateView: state not followed")
-
-                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
+//                            profileViewModel.followUser(token, username).observe(viewLifecycleOwner){hasFollowed ->
+//                                if (hasFollowed) {
+//                                    Log.d("ahi3646", "onCreateView:  has followed")
+//                                } else
+//                                    Log.d("ahi3646", "onCreateView: has not followed")
+//                            }
+//                            profileViewModel.isFollowing.observe(viewLifecycleOwner) { isFollowing ->
+//                                if (isFollowing) {
+//                                    Log.d("ahi3646", "onCreateView: followed")
+//                                } else
+//                                    Log.d("ahi3646", "onCreateView: not followed")
+//                            }
+//                            if (state.isFollowing) {
+//                                Log.d("ahi3646", "onCreateView: state followed")
+//                            } else
+//                                Log.d("ahi3646", "onCreateView: state not followed")
+//
+//                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
                         },
                         username = username
                     )
@@ -243,6 +244,7 @@ fun TabScreen(
         when (tabIndex) {
             0 -> OverviewScreen(
                 state.OverviewScreenState,
+                state.isFollowing,
                 state.UserOrganisations
             )
 
@@ -284,6 +286,7 @@ fun TabScreen(
 @Composable
 fun OverviewScreen(
     overviewScreenState: UserOverviewScreen,
+    isFollowing: Boolean,
     organisation: Resource<OrgModel>
 ) {
 
@@ -397,12 +400,21 @@ fun OverviewScreen(
                 Button(
                     onClick = {}, modifier = Modifier.padding(start = 24.dp, end = 24.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_follow),
-                        contentDescription = "follow button"
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Unfollow")
+                    if (isFollowing){
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_unfollow),
+                            contentDescription = "follow button"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Unfollow")
+                    }else{
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_follow),
+                            contentDescription = "follow button"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Follow")
+                    }
                 }
 
                 if (overviewScreenState.user.company != null) {
