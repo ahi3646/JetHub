@@ -1,7 +1,6 @@
 package com.hasan.jetfasthub.screens.main.profile
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.ProfileRepository
@@ -14,8 +13,11 @@ import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.utility.Resource
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.Exception
@@ -25,9 +27,6 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
     private var _state: MutableStateFlow<ProfileScreenState> =
         MutableStateFlow(ProfileScreenState())
     val state = _state.asStateFlow()
-
-    private var _isFollowing: MutableLiveData<Boolean> = MutableLiveData(false)
-    val isFollowing: LiveData<Boolean> = _isFollowing
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch {
@@ -238,72 +237,71 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
     fun getFollowStatus(token: String, username: String) {
         viewModelScope.launch {
             try {
-                repository.getFollowStatus(token, username).let { reponse ->
-                    if(reponse.code() == 204){
+                repository.getFollowStatus(token, username).let { response ->
+                    if (response.code() == 204) {
                         _state.update {
                             it.copy(
-                                isFollowing = true
-                            )
-                        }
-                    }else{
-                        _state.update {
-                            it.copy(
-                                isFollowing = false
+                                isFollowing = true,
                             )
                         }
                     }
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isFollowing = true
-                    )
-                }
+                Log.d("ahi3646", "unfollowUser: exception - ${e.message} ")
             }
         }
     }
 
-//    fun followUser(token: String, username: String) :LiveData<Boolean>{
-//        _state.update {
-//            it.copy(
-//                isFollowing = true
-//            )
-//        }
-//        _isFollowing.postValue(false)
-//        viewModelScope.launch {
-//            try {
-//                repository.followUser(token, username).let { res ->
-//                    Log.d("ahi3646", "followUser: ${res.code()} ")
-//                    if(res.code() == 204){
-//                        _state.update {
-//                            it.copy(
-//                                isFollowing = true
-//                            )
-//                        }
-//                        _isFollowing.postValue(true)
-//                    }else{
-//                        _state.update {
-//                            it.copy(
-//                                isFollowing = true
-//                            )
-//                        }
-//                        _isFollowing.postValue(false)
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                Log.d("ahi3646", "followUser:  ${e.message}")
-//                _isFollowing.postValue(false)
-//                _state.update {
-//                    it.copy(
-//                        isFollowing = true
-//                    )
-//                }
-//            }
-//        }
-//        return isFollowing
-//    }
+    fun unfollowUser(token: String, username: String): Flow<Boolean> = callbackFlow {
+        viewModelScope.launch {
+            try {
+                repository.unfollowUser(token, username).let { response ->
+                    if (response.code() == 204) {
+
+                        trySend(true)
+
+                        _state.update {
+                            it.copy(
+                                isFollowing = false,
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("ahi3646", "unfollowUser: exception - ${e.message} ")
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
+        }
+    }
+
+    fun followUser(token: String, username: String): Flow<Boolean> = callbackFlow {
+        try {
+            repository.followUser(token, username).let { res ->
+                if (res.code() == 204) {
+
+                    trySend(true)
+
+                    _state.update {
+                        it.copy(
+                            isFollowing = true,
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.d("ahi3646", "followUser:  ${e.message}")
+        }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
+        }
+    }
 
 }
+
 
 data class ProfileScreenState(
     val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
@@ -314,7 +312,7 @@ data class ProfileScreenState(
     val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
     val UserFollowers: Resource<FollowersModel> = Resource.Loading(),
     val UserGists: Resource<GistModel> = Resource.Loading(),
-    val isFollowing: Boolean = false
+    var isFollowing: Boolean = true,
 )
 
 sealed interface UserOverviewScreen {

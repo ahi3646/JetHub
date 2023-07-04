@@ -34,7 +34,10 @@ interface ProfileRepository {
 
     suspend fun followUser(token: String, username: String): Response<Boolean>
 
+    suspend fun unfollowUser(token: String, username: String): Response<Boolean>
+
     suspend fun getFollowStatus(token: String, username: String): Response<Boolean>
+
 }
 
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
@@ -128,6 +131,13 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
 
     override suspend fun getFollowStatus(token: String, username: String): Response<Boolean> {
         return RetrofitInstance(context = context).gitHubService.getFollowStatus(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username
+        )
+    }
+
+    override suspend fun unfollowUser(token: String, username: String): Response<Boolean> {
+        return RetrofitInstance(context).gitHubService.unfollowUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )

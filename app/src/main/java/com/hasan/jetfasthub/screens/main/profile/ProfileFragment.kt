@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -68,6 +67,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -92,6 +94,8 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
 
@@ -104,9 +108,7 @@ class ProfileFragment : Fragment() {
     ): View {
 
         val username = arguments?.getString("username") ?: ""
-        Log.d("ahi3646", "onCreateView: $username ")
         val token = PreferenceHelper.getToken(requireContext())
-
 
         profileViewModel.getUser(token, username)
         profileViewModel.getUserOrganisations(token, username)
@@ -122,30 +124,35 @@ class ProfileFragment : Fragment() {
             setContent {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(
-                        state = state,
+                    MainContent(state = state,
                         onNavigate = { dest -> findNavController().navigate(dest) },
                         onListItemClicked = { username ->
-//                            profileViewModel.followUser(token, username).observe(viewLifecycleOwner){hasFollowed ->
-//                                if (hasFollowed) {
-//                                    Log.d("ahi3646", "onCreateView:  has followed")
-//                                } else
-//                                    Log.d("ahi3646", "onCreateView: has not followed")
-//                            }
-//                            profileViewModel.isFollowing.observe(viewLifecycleOwner) { isFollowing ->
-//                                if (isFollowing) {
-//                                    Log.d("ahi3646", "onCreateView: followed")
-//                                } else
-//                                    Log.d("ahi3646", "onCreateView: not followed")
-//                            }
-//                            if (state.isFollowing) {
-//                                Log.d("ahi3646", "onCreateView: state followed")
-//                            } else
-//                                Log.d("ahi3646", "onCreateView: state not followed")
-//
-//                            Toast.makeText(requireContext(), username, Toast.LENGTH_SHORT).show()
+                            Log.d("username", "onCreateView: $username")
                         },
-                        username = username
+                        username = username,
+
+                        onFollowClicked = {
+                            profileViewModel.followUser(token, username)
+                                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                    if (it) {
+                                        Log.d("ahi3646", "onCreateView follow: onEach - true ")
+                                    } else {
+                                        Log.d("ahi3646", "onCreateView follow: onEach - false ")
+                                    }
+                                }
+                                .launchIn(lifecycleScope)
+                        },
+                        onUnfollowClicked = {
+                            profileViewModel.unfollowUser(token, username)
+                                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                    if (it) {
+                                        Log.d("ahi3646", "onCreateView unfollow: onEach - true ")
+                                    } else {
+                                        Log.d("ahi3646", "onCreateView unfollow: onEach - false ")
+                                    }
+                                }
+                                .launchIn(lifecycleScope)
+                        }
                     )
                 }
             }
@@ -158,7 +165,9 @@ private fun MainContent(
     state: ProfileScreenState,
     onNavigate: (Int) -> Unit,
     onListItemClicked: (String) -> Unit,
-    username: String
+    username: String,
+    onFollowClicked: () -> Unit,
+    onUnfollowClicked: () -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
 
@@ -174,14 +183,13 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, state, onListItemClicked)
+        TabScreen(contentPadding, state, onListItemClicked, onFollowClicked, onUnfollowClicked)
     }
 }
 
 @Composable
 private fun TopAppBarContent(
-    onBackPressed: (Int) -> Unit,
-    username: String
+    onBackPressed: (Int) -> Unit, username: String
 ) {
     Row(
         modifier = Modifier
@@ -220,7 +228,9 @@ private fun TopAppBarContent(
 fun TabScreen(
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
-    onListItemClicked: (String) -> Unit
+    onListItemClicked: (String) -> Unit,
+    onFollowClicked: () -> Unit,
+    onUnfollowClicked: () -> Unit,
 ) {
 
     var tabIndex by remember { mutableStateOf(0) }
@@ -245,37 +255,33 @@ fun TabScreen(
             0 -> OverviewScreen(
                 state.OverviewScreenState,
                 state.isFollowing,
-                state.UserOrganisations
+                state.UserOrganisations,
+                onFollowClicked,
+                onUnfollowClicked
             )
 
             1 -> FeedScreen(
-                state.UserEvents,
-                onFeedsItemClicked = onListItemClicked
+                state.UserEvents, onFeedsItemClicked = onListItemClicked
             )
 
             2 -> RepositoriesScreen(
-                state.UserRepositories,
-                onRepositoryItemClicked = onListItemClicked
+                state.UserRepositories, onRepositoryItemClicked = onListItemClicked
             )
 
             3 -> StarredScreen(
-                state.UserStarredRepositories,
-                onStarredRepoItemClicked = onListItemClicked
+                state.UserStarredRepositories, onStarredRepoItemClicked = onListItemClicked
             )
 
             4 -> GistsScreen(
-                state.UserGists,
-                onGistItemClick = onListItemClicked
+                state.UserGists, onGistItemClick = onListItemClicked
             )
 
             5 -> FollowersScreen(
-                state.UserFollowers,
-                onFollowersItemClicked = onListItemClicked
+                state.UserFollowers, onFollowersItemClicked = onListItemClicked
             )
 
             6 -> FollowingScreen(
-                state.UserFollowings,
-                onFollowingsItemClicked = onListItemClicked
+                state.UserFollowings, onFollowingsItemClicked = onListItemClicked
             )
 
         }
@@ -287,7 +293,9 @@ fun TabScreen(
 fun OverviewScreen(
     overviewScreenState: UserOverviewScreen,
     isFollowing: Boolean,
-    organisation: Resource<OrgModel>
+    organisation: Resource<OrgModel>,
+    onFollowClicked: () -> Unit,
+    onUnfollowClicked: () -> Unit,
 ) {
 
     when (overviewScreenState) {
@@ -397,17 +405,23 @@ fun OverviewScreen(
                     )
                 }
 
-                Button(
-                    onClick = {}, modifier = Modifier.padding(start = 24.dp, end = 24.dp)
-                ) {
-                    if (isFollowing){
+                if (isFollowing) {
+                    Button(
+                        onClick = { onUnfollowClicked() },
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_unfollow),
-                            contentDescription = "follow button"
+                            contentDescription = "unfollow button"
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = "Unfollow")
-                    }else{
+                    }
+                } else {
+                    Button(
+                        onClick = { onFollowClicked() },
+                        modifier = Modifier.padding(start = 24.dp, end = 24.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_follow),
                             contentDescription = "follow button"
@@ -416,6 +430,7 @@ fun OverviewScreen(
                         Text(text = "Follow")
                     }
                 }
+
 
                 if (overviewScreenState.user.company != null) {
                     Row(
@@ -681,8 +696,7 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (String) ->
 
 @Composable
 fun FeedsItem(
-    onFeedsItemClicked: (String) -> Unit,
-    userEventsItem: UserEventsItem
+    onFeedsItemClicked: (String) -> Unit, userEventsItem: UserEventsItem
 ) {
     Card(
         modifier = Modifier
@@ -775,8 +789,7 @@ fun FeedsItem(
 
 @Composable
 fun RepositoriesScreen(
-    userRepositories: Resource<UserRepositoryModel>,
-    onRepositoryItemClicked: (String) -> Unit
+    userRepositories: Resource<UserRepositoryModel>, onRepositoryItemClicked: (String) -> Unit
 ) {
     when (userRepositories) {
         is Resource.Loading -> {
@@ -799,8 +812,7 @@ fun RepositoriesScreen(
             ) {
                 itemsIndexed(userRepositories.data!!) { index, UserEventsItem ->
                     RepositoryItem(
-                        UserEventsItem,
-                        onRepositoryItemClicked = onRepositoryItemClicked
+                        UserEventsItem, onRepositoryItemClicked = onRepositoryItemClicked
                     )
                     if (index < userRepositories.data.lastIndex) {
                         Divider(
@@ -916,8 +928,7 @@ fun RepositoryItem(
 
 @Composable
 fun StarredScreen(
-    userStarredRepoModel: Resource<StarredRepoModel>,
-    onStarredRepoItemClicked: (String) -> Unit
+    userStarredRepoModel: Resource<StarredRepoModel>, onStarredRepoItemClicked: (String) -> Unit
 ) {
     when (userStarredRepoModel) {
         is Resource.Loading -> {
@@ -940,8 +951,7 @@ fun StarredScreen(
             ) {
                 itemsIndexed(userStarredRepoModel.data!!) { index, StarredUserRepo ->
                     StarredRepositoryItem(
-                        StarredUserRepo,
-                        onStarredRepositoryItemClicked = onStarredRepoItemClicked
+                        StarredUserRepo, onStarredRepositoryItemClicked = onStarredRepoItemClicked
                     )
                     if (index < userStarredRepoModel.data.lastIndex) {
                         Divider(
@@ -1078,8 +1088,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (String) -> Unit) {
             ) {
                 itemsIndexed(gists.data!!) { index, gist ->
                     GistItemCard(
-                        gist,
-                        onGistItemClick = onGistItemClick
+                        gist, onGistItemClick = onGistItemClick
                     )
                     if (index < gists.data.lastIndex) {
                         Divider(
@@ -1169,8 +1178,7 @@ fun FollowersScreen(
             ) {
                 itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
                     FollowersItemCard(
-                        StarredUserRepo,
-                        onItemClicked = onFollowersItemClicked
+                        StarredUserRepo, onItemClicked = onFollowersItemClicked
                     )
                     if (index < userFollowers.data.lastIndex) {
                         Divider(
@@ -1271,8 +1279,7 @@ fun FollowingScreen(
             ) {
                 itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
                     FollowingsItemCard(
-                        StarredUserRepo,
-                        onItemClicked = onFollowingsItemClicked
+                        StarredUserRepo, onItemClicked = onFollowingsItemClicked
                     )
                     if (index < userFollowings.data.lastIndex) {
                         Divider(

@@ -20,6 +20,7 @@ import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -122,6 +123,13 @@ interface GitHubService {
     @Headers("Accept: application/vnd.github+json")
     @PUT("user/following/{username}")
     suspend fun followUser(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String,
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("user/following/{username}")
+    suspend fun unfollowUser(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
     ): Response<Boolean>
