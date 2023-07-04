@@ -160,7 +160,9 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.getUserStarredReposCount(token, username, per_page).let { response ->
                     if (response.isSuccessful) {
-
+                        var headers = response.headers()
+                        var body = response.body()
+                        
                     }
                 }
             } catch (e: Exception) {
@@ -325,7 +327,7 @@ data class ProfileScreenState(
     val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
     val UserFollowers: Resource<FollowersModel> = Resource.Loading(),
     val UserGists: Resource<GistModel> = Resource.Loading(),
-    var isFollowing: Boolean = true,
+    var isFollowing: Boolean = false,
 )
 
 sealed interface UserOverviewScreen {
