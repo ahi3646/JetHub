@@ -107,7 +107,7 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val username = arguments?.getString("username") ?: ""
+        val username = arguments?.getString("home_data") ?: ""
         val token = PreferenceHelper.getToken(requireContext())
 
         profileViewModel.getUser(token, username)

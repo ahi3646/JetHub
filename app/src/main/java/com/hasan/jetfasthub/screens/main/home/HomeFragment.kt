@@ -76,7 +76,6 @@ import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
-import com.hasan.jetfasthub.utility.EventsType
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
@@ -94,6 +93,10 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
+        val destinations = HashMap<String, Int>()
+        destinations["about_fragment"] = R.id.action_homeFragment_to_aboutFragment
+        destinations["profile_fragment"] = R.id.action_homeFragment_to_profileFragment
+
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
 
@@ -104,16 +107,19 @@ class HomeFragment : Fragment() {
             setContent {
                 val state by homeViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(state = state,
+                    MainContent(
+                        state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
-                        onNavigate = { username ->
-                            val bundle = Bundle()
-                            bundle.putString("username", username)
-                            findNavController().navigate(
-                                R.id.action_homeFragment_to_profileFragment, bundle
-                            )
+                        onNavigate = { dest, data ->
+                            if (data != null) {
+                                val bundle = Bundle()
+                                bundle.putString("home_data", data)
+                                findNavController().navigate(destinations[dest]!!, bundle)
+                            } else {
+                                findNavController().navigate(destinations[dest]!!)
+                            }
                         },
-                        onToolbarItemCLick = {destination ->
+                        onToolbarItemCLick = { destination ->
                             findNavController().navigate(
                                 destination
                             )
@@ -129,7 +135,7 @@ class HomeFragment : Fragment() {
 private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String, String?) -> Unit,
     onToolbarItemCLick: (Int) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
@@ -141,11 +147,11 @@ private fun MainContent(
             TopAppBar(
                 backgroundColor = Color.White,
                 content = {
-                    TopAppBarContent(scaffoldState, scope, onToolbarItemCLick )
+                    TopAppBarContent(scaffoldState, scope, onToolbarItemCLick)
                 },
             )
         },
-        drawerContent = { DrawerContent(state.user, scaffoldState, scope) },
+        drawerContent = { DrawerContent(state.user, scaffoldState, scope, onNavigate) },
         content = { contentPadding ->
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
@@ -153,6 +159,7 @@ private fun MainContent(
                     state.receivedEventsState,
                     onNavigate
                 )
+
                 AppScreens.Issues -> IssuesScreen()
                 AppScreens.PullRequests -> PullRequestScreen()
             }
@@ -171,7 +178,11 @@ private fun MainContent(
 
 
 @Composable
-private fun TopAppBarContent(state: ScaffoldState, scope: CoroutineScope, onToolbarItemCLick: (Int) -> Unit) {
+private fun TopAppBarContent(
+    state: ScaffoldState,
+    scope: CoroutineScope,
+    onToolbarItemCLick: (Int) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
@@ -268,7 +279,7 @@ fun BottomNav(
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
-    receivedEventsState: ReceivedEventsState, onNavigate: (String) -> Unit
+    receivedEventsState: ReceivedEventsState, onNavigate: (String, String?) -> Unit
 ) {
     when (receivedEventsState) {
 
@@ -294,7 +305,12 @@ fun FeedsScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 items(receivedEventsState.events) { eventItem ->
-                    ItemEventCard(eventItem) { onNavigate(eventItem.actor.login) }
+                    ItemEventCard(eventItem) {
+                        onNavigate(
+                            "profile_fragment",
+                            eventItem.actor.login
+                        )
+                    }
                 }
             }
         }
@@ -423,7 +439,12 @@ fun ItemEventCard(
 
 //things related to drawer content
 @Composable
-private fun DrawerContent(user: Resource<GitHubUser>, state: ScaffoldState, scope: CoroutineScope) {
+private fun DrawerContent(
+    user: Resource<GitHubUser>,
+    state: ScaffoldState,
+    scope: CoroutineScope,
+    onNavigate: (String, String?) -> Unit
+) {
     ModalDrawerSheet {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -455,18 +476,30 @@ private fun DrawerContent(user: Resource<GitHubUser>, state: ScaffoldState, scop
             }
         }
         DrawerTabScreen(
-            closeDrawer = {scope.launch {
-                state.drawerState.apply {
-                    if (isClosed) open() else close()
+            username = user.data?.login ?: "",
+            closeDrawer = {
+                scope.launch {
+                    state.drawerState.apply {
+                        if (isClosed) open() else close()
+                    }
                 }
-            }},
-            onNavigate = {dest -> }
+            },
+            onNavigate = { dest, username ->
+                scope.launch {
+                    state.drawerState.close()
+                }
+                onNavigate(dest, username)
+            }
         )
     }
 }
 
 @Composable
-fun DrawerTabScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
+fun DrawerTabScreen(
+    username: String,
+    closeDrawer: () -> Unit,
+    onNavigate: (String, String?) -> Unit
+) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
@@ -492,14 +525,18 @@ fun DrawerTabScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen(closeDrawer, onNavigate)
+            0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
             1 -> DrawerProfileScreen()
         }
     }
 }
 
 @Composable
-fun DrawerMenuScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
+fun DrawerMenuScreen(
+    username: String,
+    closeDrawer: () -> Unit,
+    onNavigate: (String, String?) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -532,7 +569,9 @@ fun DrawerMenuScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("profile_fragment", username)
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_person_24),
                 contentDescription = "Profile icon",
@@ -707,7 +746,9 @@ fun DrawerMenuScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("about_fragment", null)
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "About icon",
