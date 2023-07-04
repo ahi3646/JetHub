@@ -145,7 +145,7 @@ private fun MainContent(
                 },
             )
         },
-        drawerContent = { DrawerContent(state.user) },
+        drawerContent = { DrawerContent(state.user, scaffoldState, scope) },
         content = { contentPadding ->
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
@@ -313,6 +313,7 @@ fun FeedsScreen(
     }
 }
 
+
 @Composable
 fun IssuesScreen() {
     Column(
@@ -422,7 +423,7 @@ fun ItemEventCard(
 
 //things related to drawer content
 @Composable
-private fun DrawerContent(user: Resource<GitHubUser>) {
+private fun DrawerContent(user: Resource<GitHubUser>, state: ScaffoldState, scope: CoroutineScope) {
     ModalDrawerSheet {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -453,12 +454,19 @@ private fun DrawerContent(user: Resource<GitHubUser>) {
                 Text(user.data?.login.toString())
             }
         }
-        DrawerTabScreen()
+        DrawerTabScreen(
+            closeDrawer = {scope.launch {
+                state.drawerState.apply {
+                    if (isClosed) open() else close()
+                }
+            }},
+            onNavigate = {dest -> }
+        )
     }
 }
 
 @Composable
-fun DrawerTabScreen() {
+fun DrawerTabScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
@@ -484,14 +492,14 @@ fun DrawerTabScreen() {
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen()
+            0 -> DrawerMenuScreen(closeDrawer, onNavigate)
             1 -> DrawerProfileScreen()
         }
     }
 }
 
 @Composable
-fun DrawerMenuScreen() {
+fun DrawerMenuScreen(closeDrawer: () -> Unit, onNavigate: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -502,7 +510,9 @@ fun DrawerMenuScreen() {
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    closeDrawer()
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_home_24),
                 contentDescription = "home icon",
@@ -514,7 +524,9 @@ fun DrawerMenuScreen() {
                 fontSize = 16.sp,
             )
         }
+
         Divider()
+
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
