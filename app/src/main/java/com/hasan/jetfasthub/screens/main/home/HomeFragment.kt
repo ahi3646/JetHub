@@ -96,6 +96,8 @@ class HomeFragment : Fragment() {
         val destinations = HashMap<String, Int>()
         destinations["about_fragment"] = R.id.action_homeFragment_to_aboutFragment
         destinations["profile_fragment"] = R.id.action_homeFragment_to_profileFragment
+        destinations["settings_fragment"] = R.id.action_homeFragment_to_settingsFragment
+        destinations["search_fragment"] = R.id.action_homeFragment_to_searchFragment
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
@@ -712,7 +714,9 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("settings_fragment", null)
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_settings_24),
                 contentDescription = "Setting icon",
@@ -729,7 +733,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {  }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_money),
                 contentDescription = "Restore Purchases icon",

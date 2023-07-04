@@ -32,6 +32,6 @@ class PinnedFragment: Fragment() {
 }
 
 @Composable
-fun MainContent(){
+private fun MainContent(){
 
 }
