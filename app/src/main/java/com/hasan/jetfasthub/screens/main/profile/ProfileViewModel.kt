@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.Exception
 
 class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() {
 
@@ -152,6 +151,20 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                         UserStarredRepositories = Resource.Failure(e.message.toString())
                     )
                 }
+            }
+        }
+    }
+
+    fun getUserStarredReposCount(token: String, username: String, per_page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getUserStarredReposCount(token, username, per_page).let { response ->
+                    if (response.isSuccessful) {
+
+                    }
+                }
+            } catch (e: Exception) {
+
             }
         }
     }

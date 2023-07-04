@@ -26,6 +26,8 @@ interface ProfileRepository {
 
     suspend fun getUserStarredRepos(token: String, username: String, page: Int): Response<StarredRepoModel>
 
+    suspend fun getUserStarredReposCount(token: String, username: String, per_page: Int): Response<StarredRepoModel>
+
     suspend fun getUserFollowings(token: String, username: String, page: Int): Response<FollowingModel>
 
     suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
@@ -83,6 +85,18 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
+        )
+    }
+
+    override suspend fun getUserStarredReposCount(
+        token: String,
+        username: String,
+        per_page: Int
+    ): Response<StarredRepoModel> {
+        return RetrofitInstance(context).gitHubService.getUserStarredReposCount(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            username = username,
+            per_page =  per_page
         )
     }
 

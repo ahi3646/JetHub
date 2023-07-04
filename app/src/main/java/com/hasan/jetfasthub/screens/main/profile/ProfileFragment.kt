@@ -244,11 +244,20 @@ fun TabScreen(
     ) {
         ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
-                Tab(
-                    text = { Text(title) },
-                    selected = tabIndex == index,
-                    onClick = { tabIndex = index },
-                )
+                if (title == "STARRED"){
+                    val count = state.UserStarredRepositories.data?.size.toString()
+                    Tab(
+                        text = { Text("$title ($count)") },
+                        selected = tabIndex == index,
+                        onClick = { tabIndex = index },
+                    )
+                }else{
+                    Tab(
+                        text = { Text(title) },
+                        selected = tabIndex == index,
+                        onClick = { tabIndex = index },
+                    )
+                }
             }
         }
         when (tabIndex) {

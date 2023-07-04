@@ -89,6 +89,14 @@ interface GitHubService {
     ): Response<StarredRepoModel>
 
     @Headers("Accept: application/vnd.github+json")
+    @GET("users/{username}/starred")
+    suspend fun getUserStarredReposCount(
+        @Header("Authorization") token: String,
+        @Path("username") username: String,
+        @Query("per_page") per_page: Int
+    ): Response<StarredRepoModel>
+
+    @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/following")
     suspend fun getUserFollowings(
         @Header("Authorization") token: String,
