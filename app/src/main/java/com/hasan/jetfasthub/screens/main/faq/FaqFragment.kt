@@ -107,9 +107,3 @@ fun MainContent() {
         }
     }
 }
-
-@Composable
-@Preview
-fun PreviewMainContent() {
-    MainContent()
-}

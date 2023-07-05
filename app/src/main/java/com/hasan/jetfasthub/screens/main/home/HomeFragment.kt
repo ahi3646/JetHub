@@ -99,6 +99,7 @@ class HomeFragment : Fragment() {
         destinations["settings_fragment"] = R.id.action_homeFragment_to_settingsFragment
         destinations["search_fragment"] = R.id.action_homeFragment_to_searchFragment
         destinations["faq_fragment"] = R.id.action_homeFragment_to_faqFragment
+        destinations["gists_fragment"] = R.id.action_homeFragment_to_gistsFragment
         destinations["notifications_fragment"] = R.id.action_homeFragment_to_notificationsFragment
 
         val token = PreferenceHelper.getToken(requireContext())
@@ -665,7 +666,9 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 4.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("gists_fragment", null)
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_code_24),
                 contentDescription = "Gists icon",

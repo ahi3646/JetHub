@@ -2,6 +2,7 @@ package com.hasan.jetfasthub.networking
 
 import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.login.model.AuthModel
+import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
@@ -88,6 +89,7 @@ interface GitHubService {
         @Query("page") page: Int,
     ): Response<StarredRepoModel>
 
+
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/starred")
     suspend fun getUserStarredReposCount(
@@ -119,6 +121,13 @@ interface GitHubService {
         @Path("username") username: String,
         @Query("page") page: Int,
     ): Response<GistModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("users/{username}/gists")
+    suspend fun getStarredGists(
+        @Header("Authorization") token: String,
+        @Query("page") page: Int,
+    ): Response<StarredGistModel>
 
 
     @Headers("Accept: application/vnd.github+json")

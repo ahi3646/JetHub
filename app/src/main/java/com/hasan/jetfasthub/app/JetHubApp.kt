@@ -4,6 +4,7 @@ import android.app.Application
 import com.hasan.jetfasthub.di.appModule
 import com.hasan.jetfasthub.di.basicAuthViewModelModule
 import com.hasan.jetfasthub.di.eventsModule
+import com.hasan.jetfasthub.di.gistsModule
 import com.hasan.jetfasthub.di.homeViewModelModule
 import com.hasan.jetfasthub.di.notificationsModule
 import com.hasan.jetfasthub.di.profileModule
@@ -23,6 +24,7 @@ class JetHubApp: Application() {
             modules(
                 appModule,
                 eventsModule,
+                gistsModule,
                 notificationsModule,
                 searchModule,
                 profileModule,

@@ -5,6 +5,8 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import com.hasan.jetfasthub.data.AuthRepository
 import com.hasan.jetfasthub.data.AuthRepositoryImpl
+import com.hasan.jetfasthub.data.GistsRepository
+import com.hasan.jetfasthub.data.GistsRepositoryImpl
 import com.hasan.jetfasthub.screens.login.LoginViewModel
 import com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthViewModel
 import com.hasan.jetfasthub.data.HomeRepository
@@ -17,6 +19,7 @@ import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
+import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
@@ -52,7 +55,7 @@ val networkModule = module {
     single { provideRetrofit(get()) }
 }
 
-fun provideGitHubService(retrofit: Retrofit) : GitHubService{
+fun provideGitHubService(retrofit: Retrofit): GitHubService {
     return retrofit.create(GitHubService::class.java)
 }
 
@@ -81,6 +84,11 @@ val profileModule = module {
     viewModel { ProfileViewModel(get()) }
 }
 
+val gistsModule = module {
+    single<GistsRepository> { GistsRepositoryImpl(get()) }
+    viewModel{ GistsViewModel(get()) }
+}
+
 val eventsModule = module {
     single<HomeRepository> { HomeRepositoryImpl(get()) }
     viewModel { HomeViewModel(get()) }
@@ -88,12 +96,12 @@ val eventsModule = module {
 
 val notificationsModule = module {
     single<NotificationRepository> { NotificationsRepositoryImpl(get()) }
-    viewModel{ NotificationsViewModel(get()) }
+    viewModel { NotificationsViewModel(get()) }
 }
 
 val searchModule = module {
-    single<SearchRepository>{SearchRepositoryImpl(get())}
-    viewModel{SearchViewModel(get())}
+    single<SearchRepository> { SearchRepositoryImpl(get()) }
+    viewModel { SearchViewModel(get()) }
 }
 
 val basicAuthViewModelModule = module {

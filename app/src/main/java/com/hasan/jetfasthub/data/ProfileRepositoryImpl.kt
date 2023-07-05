@@ -2,6 +2,7 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
