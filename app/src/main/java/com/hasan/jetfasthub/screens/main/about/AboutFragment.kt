@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -72,11 +70,11 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(contentPadding),
+                .padding(16.dp),
             shadowElevation = 9.dp
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -98,7 +96,7 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.baseline_person_24),
                         contentDescription = "Profile icon",
-                        modifier = Modifier.padding( top = 12.dp, bottom = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
                     )
                     androidx.compose.material.Text(
                         text = "Hasan Anorov",
@@ -120,9 +118,9 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_github),
                         contentDescription = "Profile icon",
-                        modifier = Modifier.padding( top = 12.dp, bottom = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
                     )
-                        Text(
+                    Text(
                         text = "HasanAnorov",
                         modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                         fontSize = 16.sp,
@@ -142,7 +140,7 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_email),
                         contentDescription = "Profile icon",
-                        modifier = Modifier.padding( top = 12.dp, bottom = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
                     )
                     androidx.compose.material.Text(
                         text = "anoorvhasan.edu@gmail.com",
@@ -164,7 +162,7 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.baseline_contact_phone_24),
                         contentDescription = "Profile icon",
-                        modifier = Modifier.padding( top = 12.dp, bottom = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
                     )
                     androidx.compose.material.Text(
                         text = "+ 998 93 337 36 46",
@@ -182,26 +180,31 @@ private fun MainContent(onNavigate: (Int) -> Unit) {
 private fun TopAppBarContent(
     onBackPressed: (Int) -> Unit
 ) {
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        shadowElevation = 9.dp
     ) {
-        IconButton(onClick = {
-            onBackPressed(R.id.action_profileFragment_to_homeFragment)
-        }) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+        ) {
+            IconButton(onClick = {
+                onBackPressed(R.id.action_aboutFragment_to_homeFragment)
+            }) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+            }
 
-        Text(
-            color = Color.Black,
-            modifier = Modifier
-                .weight(1F)
-                .padding(start = 10.dp, end = 10.dp),
-            text = "About",
-            style = MaterialTheme.typography.titleLarge,
-        )
+            Text(
+                color = Color.Black,
+                modifier = Modifier
+                    .weight(1F)
+                    .padding(start = 10.dp, end = 10.dp),
+                text = "About",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
     }
 }
