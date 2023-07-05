@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
+import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,10 +69,37 @@ class GistsViewModel(private val repository: GistsRepository ): ViewModel() {
         }
     }
 
+    fun getPublicGists(token: String, perPage: Int, page: Int){
+        viewModelScope.launch {
+            try {
+                repository.getPublicGists(token, perPage, page).let { gists ->
+                    if (gists.isSuccessful) {
+                        _state.update {
+                            it.copy(PublicGists = Resource.Success(gists.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                PublicGists = Resource.Failure(
+                                    gists.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(PublicGists = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class GistsScreenState(
     val UserGists: Resource<GistModel> = Resource.Loading(),
-    val StarredGists: Resource<StarredGistModel> = Resource.Loading()
+    val StarredGists: Resource<StarredGistModel> = Resource.Loading(),
+    val PublicGists: Resource<PublicGistsModel> = Resource.Loading()
 )
 

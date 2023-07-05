@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.networking
 import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
+import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
@@ -129,6 +130,13 @@ interface GitHubService {
         @Query("page") page: Int,
     ): Response<StarredGistModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @GET("gists/public")
+    suspend fun getPublicGists(
+        @Header("Authorization") token: String,
+        @Query("per_page") perPage: Int,
+        @Query("page") page: Int,
+    ): Response<PublicGistsModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")

@@ -46,8 +46,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -55,6 +59,8 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModelItem
+import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
+import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
@@ -78,7 +84,8 @@ class GistsFragment : Fragment() {
         val username = "HasanAnorov"
 
         gistsViewModel.getUserGists(token = token, username = username, 1)
-        gistsViewModel.getStarredGists(token = token,  1)
+        gistsViewModel.getStarredGists(token = token, 1)
+        gistsViewModel.getPublicGists(token = token, perPage = 30, page = 1)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -147,7 +154,7 @@ fun TabScreen(
         when (tabIndex) {
             0 -> MyGists(state.UserGists, onRecyclerItemClick)
             1 -> Starred(state.StarredGists, onRecyclerItemClick)
-            2 -> PublicGists()
+            2 -> PublicGists(state.PublicGists, onRecyclerItemClick)
         }
     }
 }
@@ -384,8 +391,138 @@ private fun StarredGistsItem(
 }
 
 @Composable
-fun PublicGists() {
+fun PublicGists(state: Resource<PublicGistsModel>, onRecyclerItemClick: (String, String?) -> Unit) {
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            if (!state.data!!.isEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(state.data) { index, gist ->
+                        PublicGistsItem(
+                            gist, onItemClicked = onRecyclerItemClick
+                        )
+                        if (index < state.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    text = "No news",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+                Log.d("ahi3646", "Unread: ${state.errorMessage}")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PublicGistsItem(
+    gist: PublicGistsModelItem, onItemClicked: (String, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked("enter_dest", gist.description)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    gist.owner.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(gist.owner.login + "/ ")
+                        }
+                        append(gist.files.hello_world_rb.filename)
+                    },
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_time_small),
+                        contentDescription = "time icon"
+                    )
+
+                    androidx.compose.material.Text(
+                        text = ParseDateFormat.getTimeAgo(gist.updated_at).toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                }
+            }
+        }
+    }
 }
 
 @Composable
