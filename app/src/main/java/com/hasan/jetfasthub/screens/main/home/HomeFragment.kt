@@ -98,6 +98,7 @@ class HomeFragment : Fragment() {
         destinations["profile_fragment"] = R.id.action_homeFragment_to_profileFragment
         destinations["settings_fragment"] = R.id.action_homeFragment_to_settingsFragment
         destinations["search_fragment"] = R.id.action_homeFragment_to_searchFragment
+        destinations["faq_fragment"] = R.id.action_homeFragment_to_faqFragment
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
@@ -697,7 +698,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable { onNavigate("faq_fragment", null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "FAQ icon",
