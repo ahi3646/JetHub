@@ -99,6 +99,7 @@ class HomeFragment : Fragment() {
         destinations["settings_fragment"] = R.id.action_homeFragment_to_settingsFragment
         destinations["search_fragment"] = R.id.action_homeFragment_to_searchFragment
         destinations["faq_fragment"] = R.id.action_homeFragment_to_faqFragment
+        destinations["notifications_fragment"] = R.id.action_homeFragment_to_notificationsFragment
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
@@ -609,7 +610,9 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("notifications_fragment", null)
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_notifications_24),
                 contentDescription = "Notifications icon",
