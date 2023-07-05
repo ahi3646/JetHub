@@ -588,7 +588,7 @@ fun OverviewScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color.White),
-                            horizontalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             items(organisation.data!!) { organization ->
@@ -654,7 +654,7 @@ fun OverviewScreen(
 fun OrganisationItem(organisation: OrgModelItem) {
     Column(
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(8.dp)
             .clickable {  }
@@ -663,6 +663,7 @@ fun OrganisationItem(organisation: OrgModelItem) {
         GlideImage(
             imageModel = { organisation.avatar_url }, // loading a network image using an URL.
             modifier = Modifier
+                .padding(8.dp)
                 .size(48.dp, 48.dp)
                 .clip(RoundedCornerShape(16.dp)),
             imageOptions = ImageOptions(

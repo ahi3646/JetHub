@@ -53,7 +53,7 @@ class FaqFragment : Fragment() {
 
 
 @Composable
-fun MainContent() {
+private fun MainContent() {
     Surface() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
+import androidx.compose.material.TabRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
@@ -132,7 +133,7 @@ fun TabScreen(
             .padding(contentPaddingValues)
             .fillMaxWidth()
     ) {
-        androidx.compose.material.TabRow(
+        TabRow(
             selectedTabIndex = tabIndex,
             backgroundColor = Color.Transparent,
             contentColor = Color.Blue
