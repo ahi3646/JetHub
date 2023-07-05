@@ -277,7 +277,7 @@ fun RepositoriesContent(
 }
 
 @Composable
-fun RepositoryItem(
+private fun RepositoryItem(
     repository: Item, onItemClicked: (String) -> Unit
 ) {
     Card(

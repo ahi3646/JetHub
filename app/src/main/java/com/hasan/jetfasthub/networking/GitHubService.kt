@@ -123,7 +123,7 @@ interface GitHubService {
     ): Response<GistModel>
 
     @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/gists")
+    @GET("gists/starred")
     suspend fun getStarredGists(
         @Header("Authorization") token: String,
         @Query("page") page: Int,
