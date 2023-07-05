@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -244,14 +245,14 @@ fun TabScreen(
     ) {
         ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
             tabs.forEachIndexed { index, title ->
-                if (title == "STARRED"){
+                if (title == "STARRED") {
                     val count = state.UserStarredRepositories.data?.size.toString()
                     Tab(
                         text = { Text("$title ($count)") },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
                     )
-                }else{
+                } else {
                     Tab(
                         text = { Text(title) },
                         selected = tabIndex == index,
@@ -266,8 +267,10 @@ fun TabScreen(
                 state.isFollowing,
                 state.UserOrganisations,
                 onFollowClicked,
-                onUnfollowClicked
-            )
+                onUnfollowClicked,
+            ) { index ->
+                tabIndex = index
+            }
 
             1 -> FeedScreen(
                 state.UserEvents, onFeedsItemClicked = onListItemClicked
@@ -305,6 +308,7 @@ fun OverviewScreen(
     organisation: Resource<OrgModel>,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
+    onTabChange: (Int) -> Unit,
 ) {
 
     when (overviewScreenState) {
@@ -396,10 +400,16 @@ fun OverviewScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(
-                        text = "Following - ${overviewScreenState.user.following}",
-                        modifier = Modifier.padding(8.dp)
-                    )
+
+                    Box(modifier = Modifier
+                        .clickable {
+                            onTabChange(6)
+                        }) {
+                        Text(
+                            text = "Following - ${overviewScreenState.user.following}",
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
 
                     Divider(
                         color = Color.Black,
@@ -408,10 +418,16 @@ fun OverviewScreen(
                             .width(2.dp),
                     )
 
-                    Text(
-                        text = "Followers - ${overviewScreenState.user.followers}",
-                        modifier = Modifier.padding(8.dp)
-                    )
+                    Box(modifier = Modifier
+                        .clickable {
+                            onTabChange(5)
+                        }) {
+                        Text(
+                            text = "Followers - ${overviewScreenState.user.followers}",
+                            modifier = Modifier
+                                .padding(12.dp)
+                        )
+                    }
                 }
 
                 if (isFollowing) {
@@ -639,7 +655,9 @@ fun OrganisationItem(organisation: OrgModelItem) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .padding(8.dp)
+            .clickable {  }
     ) {
 
         GlideImage(

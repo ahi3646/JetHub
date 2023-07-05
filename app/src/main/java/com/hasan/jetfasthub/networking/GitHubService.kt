@@ -136,7 +136,7 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Query("per_page") perPage: Int,
         @Query("page") page: Int,
-    ): Response<PublicGistsModel>
+    ): Response<PublicGistsModel    >
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")
