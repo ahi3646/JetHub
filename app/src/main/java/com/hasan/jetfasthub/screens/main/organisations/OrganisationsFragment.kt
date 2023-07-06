@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
@@ -107,7 +108,11 @@ class OrganisationsFragment : Fragment() {
                                 val bundle = Bundle()
                                 bundle.putString("organisation_fragment", data)
                                 findNavController().navigate(dest, bundle)
-                            } else {
+                            }
+                            else if(dest == -1){
+                                findNavController().popBackStack()
+                            }
+                            else {
                                 findNavController().navigate(dest)
                             }
                         })
@@ -692,7 +697,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(R.id.action_organisationsFragment_to_profileFragment, null)
+            onBackPressed(-1, null)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
