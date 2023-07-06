@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Card
+import androidx.compose.material.DrawerState
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
@@ -156,7 +157,21 @@ private fun MainContent(
                 },
             )
         },
-        drawerContent = { DrawerContent(state.user, scaffoldState, scope, onNavigate) },
+        drawerContent = {
+            DrawerContent(
+                user = state.user,
+                state = scaffoldState.drawerState,
+                scope = scope,
+                closeDrawer = {
+                    scope.launch {
+                        scaffoldState.drawerState.apply {
+                             close()
+                        }
+                    }
+                },
+                onNavigate = onNavigate
+            )
+        },
         content = { contentPadding ->
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
@@ -441,13 +456,13 @@ fun ItemEventCard(
     }
 }
 
-
 //things related to drawer content
 @Composable
 private fun DrawerContent(
     user: Resource<GitHubUser>,
-    state: ScaffoldState,
+    state: DrawerState,
     scope: CoroutineScope,
+    closeDrawer: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
     ModalDrawerSheet {
@@ -483,16 +498,10 @@ private fun DrawerContent(
         DrawerTabScreen(
             username = user.data?.login ?: "",
             closeDrawer = {
-                scope.launch {
-                    state.drawerState.apply {
-                        if (isClosed) open() else close()
-                    }
-                }
+                closeDrawer()
             },
             onNavigate = { dest, username ->
-                scope.launch {
-                    state.drawerState.close()
-                }
+                closeDrawer()
                 onNavigate(dest, username)
             }
         )
@@ -740,7 +749,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable {  }) {
+                .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_money),
                 contentDescription = "Restore Purchases icon",
