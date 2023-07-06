@@ -370,14 +370,17 @@ fun OverviewScreen(
                     )
 
                     Spacer(modifier = Modifier.width(16.dp))
+
                     Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
                         Text(
-                            text = overviewScreenState.user.name,
+                            text = overviewScreenState.user.name ?: "",
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             style = androidx.compose.material.MaterialTheme.typography.subtitle1
                         )
+
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
@@ -490,26 +493,29 @@ fun OverviewScreen(
                     )
                 }
 
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
-                    Text(
-                        text = overviewScreenState.user.location,
-                        modifier = Modifier.padding(start = 16.dp)
+                if(overviewScreenState.user.location != null){
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
+
+                        Text(
+                            text = overviewScreenState.user.location,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+
+                    Divider(
+                        color = Color.Black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 24.dp, end = 24.dp, top = 2.dp, bottom = 2.dp)
                     )
                 }
-
-                Divider(
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 2.dp, bottom = 2.dp)
-                )
 
                 if (overviewScreenState.user.email != null) {
                     Row(
@@ -528,6 +534,7 @@ fun OverviewScreen(
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
+
                     Divider(
                         color = Color.Black,
                         modifier = Modifier
@@ -564,21 +571,23 @@ fun OverviewScreen(
                     )
                 }
 
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_time),
-                        contentDescription = "Corporation"
-                    )
-                    Text(
-                        text = ParseDateFormat.getTimeAgo(overviewScreenState.user.created_at)
-                            .toString(), modifier = Modifier.padding(start = 16.dp)
-                    )
+                if(overviewScreenState.user.created_at != null){
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_time),
+                            contentDescription = "Corporation"
+                        )
+                        Text(
+                            text = ParseDateFormat.getTimeAgo(overviewScreenState.user.created_at)
+                                .toString(), modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
                 }
 
                 when (organisation) {
