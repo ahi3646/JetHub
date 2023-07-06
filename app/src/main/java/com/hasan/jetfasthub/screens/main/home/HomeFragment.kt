@@ -102,6 +102,7 @@ class HomeFragment : Fragment() {
         destinations["faq_fragment"] = R.id.action_homeFragment_to_faqFragment
         destinations["gists_fragment"] = R.id.action_homeFragment_to_gistsFragment
         destinations["notifications_fragment"] = R.id.action_homeFragment_to_notificationsFragment
+        destinations["add_account_fragment"] = R.id.action_homeFragment_to_addAccountFragment
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
@@ -164,9 +165,7 @@ private fun MainContent(
                 scope = scope,
                 closeDrawer = {
                     scope.launch {
-                        scaffoldState.drawerState.apply {
-                             close()
-                        }
+                        scaffoldState.drawerState.close()
                     }
                 },
                 onNavigate = onNavigate
@@ -210,9 +209,10 @@ private fun TopAppBarContent(
     ) {
         IconButton(onClick = {
             scope.launch {
-                state.drawerState.apply {
-                    if (isClosed) open() else close()
-                }
+//                state.drawerState.apply {
+//                    if (isClosed) open() else close()
+//                }
+                state.drawerState.open()
             }
             Log.d("ahi3646", "TopAppBarContent:${state.drawerState.currentValue} ")
         }) {
@@ -499,9 +499,11 @@ private fun DrawerContent(
             username = user.data?.login ?: "",
             closeDrawer = {
                 closeDrawer()
+                scope.launch { state.close() }
             },
             onNavigate = { dest, username ->
                 closeDrawer()
+                scope.launch { state.close() }
                 onNavigate(dest, username)
             }
         )
@@ -540,7 +542,7 @@ fun DrawerTabScreen(
         }
         when (tabIndex) {
             0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
-            1 -> DrawerProfileScreen()
+            1 -> DrawerProfileScreen(closeDrawer, onNavigate)
         }
     }
 }
@@ -783,7 +785,10 @@ fun DrawerMenuScreen(
 }
 
 @Composable
-fun DrawerProfileScreen() {
+fun DrawerProfileScreen(
+    closeDrawer: () -> Unit,
+    onNavigate: (String, String?) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start,
@@ -814,7 +819,11 @@ fun DrawerProfileScreen() {
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    closeDrawer()
+                    onNavigate("add_account_fragment", null)
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_add),
                 contentDescription = "Add Account icon",
