@@ -5,90 +5,123 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
+import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Resource
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class OrganisationsFragment: Fragment() {
+class OrganisationsFragment : Fragment() {
 
     private val organisationsViewModel: OrganisationsViewModel by viewModel()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         val organisation = arguments?.getString("profile_data") ?: ""
         val token = PreferenceHelper.getToken(requireContext())
 
+        organisationsViewModel.getOrganisationMembers(token = token, organisation, 1)
+
         return ComposeView(requireContext()).apply {
-           setContent {
-               JetFastHubTheme {
-                   MainContent()
-               }
-           }
+            setContent {
+                val state by organisationsViewModel.state.collectAsState()
+                JetFastHubTheme {
+                    MainContent(state = state,
+                        organisation = organisation,
+                        onRecyclerItemClick = { dest, data ->
+                            if (data != null) {
+                                val bundle = Bundle()
+                                bundle.putString("organisation_fragment", data)
+                                findNavController().navigate(dest, bundle)
+                            } else {
+                                findNavController().navigate(dest)
+                            }
+                        })
+                }
+            }
         }
     }
 
 }
 
-@Preview
 @Composable
-fun PreviewMainContent(){
-    MainContent()
-}
-
-@Composable
-private fun MainContent(){
+private fun MainContent(
+    state: OrganisationScreenState,
+    organisation: String,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
     val scaffoldState = rememberScaffoldState()
     Scaffold(scaffoldState = scaffoldState, topBar = {
         TopAppBar(
-        backgroundColor = Color.White,
-        elevation = 0.dp,
-        content = {
-            TopAppBarContent()
-        },
-    )
+            backgroundColor = Color.White,
+            elevation = 0.dp,
+            content = {
+                TopAppBarContent(onRecyclerItemClick, organisation)
+            },
+        )
     }) { paddingValues ->
-        TabScreen(paddingValues)
+        TabScreen(paddingValues, state, onRecyclerItemClick)
     }
 }
 
 @Composable
-private fun TabScreen(paddingValues: PaddingValues){
+private fun TabScreen(
+    paddingValues: PaddingValues,
+    state: OrganisationScreenState,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
 
     var tabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("OVERVIEW", "REPOSITORIES", "PEOPLE")
@@ -99,8 +132,8 @@ private fun TabScreen(paddingValues: PaddingValues){
             .fillMaxWidth()
     ) {
 
-        ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White ) {
-            tabs.forEachIndexed{ index, title ->
+        ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
+            tabs.forEachIndexed { index, title ->
                 Tab(
                     text = {
                         if (tabIndex == index) {
@@ -115,17 +148,141 @@ private fun TabScreen(paddingValues: PaddingValues){
             }
         }
 
-        when(tabIndex){
-            0 -> {}
-            1 -> {}
-            2 -> {}
+        when (tabIndex) {
+            0 -> {
+                Overview()
+            }
+
+            1 -> {
+                Repositories()
+            }
+
+            2 -> {
+                People(state = state.OrganisationMembers, onRecyclerItemClick = onRecyclerItemClick)
+            }
         }
     }
 }
 
 @Composable
+private fun Overview() {
+
+}
+
+@Composable
+private fun Repositories() {
+
+}
+
+@Composable
+private fun People(
+    state: Resource<OrganisationMemberModel>, onRecyclerItemClick: (Int, String?) -> Unit
+) {
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                androidx.compose.material3.Text(text = "Loading ...")
+            }
+        }
+
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(state.data!!) { index, memberModel ->
+                    OrganisationMemberItemCard(
+                        memberModel, onItemClicked = onRecyclerItemClick
+                    )
+                    if (index < state.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                androidx.compose.material3.Text(text = "Something went wrong ...")
+            }
+        }
+    }
+}
+
+@Composable
+fun OrganisationMemberItemCard(
+    memberModel: OrganisationMemberModelItem, onItemClicked: (Int, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked(0, memberModel.login)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    memberModel.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = memberModel.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+            }
+        }
+    }
+}
+
+
+@Composable
 private fun TopAppBarContent(
-   // onBackPressed: (Int) -> Unit, username: String
+    onBackPressed: (Int, String?) -> Unit, organisation: String
 ) {
     Row(
         modifier = Modifier
@@ -135,7 +292,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            //onBackPressed(R.id.action_profileFragment_to_homeFragment)
+            onBackPressed(R.id.action_organisationsFragment_to_profileFragment, null)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -145,8 +302,8 @@ private fun TopAppBarContent(
             modifier = Modifier
                 .weight(1F)
                 .padding(start = 10.dp, end = 10.dp),
-            text = "Enter your organisation",
-            style = MaterialTheme.typography.titleLarge,
+            text = organisation,
+            style = MaterialTheme.typography.titleMedium,
         )
 
         IconButton(onClick = { }) {

@@ -127,8 +127,14 @@ class ProfileFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(state = state,
                         onNavigate = { dest -> findNavController().navigate(dest) },
-                        onListItemClicked = { username ->
-                            Log.d("username", "onCreateView: $username")
+                        onListItemClicked = { dest, data ->
+                            if (data != null) {
+                                val bundle = Bundle()
+                                bundle.putString("profile_data", data)
+                                findNavController().navigate(dest, bundle)
+                            } else {
+                                findNavController().navigate(dest)
+                            }
                         },
                         username = username,
 
@@ -165,7 +171,7 @@ class ProfileFragment : Fragment() {
 private fun MainContent(
     state: ProfileScreenState,
     onNavigate: (Int) -> Unit,
-    onListItemClicked: (String) -> Unit,
+    onListItemClicked: (Int, String?) -> Unit,
     username: String,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit
@@ -229,7 +235,7 @@ private fun TopAppBarContent(
 fun TabScreen(
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
-    onListItemClicked: (String) -> Unit,
+    onListItemClicked: (Int, String) -> Unit,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
 ) {
@@ -263,14 +269,14 @@ fun TabScreen(
         }
         when (tabIndex) {
             0 -> OverviewScreen(
-                state.OverviewScreenState,
-                state.isFollowing,
-                state.UserOrganisations,
-                onFollowClicked,
-                onUnfollowClicked,
-            ) { index ->
-                tabIndex = index
-            }
+                overviewScreenState = state.OverviewScreenState,
+                isFollowing = state.isFollowing,
+                organisation = state.UserOrganisations,
+                onFollowClicked = onFollowClicked,
+                onUnfollowClicked = onUnfollowClicked,
+                onTabChange = { index -> tabIndex = index },
+                onListItemClicked = onListItemClicked
+            )
 
             1 -> FeedScreen(
                 state.UserEvents, onFeedsItemClicked = onListItemClicked
@@ -309,6 +315,7 @@ fun OverviewScreen(
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
     onTabChange: (Int) -> Unit,
+    onListItemClicked: (Int, String) -> Unit
 ) {
 
     when (overviewScreenState) {
@@ -592,7 +599,7 @@ fun OverviewScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             items(organisation.data!!) { organization ->
-                                OrganisationItem(organization)
+                                OrganisationItem(organization, onListItemClicked)
                             }
                         }
                     }
@@ -651,13 +658,18 @@ fun OverviewScreen(
 }
 
 @Composable
-fun OrganisationItem(organisation: OrgModelItem) {
+fun OrganisationItem(organisation: OrgModelItem, onListItemClicked: (Int, String) -> Unit) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(8.dp)
-            .clickable {  }
+            .clickable {
+                onListItemClicked(
+                    R.id.action_profileFragment_to_organisationsFragment,
+                    organisation.login
+                )
+            }
     ) {
 
         GlideImage(
@@ -678,7 +690,7 @@ fun OrganisationItem(organisation: OrgModelItem) {
 }
 
 @Composable
-fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (String) -> Unit) {
+fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (Int, String) -> Unit) {
     when (userEvents) {
         is Resource.Loading -> {
             Column(
@@ -724,13 +736,13 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (String) ->
 
 @Composable
 fun FeedsItem(
-    onFeedsItemClicked: (String) -> Unit, userEventsItem: UserEventsItem
+    onFeedsItemClicked: (Int, String) -> Unit, userEventsItem: UserEventsItem
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onFeedsItemClicked(userEventsItem.actor.login)
+                onFeedsItemClicked(0, userEventsItem.actor.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -817,7 +829,7 @@ fun FeedsItem(
 
 @Composable
 fun RepositoriesScreen(
-    userRepositories: Resource<UserRepositoryModel>, onRepositoryItemClicked: (String) -> Unit
+    userRepositories: Resource<UserRepositoryModel>, onRepositoryItemClicked: (Int, String) -> Unit
 ) {
     when (userRepositories) {
         is Resource.Loading -> {
@@ -866,13 +878,13 @@ fun RepositoriesScreen(
 
 @Composable
 fun RepositoryItem(
-    repository: RepositoryModelItem, onRepositoryItemClicked: (String) -> Unit
+    repository: RepositoryModelItem, onRepositoryItemClicked: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onRepositoryItemClicked(repository.full_name)
+                onRepositoryItemClicked(0, repository.full_name)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -956,7 +968,8 @@ fun RepositoryItem(
 
 @Composable
 fun StarredScreen(
-    userStarredRepoModel: Resource<StarredRepoModel>, onStarredRepoItemClicked: (String) -> Unit
+    userStarredRepoModel: Resource<StarredRepoModel>,
+    onStarredRepoItemClicked: (Int, String) -> Unit
 ) {
     when (userStarredRepoModel) {
         is Resource.Loading -> {
@@ -1005,13 +1018,13 @@ fun StarredScreen(
 
 @Composable
 fun StarredRepositoryItem(
-    repository: StarredRepoModelItem, onStarredRepositoryItemClicked: (String) -> Unit
+    repository: StarredRepoModelItem, onStarredRepositoryItemClicked: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onStarredRepositoryItemClicked(repository.full_name)
+                onStarredRepositoryItemClicked(0, repository.full_name)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -1094,7 +1107,7 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (String) -> Unit) {
+fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Unit) {
     when (gists) {
         is Resource.Loading -> {
             Column(
@@ -1142,13 +1155,13 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (String) -> Unit) {
 
 @Composable
 fun GistItemCard(
-    gistModelItem: GistModelItem, onGistItemClick: (String) -> Unit
+    gistModelItem: GistModelItem, onGistItemClick: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onGistItemClick(gistModelItem.url)
+                onGistItemClick(0, gistModelItem.url)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -1183,7 +1196,7 @@ fun GistItemCard(
 
 @Composable
 fun FollowersScreen(
-    userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (String) -> Unit
+    userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (Int, String) -> Unit
 ) {
     when (userFollowers) {
         is Resource.Loading -> {
@@ -1231,14 +1244,14 @@ fun FollowersScreen(
 }
 
 @Composable
-fun FollowersItemCard(
-    followersModelItem: FollowersModelItem, onItemClicked: (String) -> Unit
+private fun FollowersItemCard(
+    followersModelItem: FollowersModelItem, onItemClicked: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(followersModelItem.login)
+                onItemClicked(0, followersModelItem.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -1284,7 +1297,7 @@ fun FollowersItemCard(
 
 @Composable
 fun FollowingScreen(
-    userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (String) -> Unit
+    userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (Int, String) -> Unit
 ) {
     when (userFollowings) {
         is Resource.Loading -> {
@@ -1333,13 +1346,13 @@ fun FollowingScreen(
 
 @Composable
 fun FollowingsItemCard(
-    followingModelItem: FollowingModelItem, onItemClicked: (String) -> Unit
+    followingModelItem: FollowingModelItem, onItemClicked: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(followingModelItem.login)
+                onItemClicked(0, followingModelItem.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {

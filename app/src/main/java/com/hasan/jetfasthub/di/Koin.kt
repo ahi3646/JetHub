@@ -13,6 +13,8 @@ import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.data.HomeRepositoryImpl
 import com.hasan.jetfasthub.data.NotificationRepository
 import com.hasan.jetfasthub.data.NotificationsRepositoryImpl
+import com.hasan.jetfasthub.data.OrganisationImpl
+import com.hasan.jetfasthub.data.OrganisationRepository
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
 import com.hasan.jetfasthub.data.SearchRepository
@@ -22,6 +24,7 @@ import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
+import com.hasan.jetfasthub.screens.main.organisations.OrganisationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
 import com.hasan.jetfasthub.screens.main.search.SearchViewModel
 import com.hasan.jetfasthub.utility.Constants
@@ -82,6 +85,11 @@ fun provideOkHttpClient(
 val profileModule = module {
     single<ProfileRepository> { ProfileRepositoryImpl(get()) }
     viewModel { ProfileViewModel(get()) }
+}
+
+val organisationModule = module {
+    single<OrganisationRepository>{OrganisationImpl(get())}
+    viewModel{ OrganisationsViewModel(get()) }
 }
 
 val gistsModule = module {

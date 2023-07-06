@@ -7,6 +7,7 @@ import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsMode
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
+import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
@@ -165,6 +166,14 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
     ):Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("orgs/{org}/members")
+    suspend fun getOrganisationMembers(
+        @Header("Authorization") authToken: String,
+        @Path("org") organisation: String,
+        @Query("page") page: Int
+    ):Response<OrganisationMemberModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("notifications")
