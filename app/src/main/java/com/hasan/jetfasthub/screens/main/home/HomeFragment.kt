@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Card
-import androidx.compose.material.DrawerState
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
@@ -113,6 +113,25 @@ class HomeFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by homeViewModel.state.collectAsState()
+
+                val scaffoldState = rememberScaffoldState()
+                val scope = rememberCoroutineScope()
+
+                activity?.onBackPressedDispatcher?.addCallback(
+                    viewLifecycleOwner,
+                    object : OnBackPressedCallback(true) {
+                        override fun handleOnBackPressed() {
+                            if (scaffoldState.drawerState.isOpen) {
+                                scope.launch {
+                                    scaffoldState.drawerState.close()
+                                }
+                            } else {
+                                isEnabled = false
+                                activity?.onBackPressedDispatcher!!.onBackPressed()
+                            }
+                        }
+                    })
+
                 JetFastHubTheme {
                     MainContent(
                         state = state,
@@ -125,12 +144,19 @@ class HomeFragment : Fragment() {
                             } else {
                                 findNavController().navigate(destinations[dest]!!)
                             }
+                            if (scaffoldState.drawerState.isOpen) {
+                                scope.launch {
+                                    scaffoldState.drawerState.close()
+                                    Log.d("ahi3646", "onCreateView: closed ")
+                                }
+                            }
                         },
                         onToolbarItemCLick = { destination ->
                             findNavController().navigate(
                                 destination
                             )
-                        }
+                        },
+                        scaffoldState, scope
                     )
                 }
             }
@@ -143,10 +169,10 @@ private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (String, String?) -> Unit,
-    onToolbarItemCLick: (Int) -> Unit
+    onToolbarItemCLick: (Int) -> Unit,
+    scaffoldState: ScaffoldState,
+    scope: CoroutineScope
 ) {
-    val scaffoldState = rememberScaffoldState()
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -161,8 +187,6 @@ private fun MainContent(
         drawerContent = {
             DrawerContent(
                 user = state.user,
-                state = scaffoldState.drawerState,
-                scope = scope,
                 closeDrawer = {
                     scope.launch {
                         scaffoldState.drawerState.close()
@@ -460,8 +484,6 @@ fun ItemEventCard(
 @Composable
 private fun DrawerContent(
     user: Resource<GitHubUser>,
-    state: DrawerState,
-    scope: CoroutineScope,
     closeDrawer: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
@@ -497,13 +519,8 @@ private fun DrawerContent(
         }
         DrawerTabScreen(
             username = user.data?.login ?: "",
-            closeDrawer = {
-                closeDrawer()
-                scope.launch { state.close() }
-            },
+            closeDrawer ,
             onNavigate = { dest, username ->
-                closeDrawer()
-                scope.launch { state.close() }
                 onNavigate(dest, username)
             }
         )
@@ -541,8 +558,8 @@ fun DrawerTabScreen(
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
-            1 -> DrawerProfileScreen(closeDrawer, onNavigate)
+            0 -> DrawerMenuScreen(username, closeDrawer,  onNavigate)
+            1 -> DrawerProfileScreen(onNavigate)
         }
     }
 }
@@ -550,7 +567,7 @@ fun DrawerTabScreen(
 @Composable
 fun DrawerMenuScreen(
     username: String,
-    closeDrawer: () -> Unit,
+    closeDrawer: ()-> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
     Column(
@@ -786,7 +803,6 @@ fun DrawerMenuScreen(
 
 @Composable
 fun DrawerProfileScreen(
-    closeDrawer: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
     Column(
@@ -820,7 +836,6 @@ fun DrawerProfileScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
-                    closeDrawer()
                     onNavigate("add_account_fragment", null)
                 }
         ) {
