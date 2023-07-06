@@ -324,11 +324,11 @@ fun FeedsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(Color.White),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong - ${receivedEventsState.message}")
+                Text(text = "Something went wrong !")
             }
         }
     }

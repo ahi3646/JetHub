@@ -640,7 +640,7 @@ fun OrganisationMemberItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(0, memberModel.login)
+                onItemClicked(R.id.action_organisationsFragment_to_profileFragment, memberModel.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {

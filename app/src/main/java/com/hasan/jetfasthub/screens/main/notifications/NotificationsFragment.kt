@@ -202,11 +202,18 @@ fun UnreadNotifications(unreadNotifications: Resource<Notification>, markAsRead:
                     }
                 }
             } else {
-                Text(
-                    text = "No news",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No news",
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 
@@ -255,11 +262,18 @@ fun AllNotifications(allNotifications: Resource<Notification>) {
                     }
                 }
             } else {
-                Text(
-                    text = "No news",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No news",
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 
@@ -289,7 +303,9 @@ fun JetHubNotifications(jetHubNotifications: Resource<Notification>) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                //Text(text = "Loading ...")
+                //Currently there is no notification feature in JetHub
+                Text(text = "No news")
             }
         }
 
