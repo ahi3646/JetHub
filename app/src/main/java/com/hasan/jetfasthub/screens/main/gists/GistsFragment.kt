@@ -111,7 +111,7 @@ fun MainContent(state: GistsScreenState, onNavigate: (String, String?) -> Unit) 
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = { TopAppBarContent() }
+        topBar = { TopAppBarContent(onNavigate) }
     ) { paddingValues ->
         TabScreen(contentPaddingValues = paddingValues, state, onNavigate)
     }
@@ -528,7 +528,7 @@ private fun PublicGistsItem(
 
 @Composable
 private fun TopAppBarContent(
-    //onBackPressed: (Int) -> Unit
+    onBackPressed: (Int, String?) -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -540,7 +540,7 @@ private fun TopAppBarContent(
             modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
         ) {
             IconButton(onClick = {
-                //onBackPressed(R.id.action_aboutFragment_to_homeFragment)
+                onBackPressed(-1, null)
             }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
             }

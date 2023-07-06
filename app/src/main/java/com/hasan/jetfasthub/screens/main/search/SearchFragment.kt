@@ -205,7 +205,12 @@ fun TabScreen(
             }
         }
         when (tabIndex) {
-            0 -> RepositoriesContent(contentPaddingValues, state.Repositories, onListItemClick)
+            0 -> RepositoriesContent(
+                contentPaddingValues = contentPaddingValues,
+                repositories = state.Repositories,
+                onNavigate = onListItemClick
+            )
+
             1 -> UsersContent(
                 contentPaddingValues = contentPaddingValues,
                 onUsersItemClicked = onListItemClick,
