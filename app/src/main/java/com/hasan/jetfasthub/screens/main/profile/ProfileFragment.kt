@@ -581,25 +581,27 @@ fun OverviewScreen(
                     )
                 }
 
-                Text(
-                    text = "Organisations",
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .align(Alignment.Start),
-                    fontSize = 18.sp
-                )
-
                 when (organisation) {
                     is Resource.Success -> {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            items(organisation.data!!) { organization ->
-                                OrganisationItem(organization, onListItemClicked)
+                        if (organisation.data!!.isNotEmpty()){
+                            Text(
+                                text = "Organisations",
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .align(Alignment.Start),
+                                fontSize = 18.sp
+                            )
+
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White),
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                items(organisation.data) { organization ->
+                                    OrganisationItem(organization, onListItemClicked)
+                                }
                             }
                         }
                     }

@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.utility
 
 object Constants {
 
-    const val PERSONAL_ACCESS_TOKEN = "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"
+    const val PERSONAL_ACCESS_TOKEN = "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"
 
     const val BASE_URL = "https://api.github.com/"
     const val BASIC_AUTH_URL = "https://github.com/"
