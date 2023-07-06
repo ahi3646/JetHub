@@ -76,7 +76,13 @@ class NotificationsFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(
                         state = state,
-                        onNavigate = { dest -> findNavController().navigate(dest) },
+                        onNavigate = { dest ->
+                            if (dest == -1) {
+                                findNavController().popBackStack()
+                            }else{
+                                findNavController().navigate(dest)
+                            }
+                        },
                         onRecyclerItemClick = { id ->
                             notificationsViewModel.markAsRead(token, id)
                             Log.d("ahi3646", "onRecyclerviewItem Click : $id ")
@@ -124,7 +130,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(R.id.action_notificationsFragment_to_homeFragment)
+            onBackPressed(-1)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }

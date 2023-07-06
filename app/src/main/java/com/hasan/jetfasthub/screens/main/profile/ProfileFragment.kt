@@ -71,7 +71,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
@@ -126,7 +126,13 @@ class ProfileFragment : Fragment() {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(state = state,
-                        onNavigate = { dest -> findNavController().navigate(dest) },
+                        onNavigate = { dest ->
+                            if(dest == -1){
+                                findNavController().popBackStack()
+                            }else{
+                                findNavController().navigate(dest)
+                            }
+                        },
                         onListItemClicked = { dest, data ->
                             if (data != null) {
                                 val bundle = Bundle()
@@ -206,7 +212,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(R.id.action_profileFragment_to_homeFragment)
+            onBackPressed(-1)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -493,7 +499,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if(overviewScreenState.user.location != null){
+                if (overviewScreenState.user.location != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -501,7 +507,10 @@ fun OverviewScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "Corporation")
+                        Icon(
+                            imageVector = Icons.Filled.LocationOn,
+                            contentDescription = "Corporation"
+                        )
 
                         Text(
                             text = overviewScreenState.user.location,
@@ -571,7 +580,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if(overviewScreenState.user.created_at != null){
+                if (overviewScreenState.user.created_at != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -592,7 +601,7 @@ fun OverviewScreen(
 
                 when (organisation) {
                     is Resource.Success -> {
-                        if (organisation.data!!.isNotEmpty()){
+                        if (organisation.data!!.isNotEmpty()) {
                             Text(
                                 text = "Organisations",
                                 modifier = Modifier
@@ -1155,23 +1164,38 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(gists.data!!) { index, gist ->
-                    GistItemCard(
-                        gist, onGistItemClick = onGistItemClick
-                    )
-                    if (index < gists.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            if (!gists.data!!.isEmpty()){
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(gists.data) { index, gist ->
+                        GistItemCard(
+                            gist, onGistItemClick = onGistItemClick
                         )
+                        if (index < gists.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            }else{
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No news",
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         }
