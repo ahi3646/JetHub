@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
+import com.hasan.jetfasthub.screens.main.organisations.org_repo_model.OrganisationsRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
@@ -34,6 +35,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 interface GitHubService {
 
@@ -174,6 +176,15 @@ interface GitHubService {
         @Path("org") organisation: String,
         @Query("page") page: Int
     ):Response<OrganisationMemberModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("orgs/{org}/repos")
+    suspend fun getOrganisationsRepositories(
+        @Header("Authorization") authToken: String,
+        @Path("org") org: String,
+        @Query("type") type: String,
+        @Query("page") page: Int
+    ): Response<OrganisationsRepositoryModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("notifications")

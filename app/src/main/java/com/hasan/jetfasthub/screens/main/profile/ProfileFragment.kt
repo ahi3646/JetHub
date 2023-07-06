@@ -899,7 +899,19 @@ fun RepositoryItem(
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
 
                 Text(
-                    text = repository.full_name,
+                    text = buildAnnotatedString {
+                        if (repository.fork) {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Blue,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("Forked / ")
+                            }
+                        }
+                        append(repository.name)
+                    },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
@@ -1039,7 +1051,19 @@ fun StarredRepositoryItem(
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
 
                 Text(
-                    text = repository.full_name,
+                    text = buildAnnotatedString {
+                        if (repository.fork) {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Blue,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("Forked / ")
+                            }
+                        }
+                        append(repository.name)
+                    },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,

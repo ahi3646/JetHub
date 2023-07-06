@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -47,7 +48,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -55,7 +60,11 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModelItem
+import com.hasan.jetfasthub.screens.main.organisations.org_repo_model.OrganisationsRepositoryModel
+import com.hasan.jetfasthub.screens.main.organisations.org_repo_model.OrganisationsRepositoryModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.FileSizeCalculator
+import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -73,6 +82,12 @@ class OrganisationsFragment : Fragment() {
         val token = PreferenceHelper.getToken(requireContext())
 
         organisationsViewModel.getOrganisationMembers(token = token, organisation, 1)
+        organisationsViewModel.getOrganisationRepositories(
+            token = token,
+            organisation = organisation,
+            type = "all",
+            page = 1
+        )
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -154,7 +169,9 @@ private fun TabScreen(
             }
 
             1 -> {
-                Repositories()
+                Repositories(
+                    orgRepos = state.OrganisationRepos, onRecyclerItemClick = onRecyclerItemClick
+                )
             }
 
             2 -> {
@@ -170,8 +187,158 @@ private fun Overview() {
 }
 
 @Composable
-private fun Repositories() {
+private fun Repositories(
+    orgRepos: Resource<OrganisationsRepositoryModel>,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
+    when (orgRepos) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                androidx.compose.material3.Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(orgRepos.data!!) { index, memberModel ->
+                    OrganisationRepoItem(
+                        memberModel, onRepositoryItemClicked = onRecyclerItemClick
+                    )
+                    if (index < orgRepos.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                androidx.compose.material3.Text(text = "Something went wrong ...")
+            }
+        }
+    }
+}
+
+@Composable
+fun OrganisationRepoItem(
+    repository: OrganisationsRepositoryModelItem, onRepositoryItemClicked: (Int, String) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onRepositoryItemClicked(0, repository.full_name)
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+
+                Text(
+                    text = buildAnnotatedString {
+                        if (repository.fork) {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Blue,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("Forked / ")
+                            }
+                        }
+                        append(repository.name)
+                    },
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.stargazers_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_fork_small),
+                        contentDescription = "star icon"
+                    )
+
+                    Text(
+                        text = repository.forks_count.toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_time_small),
+                        contentDescription = "time icon"
+                    )
+
+                    Text(
+                        text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_storage_small),
+                        contentDescription = "storage icon"
+                    )
+
+                    Text(
+                        text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+                    Text(
+                        text = repository.language ?: "",
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
