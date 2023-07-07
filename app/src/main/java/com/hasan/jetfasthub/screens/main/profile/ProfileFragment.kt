@@ -108,7 +108,14 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val username = arguments?.getString("home_data") ?: ""
+        val data = arguments?.getString("home_data") ?: "0"
+        val username = arguments?.getString("home_username") ?: ""
+        val startIndex = try {
+            data.toInt()
+        }catch (e: Exception){
+            0
+        }
+
         val token = PreferenceHelper.getToken(requireContext())
 
         profileViewModel.getUser(token, username)
@@ -125,7 +132,9 @@ class ProfileFragment : Fragment() {
             setContent {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(state = state,
+                    MainContent(
+                        startIndex,
+                        state = state,
                         onNavigate = { dest ->
                             if(dest == -1){
                                 findNavController().popBackStack()
@@ -175,6 +184,7 @@ class ProfileFragment : Fragment() {
 
 @Composable
 private fun MainContent(
+    startIndex: Int,
     state: ProfileScreenState,
     onNavigate: (Int) -> Unit,
     onListItemClicked: (Int, String?) -> Unit,
@@ -196,7 +206,7 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(contentPadding, state, onListItemClicked, onFollowClicked, onUnfollowClicked)
+        TabScreen(startIndex, contentPadding, state, onListItemClicked, onFollowClicked, onUnfollowClicked)
     }
 }
 
@@ -239,6 +249,7 @@ private fun TopAppBarContent(
 
 @Composable
 fun TabScreen(
+    startIndex: Int,
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
     onListItemClicked: (Int, String) -> Unit,
@@ -246,7 +257,7 @@ fun TabScreen(
     onUnfollowClicked: () -> Unit,
 ) {
 
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableStateOf(startIndex) }
     val tabs =
         listOf("OVERVIEW", "FEED", "REPOSITORIES", "STARRED", "GISTS", "FOLLOWERS", "FOLLOWING")
 

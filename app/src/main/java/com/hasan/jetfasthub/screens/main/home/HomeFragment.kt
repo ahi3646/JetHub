@@ -115,7 +115,11 @@ class HomeFragment : Fragment() {
                 val state by homeViewModel.state.collectAsState()
 
                 val scaffoldState = rememberScaffoldState()
+                val drawerState by remember {
+                    mutableStateOf(false)
+                }
                 val scope = rememberCoroutineScope()
+                Log.d("ahi3646", "onrea: ${scaffoldState.drawerState.currentValue} ")
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -139,7 +143,8 @@ class HomeFragment : Fragment() {
                         onNavigate = { dest, data ->
                             if (data != null) {
                                 val bundle = Bundle()
-                                bundle.putString("home_data", data)
+                                bundle.putString("home_data", "1231")
+                                bundle.putString("home_username", state.user.data?.login ?: "")
                                 findNavController().navigate(destinations[dest]!!, bundle)
                             } else {
                                 findNavController().navigate(destinations[dest]!!)
@@ -147,9 +152,9 @@ class HomeFragment : Fragment() {
                             if (scaffoldState.drawerState.isOpen) {
                                 scope.launch {
                                     scaffoldState.drawerState.close()
-                                    Log.d("ahi3646", "onCreateView: closed ")
                                 }
                             }
+                            Log.d("ahi3646", "onNav: ${scaffoldState.drawerState.currentValue} ")
                         },
                         onToolbarItemCLick = { destination ->
                             findNavController().navigate(
@@ -233,10 +238,9 @@ private fun TopAppBarContent(
     ) {
         IconButton(onClick = {
             scope.launch {
-//                state.drawerState.apply {
-//                    if (isClosed) open() else close()
-//                }
-                state.drawerState.open()
+                state.drawerState.apply {
+                    if (isClosed) open() else close()
+                }
             }
             Log.d("ahi3646", "TopAppBarContent:${state.drawerState.currentValue} ")
         }) {
@@ -858,7 +862,9 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate("profile_fragment", "2")
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_book_24),
                 contentDescription = "Repositories icon",
@@ -878,7 +884,7 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable { onNavigate("profile_fragment", "3") }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_star_24),
                 contentDescription = "Starred icon",
