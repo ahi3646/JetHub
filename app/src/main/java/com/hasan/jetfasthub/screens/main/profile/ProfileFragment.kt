@@ -108,13 +108,15 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val data = arguments?.getString("home_data") ?: "0"
-        val username = arguments?.getString("home_username") ?: ""
+        val extra = arguments?.getString("home_extra") ?: "0"
+        val username = arguments?.getString("home_data") ?: ""
         val startIndex = try {
-            data.toInt()
-        }catch (e: Exception){
+            extra.toInt()
+        } catch (e: Exception) {
             0
         }
+
+        Log.d("ahi3646", "onJijja: $extra  --- $username ")
 
         val token = PreferenceHelper.getToken(requireContext())
 
@@ -133,12 +135,15 @@ class ProfileFragment : Fragment() {
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
-                        startIndex,
+                        startIndex = startIndex,
+                        username = username,
                         state = state,
+
+
                         onNavigate = { dest ->
-                            if(dest == -1){
+                            if (dest == -1) {
                                 findNavController().popBackStack()
-                            }else{
+                            } else {
                                 findNavController().navigate(dest)
                             }
                         },
@@ -151,7 +156,6 @@ class ProfileFragment : Fragment() {
                                 findNavController().navigate(dest)
                             }
                         },
-                        username = username,
 
                         onFollowClicked = {
                             profileViewModel.followUser(token, username)
@@ -206,7 +210,14 @@ private fun MainContent(
             )
         },
     ) { contentPadding ->
-        TabScreen(startIndex, contentPadding, state, onListItemClicked, onFollowClicked, onUnfollowClicked)
+        TabScreen(
+            startIndex,
+            contentPadding,
+            state,
+            onListItemClicked,
+            onFollowClicked,
+            onUnfollowClicked
+        )
     }
 }
 
@@ -551,7 +562,11 @@ fun OverviewScreen(
                         )
                         Text(
                             text = overviewScreenState.user.email.toString(),
-                            modifier = Modifier.padding(start = 16.dp)
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .clickable {
+
+                                },
                         )
                     }
 
@@ -1175,7 +1190,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
         }
 
         is Resource.Success -> {
-            if (!gists.data!!.isEmpty()){
+            if (!gists.data!!.isEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1195,7 +1210,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
                         }
                     }
                 }
-            }else{
+            } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1204,7 +1219,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "No news",
+                        text = "No gists",
                         textAlign = TextAlign.Center
                     )
                 }

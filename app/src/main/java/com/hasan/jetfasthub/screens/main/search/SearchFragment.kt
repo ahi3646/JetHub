@@ -233,11 +233,11 @@ fun TabScreen(
 @Composable
 fun RepositoriesContent(
     contentPaddingValues: PaddingValues,
-    repositories: SearchResource<RepositoryModel>,
+    repositories: ResourceWithInitial<RepositoryModel>,
     onNavigate: (String) -> Unit
 ) {
     when (repositories) {
-        is SearchResource.Initial -> {
+        is ResourceWithInitial.Initial -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -248,7 +248,7 @@ fun RepositoriesContent(
                 Text(text = "No search results")
             }
         }
-        is SearchResource.Loading -> {
+        is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -260,7 +260,7 @@ fun RepositoriesContent(
             }
         }
 
-        is SearchResource.Success -> {
+        is ResourceWithInitial.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -275,7 +275,7 @@ fun RepositoriesContent(
             }
         }
 
-        is SearchResource.Failure -> {
+        is ResourceWithInitial.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -399,12 +399,12 @@ private fun RepositoryItem(
 
 @Composable
 fun UsersContent(
-    users: SearchResource<UserModel>,
+    users: ResourceWithInitial<UserModel>,
     contentPaddingValues: PaddingValues,
     onUsersItemClicked: (String) -> Unit
 ) {
     when (users) {
-        is SearchResource.Initial -> {
+        is ResourceWithInitial.Initial -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -415,7 +415,7 @@ fun UsersContent(
                 Text(text = "No search results")
             }
         }
-        is SearchResource.Loading -> {
+        is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -427,7 +427,7 @@ fun UsersContent(
             }
         }
 
-        is SearchResource.Success -> {
+        is ResourceWithInitial.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -442,7 +442,7 @@ fun UsersContent(
             }
         }
 
-        is SearchResource.Failure -> {
+        is ResourceWithInitial.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -509,12 +509,12 @@ fun UsersItem(
 
 @Composable
 fun IssuesContent(
-    issues: SearchResource<IssuesModel>,
+    issues: ResourceWithInitial<IssuesModel>,
     contentPaddingValues: PaddingValues,
     onIssueItemClicked: (String) -> Unit
 ) {
     when (issues) {
-        is SearchResource.Initial -> {
+        is ResourceWithInitial.Initial -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -525,7 +525,7 @@ fun IssuesContent(
                 Text(text = "No search results")
             }
         }
-        is SearchResource.Loading -> {
+        is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -537,7 +537,7 @@ fun IssuesContent(
             }
         }
 
-        is SearchResource.Success -> {
+        is ResourceWithInitial.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -552,7 +552,7 @@ fun IssuesContent(
             }
         }
 
-        is SearchResource.Failure -> {
+        is ResourceWithInitial.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -658,12 +658,12 @@ fun IssuesItem(
 
 @Composable
 fun CodeContent(
-    codes: SearchResource<CodeModel>,
+    codes: ResourceWithInitial<CodeModel>,
     contentPaddingValues: PaddingValues,
     onCodeItemClicked: (String) -> Unit
 ) {
     when (codes) {
-        is SearchResource.Initial -> {
+        is ResourceWithInitial.Initial -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -675,7 +675,7 @@ fun CodeContent(
             }
         }
 
-        is SearchResource.Loading -> {
+        is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -687,7 +687,7 @@ fun CodeContent(
             }
         }
 
-        is SearchResource.Success -> {
+        is ResourceWithInitial.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -708,7 +708,7 @@ fun CodeContent(
             }
         }
 
-        is SearchResource.Failure -> {
+        is ResourceWithInitial.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

@@ -100,17 +100,6 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val destinations = HashMap<String, Int>()
-        destinations["about_fragment"] = R.id.action_homeFragment_to_aboutFragment
-        destinations["profile_fragment"] = R.id.action_homeFragment_to_profileFragment
-        destinations["settings_fragment"] = R.id.action_homeFragment_to_settingsFragment
-        destinations["search_fragment"] = R.id.action_homeFragment_to_searchFragment
-        destinations["faq_fragment"] = R.id.action_homeFragment_to_faqFragment
-        destinations["gists_fragment"] = R.id.action_homeFragment_to_gistsFragment
-        destinations["notifications_fragment"] = R.id.action_homeFragment_to_notificationsFragment
-        destinations["add_account_fragment"] = R.id.action_homeFragment_to_addAccountFragment
-        destinations["pinned_fragment"] = R.id.action_homeFragment_to_pinnedFragment
-
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
 
@@ -123,7 +112,6 @@ class HomeFragment : Fragment() {
 
                 val scaffoldState = rememberScaffoldState()
                 val scope = rememberCoroutineScope()
-                Log.d("ahi3646", "onCreate: ${scaffoldState.drawerState.currentValue} ")
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -138,32 +126,30 @@ class HomeFragment : Fragment() {
                                 activity?.onBackPressedDispatcher!!.onBackPressed()
                             }
                         }
-                    })
+                    }
+                )
 
                 JetFastHubTheme {
                     MainContent(
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
-                        onNavigate = { dest, data ->
-                            if (data != null) {
-                                val bundle = Bundle()
-                                bundle.putString("home_data", "1231")
-                                bundle.putString("home_username", state.user.data?.login ?: "")
-                                findNavController().navigate(destinations[dest]!!, bundle)
-                            } else {
-                                findNavController().navigate(destinations[dest]!!)
-                            }
-                            if (scaffoldState.drawerState.isOpen) {
-                                scope.launch {
-                                    scaffoldState.drawerState.close()
+                        onNavigate = { dest, data, extra ->
+                            when (dest) {
+                                -1 -> {
+                                    findNavController().popBackStack()
+                                }
+
+                                else -> {
+                                    val bundle = Bundle()
+                                    if (data != null) {
+                                        bundle.putString("home_data", data)
+                                    }
+                                    if (extra != null) {
+                                        bundle.putString("home_extra", extra)
+                                    }
+                                    findNavController().navigate(dest, bundle)
                                 }
                             }
-                            Log.d("ahi3646", "onNav: ${scaffoldState.drawerState.currentValue} ")
-                        },
-                        onToolbarItemCLick = { destination ->
-                            findNavController().navigate(
-                                destination
-                            )
                         },
                         scaffoldState,
                         scope
@@ -179,8 +165,7 @@ class HomeFragment : Fragment() {
 private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
-    onNavigate: (String, String?) -> Unit,
-    onToolbarItemCLick: (Int) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     scaffoldState: ScaffoldState,
     scope: CoroutineScope
 ) {
@@ -218,6 +203,7 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { paddingValues ->
+
         Scaffold(
             modifier = Modifier.padding(paddingValues),
             scaffoldState = scaffoldState,
@@ -225,7 +211,7 @@ private fun MainContent(
                 TopAppBar(
                     backgroundColor = Color.White,
                     content = {
-                        TopAppBarContent(scaffoldState, scope, onToolbarItemCLick)
+                        TopAppBarContent(scaffoldState, scope, onNavigate)
                     },
                 )
             },
@@ -279,7 +265,7 @@ private fun MainContent(
 private fun TopAppBarContent(
     state: ScaffoldState,
     scope: CoroutineScope,
-    onToolbarItemCLick: (Int) -> Unit
+    onToolbarItemCLick: (Int, String?, String?) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -307,13 +293,13 @@ private fun TopAppBarContent(
         )
 
         IconButton(onClick = {
-            onToolbarItemCLick(R.id.action_homeFragment_to_notificationsFragment)
+            onToolbarItemCLick(R.id.action_homeFragment_to_notificationsFragment, null, null)
         }) {
             Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
         }
 
         IconButton(onClick = {
-            onToolbarItemCLick(R.id.action_homeFragment_to_searchFragment)
+            onToolbarItemCLick(R.id.action_homeFragment_to_searchFragment, null, null)
         }) {
             Icon(Icons.Rounded.Search, contentDescription = "Search")
         }
@@ -377,7 +363,7 @@ fun BottomNav(
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
-    receivedEventsState: ReceivedEventsState, onNavigate: (String, String?) -> Unit
+    receivedEventsState: ReceivedEventsState, onNavigate: (Int, String?, String?) -> Unit
 ) {
     when (receivedEventsState) {
 
@@ -405,8 +391,9 @@ fun FeedsScreen(
                 items(receivedEventsState.events) { eventItem ->
                     ItemEventCard(eventItem) {
                         onNavigate(
-                            "profile_fragment",
-                            eventItem.actor.login
+                            R.id.action_homeFragment_to_profileFragment,
+                            eventItem.actor.login,
+                            null
                         )
                     }
                 }
@@ -541,7 +528,7 @@ private fun DrawerContent(
     user: Resource<GitHubUser>,
     closeDrawer: () -> Unit,
     onLogout: () -> Unit,
-    onNavigate: (String, String?) -> Unit
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
     ModalDrawerSheet {
         Row(
@@ -577,8 +564,8 @@ private fun DrawerContent(
             username = user.data?.login ?: "",
             closeDrawer,
             onLogout,
-            onNavigate = { dest, username ->
-                onNavigate(dest, username)
+            onNavigate = { dest, username, index ->
+                onNavigate(dest, username, index)
             }
         )
     }
@@ -589,7 +576,7 @@ fun DrawerTabScreen(
     username: String,
     closeDrawer: () -> Unit,
     onLogout: () -> Unit,
-    onNavigate: (String, String?) -> Unit
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
 
     var tabIndex by remember { mutableStateOf(0) }
@@ -617,7 +604,7 @@ fun DrawerTabScreen(
         }
         when (tabIndex) {
             0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
-            1 -> DrawerProfileScreen(onNavigate, onLogout)
+            1 -> DrawerProfileScreen(username, onNavigate, onLogout)
         }
     }
 }
@@ -626,7 +613,7 @@ fun DrawerTabScreen(
 fun DrawerMenuScreen(
     username: String,
     closeDrawer: () -> Unit,
-    onNavigate: (String, String?) -> Unit
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -661,7 +648,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("profile_fragment", username)
+                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_person_24),
@@ -698,7 +685,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("notifications_fragment", null)
+                    onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_notifications_24),
@@ -718,7 +705,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onNavigate("pinned_fragment", null) }) {
+                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_24),
                 contentDescription = "Pinned icon",
@@ -753,7 +740,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 4.dp)
                 .clickable {
-                    onNavigate("gists_fragment", null)
+                    onNavigate(R.id.action_homeFragment_to_gistsFragment, null, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_code_24),
@@ -790,7 +777,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { onNavigate("faq_fragment", null) }) {
+                .clickable { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "FAQ icon",
@@ -808,7 +795,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("settings_fragment", null)
+                    onNavigate(R.id.action_homeFragment_to_settingsFragment, null, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_settings_24),
@@ -844,7 +831,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("about_fragment", null)
+                    onNavigate(R.id.action_homeFragment_to_aboutFragment, null, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
@@ -861,7 +848,8 @@ fun DrawerMenuScreen(
 
 @Composable
 fun DrawerProfileScreen(
-    onNavigate: (String, String?) -> Unit,
+    username: String,
+    onNavigate: (Int, String?, String?) -> Unit,
     onLogout: () -> Unit
 ) {
     Column(
@@ -895,7 +883,7 @@ fun DrawerProfileScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("add_account_fragment", null)
+                    onNavigate(R.id.action_homeFragment_to_addAccountFragment, null, null)
                 }
         ) {
             Image(
@@ -918,7 +906,7 @@ fun DrawerProfileScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate("profile_fragment", "2")
+                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, "2")
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_book_24),
@@ -939,7 +927,13 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onNavigate("profile_fragment", "3") }) {
+                .clickable {
+                    onNavigate(
+                        R.id.action_homeFragment_to_profileFragment,
+                        username,
+                        "3"
+                    )
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_star_24),
                 contentDescription = "Starred icon",
@@ -959,7 +953,7 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onNavigate("pinned_fragment", null) }) {
+                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
                 contentDescription = "Pinned icon",
