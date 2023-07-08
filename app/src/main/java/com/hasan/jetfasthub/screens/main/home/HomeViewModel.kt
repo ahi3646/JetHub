@@ -74,12 +74,6 @@ sealed interface AppScreens {
     object PullRequests : AppScreens
 }
 
-//you have  used Resource instead (generics)
-sealed interface GitHubUserState {
-    object Loading : GitHubUserState
-    data class Success(val user: GitHubUser) : GitHubUserState
-    data class Error(val message: String) : GitHubUserState
-}
 
 sealed interface ReceivedEventsState {
     object Loading : ReceivedEventsState

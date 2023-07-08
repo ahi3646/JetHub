@@ -72,7 +72,6 @@ import com.hasan.jetfasthub.screens.main.search.models.users_model.UsersItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
 import com.hasan.jetfasthub.utility.ParseDateFormat
-import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -234,11 +233,22 @@ fun TabScreen(
 @Composable
 fun RepositoriesContent(
     contentPaddingValues: PaddingValues,
-    repositories: Resource<RepositoryModel>,
+    repositories: SearchResource<RepositoryModel>,
     onNavigate: (String) -> Unit
 ) {
     when (repositories) {
-        is Resource.Loading -> {
+        is SearchResource.Initial -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "No search results")
+            }
+        }
+        is SearchResource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -250,7 +260,7 @@ fun RepositoriesContent(
             }
         }
 
-        is Resource.Success -> {
+        is SearchResource.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -265,7 +275,7 @@ fun RepositoriesContent(
             }
         }
 
-        is Resource.Failure -> {
+        is SearchResource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -389,12 +399,23 @@ private fun RepositoryItem(
 
 @Composable
 fun UsersContent(
-    users: Resource<UserModel>,
+    users: SearchResource<UserModel>,
     contentPaddingValues: PaddingValues,
     onUsersItemClicked: (String) -> Unit
 ) {
     when (users) {
-        is Resource.Loading -> {
+        is SearchResource.Initial -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "No search results")
+            }
+        }
+        is SearchResource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -406,7 +427,7 @@ fun UsersContent(
             }
         }
 
-        is Resource.Success -> {
+        is SearchResource.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -421,7 +442,7 @@ fun UsersContent(
             }
         }
 
-        is Resource.Failure -> {
+        is SearchResource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -488,12 +509,23 @@ fun UsersItem(
 
 @Composable
 fun IssuesContent(
-    issues: Resource<IssuesModel>,
+    issues: SearchResource<IssuesModel>,
     contentPaddingValues: PaddingValues,
     onIssueItemClicked: (String) -> Unit
 ) {
     when (issues) {
-        is Resource.Loading -> {
+        is SearchResource.Initial -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "No search results")
+            }
+        }
+        is SearchResource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -505,7 +537,7 @@ fun IssuesContent(
             }
         }
 
-        is Resource.Success -> {
+        is SearchResource.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -520,7 +552,7 @@ fun IssuesContent(
             }
         }
 
-        is Resource.Failure -> {
+        is SearchResource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -626,12 +658,24 @@ fun IssuesItem(
 
 @Composable
 fun CodeContent(
-    codes: Resource<CodeModel>,
+    codes: SearchResource<CodeModel>,
     contentPaddingValues: PaddingValues,
     onCodeItemClicked: (String) -> Unit
 ) {
     when (codes) {
-        is Resource.Loading -> {
+        is SearchResource.Initial -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "No search results")
+            }
+        }
+
+        is SearchResource.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -643,7 +687,7 @@ fun CodeContent(
             }
         }
 
-        is Resource.Success -> {
+        is SearchResource.Success -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(contentPaddingValues)
@@ -664,7 +708,7 @@ fun CodeContent(
             }
         }
 
-        is Resource.Failure -> {
+        is SearchResource.Failure -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
