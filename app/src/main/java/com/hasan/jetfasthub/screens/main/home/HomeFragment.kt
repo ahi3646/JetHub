@@ -25,8 +25,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
@@ -37,13 +41,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -103,6 +110,7 @@ class HomeFragment : Fragment() {
         destinations["gists_fragment"] = R.id.action_homeFragment_to_gistsFragment
         destinations["notifications_fragment"] = R.id.action_homeFragment_to_notificationsFragment
         destinations["add_account_fragment"] = R.id.action_homeFragment_to_addAccountFragment
+        destinations["pinned_fragment"] = R.id.action_homeFragment_to_pinnedFragment
 
         val token = PreferenceHelper.getToken(requireContext())
         val username = "HasanAnorov"
@@ -115,11 +123,8 @@ class HomeFragment : Fragment() {
                 val state by homeViewModel.state.collectAsState()
 
                 val scaffoldState = rememberScaffoldState()
-                val drawerState by remember {
-                    mutableStateOf(false)
-                }
                 val scope = rememberCoroutineScope()
-                Log.d("ahi3646", "onrea: ${scaffoldState.drawerState.currentValue} ")
+                Log.d("ahi3646", "onCreate: ${scaffoldState.drawerState.currentValue} ")
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -161,7 +166,8 @@ class HomeFragment : Fragment() {
                                 destination
                             )
                         },
-                        scaffoldState, scope
+                        scaffoldState,
+                        scope
                     )
                 }
             }
@@ -169,6 +175,7 @@ class HomeFragment : Fragment() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MainContent(
     state: HomeScreenState,
@@ -178,52 +185,96 @@ private fun MainContent(
     scaffoldState: ScaffoldState,
     scope: CoroutineScope
 ) {
+    val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+    val sheetScaffoldState = androidx.compose.material.rememberBottomSheetScaffoldState(
+        bottomSheetState = sheetState
+    )
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            TopAppBar(
-                backgroundColor = Color.White,
-                content = {
-                    TopAppBarContent(scaffoldState, scope, onToolbarItemCLick)
-                },
-            )
-        },
-        drawerContent = {
-            DrawerContent(
-                user = state.user,
-                closeDrawer = {
-                    scope.launch {
-                        scaffoldState.drawerState.close()
+    BottomSheetScaffold(
+        scaffoldState = sheetScaffoldState,
+        sheetContent = {
+            Column(
+                Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Logout", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = "Are you sure ?", style = MaterialTheme.typography.titleMedium)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = { scope.launch { sheetState.collapse() } }) {
+                        Text(text = "Ok")
                     }
-                },
-                onNavigate = onNavigate
-            )
-        },
-        content = { contentPadding ->
-            when (state.selectedBottomBarItem) {
-                AppScreens.Feeds -> FeedsScreen(
-                    contentPadding,
-                    state.receivedEventsState,
-                    onNavigate
-                )
-
-                AppScreens.Issues -> IssuesScreen()
-                AppScreens.PullRequests -> PullRequestScreen()
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(onClick = { scope.launch { sheetState.collapse() } }) {
+                        Text(text = "No")
+                    }
+                }
             }
         },
-        bottomBar = {
-            BottomNav(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .fillMaxWidth()
-                    .height(58.dp),
-                onBottomBarItemSelected = onBottomBarItemSelected,
-            )
-        },
-    )
-}
+        sheetPeekHeight = 0.dp,
+        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) { paddingValues ->
+        Scaffold(
+            modifier = Modifier.padding(paddingValues),
+            scaffoldState = scaffoldState,
+            topBar = {
+                TopAppBar(
+                    backgroundColor = Color.White,
+                    content = {
+                        TopAppBarContent(scaffoldState, scope, onToolbarItemCLick)
+                    },
+                )
+            },
+            drawerContent = {
+                DrawerContent(
+                    user = state.user,
+                    closeDrawer = {
+                        scope.launch {
+                            scaffoldState.drawerState.close()
+                        }
+                    },
+                    onLogout = {
+                        scope.launch {
+                            scaffoldState.drawerState.close()
+                            if (sheetState.isCollapsed) {
+                                sheetState.expand()
+                            } else {
+                                sheetState.collapse()
+                            }
+                        }
+                    },
+                    onNavigate = onNavigate
+                )
+            },
+            content = { contentPadding ->
+                when (state.selectedBottomBarItem) {
+                    AppScreens.Feeds -> FeedsScreen(
+                        contentPadding,
+                        state.receivedEventsState,
+                        onNavigate
+                    )
 
+                    AppScreens.Issues -> IssuesScreen()
+                    AppScreens.PullRequests -> PullRequestScreen()
+                }
+            },
+            bottomBar = {
+                BottomNav(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .fillMaxWidth()
+                        .height(58.dp),
+                    onBottomBarItemSelected = onBottomBarItemSelected,
+                )
+            },
+        )
+    }
+}
 
 @Composable
 private fun TopAppBarContent(
@@ -374,6 +425,7 @@ fun FeedsScreen(
                 Text(text = "Something went wrong !")
             }
         }
+
     }
 }
 
@@ -403,7 +455,7 @@ fun PullRequestScreen() {
 
 // events item card
 @Composable
-fun ItemEventCard(
+private fun ItemEventCard(
     eventItem: ReceivedEventsItem, onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
 ) {
     Card(
@@ -489,6 +541,7 @@ fun ItemEventCard(
 private fun DrawerContent(
     user: Resource<GitHubUser>,
     closeDrawer: () -> Unit,
+    onLogout: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
     ModalDrawerSheet {
@@ -523,7 +576,8 @@ private fun DrawerContent(
         }
         DrawerTabScreen(
             username = user.data?.login ?: "",
-            closeDrawer ,
+            closeDrawer,
+            onLogout,
             onNavigate = { dest, username ->
                 onNavigate(dest, username)
             }
@@ -535,6 +589,7 @@ private fun DrawerContent(
 fun DrawerTabScreen(
     username: String,
     closeDrawer: () -> Unit,
+    onLogout: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
 
@@ -562,8 +617,8 @@ fun DrawerTabScreen(
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen(username, closeDrawer,  onNavigate)
-            1 -> DrawerProfileScreen(onNavigate)
+            0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
+            1 -> DrawerProfileScreen(onNavigate, onLogout)
         }
     }
 }
@@ -571,7 +626,7 @@ fun DrawerTabScreen(
 @Composable
 fun DrawerMenuScreen(
     username: String,
-    closeDrawer: ()-> Unit,
+    closeDrawer: () -> Unit,
     onNavigate: (String, String?) -> Unit
 ) {
     Column(
@@ -664,7 +719,7 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable { onNavigate("pinned_fragment", null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_24),
                 contentDescription = "Pinned icon",
@@ -807,7 +862,8 @@ fun DrawerMenuScreen(
 
 @Composable
 fun DrawerProfileScreen(
-    onNavigate: (String, String?) -> Unit
+    onNavigate: (String, String?) -> Unit,
+    onLogout: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -819,7 +875,7 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable { onLogout() }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_logout),
                 contentDescription = "Logout icon",
@@ -904,7 +960,7 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable { onNavigate("pinned_fragment", null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
                 contentDescription = "Pinned icon",

@@ -120,7 +120,7 @@ fun MainContent(state: GistsScreenState, onNavigate: (Int, String?) -> Unit) {
 }
 
 @Composable
-fun TabScreen(
+private fun TabScreen(
     contentPaddingValues: PaddingValues,
     state: GistsScreenState,
     onRecyclerItemClick: (Int, String?) -> Unit
