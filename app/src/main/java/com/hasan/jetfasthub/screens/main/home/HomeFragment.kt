@@ -138,7 +138,6 @@ class HomeFragment : Fragment() {
                                 -1 -> {
                                     findNavController().popBackStack()
                                 }
-
                                 else -> {
                                     val bundle = Bundle()
                                     if (data != null) {

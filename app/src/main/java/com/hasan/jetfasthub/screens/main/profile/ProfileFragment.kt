@@ -1,5 +1,7 @@
 package com.hasan.jetfasthub.screens.main.profile
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,11 +26,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -67,6 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -116,8 +123,6 @@ class ProfileFragment : Fragment() {
             0
         }
 
-        Log.d("ahi3646", "onJijja: $extra  --- $username ")
-
         val token = PreferenceHelper.getToken(requireContext())
 
         profileViewModel.getUser(token, username)
@@ -138,25 +143,51 @@ class ProfileFragment : Fragment() {
                         startIndex = startIndex,
                         username = username,
                         state = state,
+                        onAction = { action, data ->
+                            when (action) {
+                                "share" -> {
+                                    val context = requireContext()
+                                    val type = "text/plain"
+                                    val subject = "Your subject"
+                                    val shareWith = "ShareWith"
 
+                                    val intent = Intent(Intent.ACTION_SEND)
+                                    intent.type = type
+                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                    intent.putExtra(Intent.EXTRA_TEXT, data)
 
-                        onNavigate = { dest ->
+                                    ContextCompat.startActivity(
+                                        context,
+                                        Intent.createChooser(intent, shareWith),
+                                        null
+                                    )
+                                }
+
+                                "browser" -> {
+                                    var webpage = Uri.parse(data)
+
+                                    if (!data.startsWith("http://") && !data.startsWith("https://")) {
+                                        webpage = Uri.parse("http://$data")
+                                    }
+                                    val urlIntent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        webpage
+                                    )
+                                    requireContext().startActivity(urlIntent)
+                                }
+                            }
+                        },
+                        onNavigate = { dest, data ->
                             if (dest == -1) {
                                 findNavController().popBackStack()
                             } else {
-                                findNavController().navigate(dest)
-                            }
-                        },
-                        onListItemClicked = { dest, data ->
-                            if (data != null) {
                                 val bundle = Bundle()
-                                bundle.putString("profile_data", data)
+                                if (data != null) {
+                                    bundle.putString("profile_data", data)
+                                }
                                 findNavController().navigate(dest, bundle)
-                            } else {
-                                findNavController().navigate(dest)
                             }
                         },
-
                         onFollowClicked = {
                             profileViewModel.followUser(token, username)
                                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
@@ -190,8 +221,8 @@ class ProfileFragment : Fragment() {
 private fun MainContent(
     startIndex: Int,
     state: ProfileScreenState,
-    onNavigate: (Int) -> Unit,
-    onListItemClicked: (Int, String?) -> Unit,
+    onAction: (String, String) -> Unit,
+    onNavigate: (Int, String?) -> Unit,
     username: String,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit
@@ -205,7 +236,7 @@ private fun MainContent(
                 backgroundColor = Color.White,
                 elevation = 0.dp,
                 content = {
-                    TopAppBarContent(onNavigate, username)
+                    TopAppBarContent(onNavigate, username, onAction)
                 },
             )
         },
@@ -214,7 +245,8 @@ private fun MainContent(
             startIndex,
             contentPadding,
             state,
-            onListItemClicked,
+            onAction = onAction,
+            onNavigate,
             onFollowClicked,
             onUnfollowClicked
         )
@@ -223,7 +255,9 @@ private fun MainContent(
 
 @Composable
 private fun TopAppBarContent(
-    onBackPressed: (Int) -> Unit, username: String
+    onNavigate: (Int, String?) -> Unit,
+    username: String,
+    onAction: (String, String) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -233,7 +267,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(-1)
+            onNavigate(-1, null)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -247,7 +281,9 @@ private fun TopAppBarContent(
             style = MaterialTheme.typography.titleLarge,
         )
 
-        IconButton(onClick = { }) {
+        IconButton(onClick = {
+            onAction("share", "https://github.com/$username")
+        }) {
             Icon(Icons.Filled.Share, contentDescription = "Share")
         }
 
@@ -263,7 +299,8 @@ fun TabScreen(
     startIndex: Int,
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
-    onListItemClicked: (Int, String) -> Unit,
+    onAction: (String, String) -> Unit,
+    onNavigate: (Int, String?) -> Unit,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
 ) {
@@ -303,31 +340,32 @@ fun TabScreen(
                 onFollowClicked = onFollowClicked,
                 onUnfollowClicked = onUnfollowClicked,
                 onTabChange = { index -> tabIndex = index },
-                onListItemClicked = onListItemClicked
+                onNavigate = onNavigate,
+                onAction = onAction
             )
 
             1 -> FeedScreen(
-                state.UserEvents, onFeedsItemClicked = onListItemClicked
+                state.UserEvents, onFeedsItemClicked = onNavigate
             )
 
             2 -> RepositoriesScreen(
-                state.UserRepositories, onRepositoryItemClicked = onListItemClicked
+                state.UserRepositories, onRepositoryItemClicked = onNavigate
             )
 
             3 -> StarredScreen(
-                state.UserStarredRepositories, onStarredRepoItemClicked = onListItemClicked
+                state.UserStarredRepositories, onStarredRepoItemClicked = onNavigate
             )
 
             4 -> GistsScreen(
-                state.UserGists, onGistItemClick = onListItemClicked
+                state.UserGists, onGistItemClick = onNavigate
             )
 
             5 -> FollowersScreen(
-                state.UserFollowers, onFollowersItemClicked = onListItemClicked
+                state.UserFollowers, onFollowersItemClicked = onNavigate
             )
 
             6 -> FollowingScreen(
-                state.UserFollowings, onFollowingsItemClicked = onListItemClicked
+                state.UserFollowings, onFollowingsItemClicked = onNavigate
             )
 
         }
@@ -343,7 +381,8 @@ fun OverviewScreen(
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
     onTabChange: (Int) -> Unit,
-    onListItemClicked: (Int, String) -> Unit
+    onNavigate: (Int, String?) -> Unit,
+    onAction: (String, String) -> Unit
 ) {
 
     when (overviewScreenState) {
@@ -351,9 +390,10 @@ fun OverviewScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(text = "Loading ...")
             }
@@ -564,9 +604,13 @@ fun OverviewScreen(
                             text = overviewScreenState.user.email.toString(),
                             modifier = Modifier
                                 .padding(start = 16.dp)
-                                .clickable {
-
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    onAction("share", overviewScreenState.user.email.toString())
                                 },
+                            color = Color.Blue
                         )
                     }
 
@@ -594,7 +638,15 @@ fun OverviewScreen(
                         )
                         Text(
                             text = overviewScreenState.user.blog.toString(),
-                            modifier = Modifier.padding(start = 16.dp)
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    onAction("browser", overviewScreenState.user.blog.toString())
+                                },
+
+                            color = Color.Blue
                         )
                     }
 
@@ -636,15 +688,16 @@ fun OverviewScreen(
                                 fontSize = 18.sp
                             )
 
-                            LazyRow(
+                            LazyHorizontalGrid(
+                                rows = GridCells.Fixed(2),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(Color.White),
                                 horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 items(organisation.data) { organization ->
-                                    OrganisationItem(organization, onListItemClicked)
+                                    OrganisationItem(organization, onNavigate)
                                 }
                             }
                         }
@@ -704,14 +757,14 @@ fun OverviewScreen(
 }
 
 @Composable
-fun OrganisationItem(organisation: OrgModelItem, onListItemClicked: (Int, String) -> Unit) {
+fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> Unit) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(8.dp)
+            .padding(4.dp)
             .clickable {
-                onListItemClicked(
+                onNavigate(
                     R.id.action_profileFragment_to_organisationsFragment,
                     organisation.login
                 )
