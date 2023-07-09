@@ -248,5 +248,25 @@ interface GitHubService {
         @Query("page") page: Long
     ): Response<CodeModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @GET("user/blocks/{username}")
+    suspend fun isUserBlocked(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @PUT("user/blocks/{username}")
+    suspend fun blockUser(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("user/blocks/{username}")
+    suspend fun unblockUser(
+        @Header("Authorization") authToken: String,
+        @Path("username") username: String
+    ): Response<Boolean>
 
 }

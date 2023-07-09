@@ -139,6 +139,7 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserFollowers(token, username, 1)
         profileViewModel.getUserGists(token, username, 1)
         profileViewModel.getFollowStatus(token, username)
+        profileViewModel.isUserBlocked(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -242,7 +243,6 @@ private fun MainContent(
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
-
                 title = {
                     Text(
                         color = Color.Black,
@@ -271,15 +271,17 @@ private fun MainContent(
                     }
 
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                        DropdownMenuItem(onClick = {
-                            Toast.makeText(
-                                context,
-                                "bloc",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }) {
-                            Text(text = "Block")
+
+                        if (state.isUserBlocked){
+
+                        }else{
+                            DropdownMenuItem(onClick = {
+
+                            }) {
+                                Text(text = "Block")
+                            }
                         }
+
                     }
                 }
             )
