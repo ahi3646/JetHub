@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -35,9 +36,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
@@ -46,11 +47,14 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -217,6 +222,7 @@ class ProfileFragment : Fragment() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainContent(
     startIndex: Int,
@@ -229,15 +235,53 @@ private fun MainContent(
 ) {
     val scaffoldState = rememberScaffoldState()
 
+    var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
-                backgroundColor = Color.White,
-                elevation = 0.dp,
-                content = {
-                    TopAppBarContent(onNavigate, username, onAction)
+
+                title = {
+                    Text(
+                        color = Color.Black,
+                        modifier = Modifier
+                            .padding(start = 10.dp, end = 10.dp),
+                        text = username,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                 },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        onNavigate(-1, null)
+                    }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        onAction("share", "https://github.com/$username")
+                    }) {
+                        Icon(Icons.Filled.Share, contentDescription = "Share")
+                    }
+
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    }
+
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                        DropdownMenuItem(onClick = {
+                            Toast.makeText(
+                                context,
+                                "bloc",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
+                            Text(text = "Block")
+                        }
+                    }
+                }
             )
         },
     ) { contentPadding ->
@@ -250,47 +294,6 @@ private fun MainContent(
             onFollowClicked,
             onUnfollowClicked
         )
-    }
-}
-
-@Composable
-private fun TopAppBarContent(
-    onNavigate: (Int, String?) -> Unit,
-    username: String,
-    onAction: (String, String) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(onClick = {
-            onNavigate(-1, null)
-        }) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-        }
-
-        Text(
-            color = Color.Black,
-            modifier = Modifier
-                .weight(1F)
-                .padding(start = 10.dp, end = 10.dp),
-            text = username,
-            style = MaterialTheme.typography.titleLarge,
-        )
-
-        IconButton(onClick = {
-            onAction("share", "https://github.com/$username")
-        }) {
-            Icon(Icons.Filled.Share, contentDescription = "Share")
-        }
-
-        IconButton(onClick = { }) {
-            Icon(Icons.Filled.MoreVert, contentDescription = "more option")
-        }
-
     }
 }
 
