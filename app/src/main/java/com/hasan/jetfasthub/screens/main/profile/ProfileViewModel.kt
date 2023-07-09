@@ -162,7 +162,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                     if (response.isSuccessful) {
                         var headers = response.headers()
                         var body = response.body()
-                        
+
                     }
                 }
             } catch (e: Exception) {
@@ -310,18 +310,18 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             } catch (e: Exception) {
                 Log.d("ahi3646", "followUser:  ${e.message}")
             }
-            awaitClose {
-                channel.close()
-                Log.d("callback_ahi", "callback stop : ")
-            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
         }
     }
 
-    fun isUserBlocked(token: String, username: String){
+    fun isUserBlocked(token: String, username: String) {
         viewModelScope.launch {
             try {
                 repository.isUserBlocked(token, username).let { response ->
-                    if(response.code() == 204){
+                    if (response.code() == 204) {
                         _state.update {
                             it.copy(isUserBlocked = true)
                         }
@@ -333,40 +333,50 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         }
     }
 
-    fun blockUser(token: String, username: String): Flow<Boolean> = callbackFlow{
+    fun blockUser(token: String, username: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.blockUser(token, username).let { response ->
                     trySend(true)
 
-                    if (response.code() == 204){
+                    if (response.code() == 204) {
                         _state.update {
                             it.copy(isUserBlocked = true)
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d("ahi3646", "blockUser: ${e.message} ")
             }
         }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
+        }
+
     }
 
-    fun unblockUser(token: String, username: String): Flow<Boolean> = callbackFlow{
+    fun unblockUser(token: String, username: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.unblockUser(token, username).let { response ->
                     trySend(false)
 
-                    if (response.code() == 204){
+                    if (response.code() == 204) {
                         _state.update {
                             it.copy(isUserBlocked = false)
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d("ahi3646", "blockUser: ${e.message} ")
             }
         }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
+        }
+
     }
 
 }

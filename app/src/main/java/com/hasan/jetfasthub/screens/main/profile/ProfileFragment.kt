@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -67,7 +66,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -139,7 +137,6 @@ class ProfileFragment : Fragment() {
         profileViewModel.getUserFollowers(token, username, 1)
         profileViewModel.getUserGists(token, username, 1)
         profileViewModel.getFollowStatus(token, username)
-        profileViewModel.isUserBlocked(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -180,6 +177,28 @@ class ProfileFragment : Fragment() {
                                         webpage
                                     )
                                     requireContext().startActivity(urlIntent)
+                                }
+
+                                "isUserBlocked" -> {
+                                    profileViewModel.isUserBlocked(token, username)
+                                }
+
+                                "block" -> {
+                                    profileViewModel.blockUser(token, username)
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            Log.d("ahi3646", "onCreateView block: $it ")
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
+                                "unblock" -> {
+                                    profileViewModel.unblockUser(token, username)
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            Log.d("ahi3646", "onCreateView unblock: $it ")
+                                        }
+                                        .launchIn(lifecycleScope)
                                 }
                             }
                         },
@@ -235,9 +254,7 @@ private fun MainContent(
     onUnfollowClicked: () -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
-
     var showMenu by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -266,17 +283,26 @@ private fun MainContent(
                         Icon(Icons.Filled.Share, contentDescription = "Share")
                     }
 
-                    IconButton(onClick = { showMenu = !showMenu }) {
+                    IconButton(onClick = {
+                        onAction("isUserBlocked", username)
+                        showMenu = !showMenu
+                    }) {
                         Icon(Icons.Filled.MoreVert, contentDescription = "more option")
                     }
 
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
 
-                        if (state.isUserBlocked){
-
-                        }else{
+                        if (state.isUserBlocked) {
                             DropdownMenuItem(onClick = {
-
+                                onAction("unblock", username)
+                                showMenu = false
+                            }) {
+                                Text(text = "Unblock")
+                            }
+                        } else {
+                            DropdownMenuItem(onClick = {
+                                onAction("block", username)
+                                showMenu = false
                             }) {
                                 Text(text = "Block")
                             }
@@ -755,7 +781,7 @@ fun OverviewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong - ${overviewScreenState.message}")
+                Text(text = "Something went wrong !")
             }
         }
     }
