@@ -166,7 +166,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
                     }
                 }
             } catch (e: Exception) {
-
+                Log.d("ahi3646", "getUserStarredReposCount: ${e.message} '")
             }
         }
     }

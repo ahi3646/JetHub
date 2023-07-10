@@ -76,6 +76,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -88,6 +91,8 @@ import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
@@ -101,10 +106,15 @@ class HomeFragment : Fragment() {
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
-        val username = "HasanAnorov"
 
-        homeViewModel.getUser(token, username)
-        homeViewModel.getReceivedEvents(token, username)
+        homeViewModel.getAuthenticatedUser(token)
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { authenticatedUser ->
+                Log.d("ahi3646", "onCreateView onSave: ${authenticatedUser.login} ")
+                PreferenceHelper.saveAuthenticatedUser(requireContext(),authenticatedUser.login )
+
+                homeViewModel.getUser(token, authenticatedUser.login)
+                homeViewModel.getReceivedEvents(token, authenticatedUser.login)
+        }.launchIn(lifecycleScope)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -138,6 +148,7 @@ class HomeFragment : Fragment() {
                                 -1 -> {
                                     findNavController().popBackStack()
                                 }
+
                                 else -> {
                                     val bundle = Bundle()
                                     if (data != null) {
@@ -242,7 +253,6 @@ private fun MainContent(
                         state.receivedEventsState,
                         onNavigate
                     )
-
                     AppScreens.Issues -> IssuesScreen()
                     AppScreens.PullRequests -> PullRequestScreen()
                 }
@@ -292,7 +302,7 @@ private fun TopAppBarContent(
         )
 
         IconButton(onClick = {
-            onToolbarItemCLick(R.id.action_homeFragment_to_notificationsFragment, null, null)
+            onToolbarItemCLick(R.id.action_homeFragment_to_repositoryFragment, null, null)
         }) {
             Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
         }

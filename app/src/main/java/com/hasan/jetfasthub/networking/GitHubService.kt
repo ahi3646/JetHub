@@ -4,6 +4,7 @@ import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
+import com.hasan.jetfasthub.screens.main.home.authenticated_user.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
@@ -56,6 +57,12 @@ interface GitHubService {
         @Field("code") code: String,
         //other parameters are optional
     ): Response<AccessTokenModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("user")
+    suspend fun getAuthenticatedUser(
+        @Header("Authorization") token: String,
+    ): Response<AuthenticatedUser>
 
 
     @Headers("Accept: application/vnd.github+json")

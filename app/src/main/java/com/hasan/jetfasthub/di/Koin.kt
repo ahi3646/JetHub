@@ -26,6 +26,7 @@ import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.organisations.OrganisationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
+import com.hasan.jetfasthub.screens.main.repository.RepositoryViewModel
 import com.hasan.jetfasthub.screens.main.search.SearchViewModel
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
@@ -100,6 +101,10 @@ val gistsModule = module {
 val eventsModule = module {
     single<HomeRepository> { HomeRepositoryImpl(get()) }
     viewModel { HomeViewModel(get()) }
+}
+
+val repositoryModule = module {
+    viewModel { RepositoryViewModel() }
 }
 
 val notificationsModule = module {

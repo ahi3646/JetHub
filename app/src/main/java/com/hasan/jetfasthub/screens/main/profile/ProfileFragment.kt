@@ -66,6 +66,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -157,7 +158,7 @@ class ProfileFragment : Fragment() {
                                     val intent = Intent(Intent.ACTION_SEND)
                                     intent.type = type
                                     intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                    intent.putExtra(Intent.EXTRA_TEXT, data)
+                                    intent.putExtra(Intent.EXTRA_TEXT, "https://github.com/$data")
 
                                     ContextCompat.startActivity(
                                         context,
@@ -255,6 +256,7 @@ private fun MainContent(
 ) {
     val scaffoldState = rememberScaffoldState()
     var showMenu by remember { mutableStateOf(false) }
+    val authUser = PreferenceHelper.getAuthenticatedUsername(LocalContext.current)
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -278,16 +280,18 @@ private fun MainContent(
                 },
                 actions = {
                     IconButton(onClick = {
-                        onAction("share", "https://github.com/$username")
+                        onAction("share", username)
                     }) {
                         Icon(Icons.Filled.Share, contentDescription = "Share")
                     }
 
-                    IconButton(onClick = {
-                        onAction("isUserBlocked", username)
-                        showMenu = !showMenu
-                    }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    if (username != authUser) {
+                        IconButton(onClick = {
+                            onAction("isUserBlocked", username)
+                            showMenu = !showMenu
+                        }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        }
                     }
 
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
@@ -314,19 +318,21 @@ private fun MainContent(
         },
     ) { contentPadding ->
         TabScreen(
-            startIndex,
-            contentPadding,
-            state,
+            username = username,
+            startIndex = startIndex,
+            contentPaddingValues = contentPadding,
+            state = state,
             onAction = onAction,
-            onNavigate,
-            onFollowClicked,
-            onUnfollowClicked
+            onNavigate = onNavigate,
+            onFollowClicked = onFollowClicked,
+            onUnfollowClicked = onUnfollowClicked
         )
     }
 }
 
 @Composable
 fun TabScreen(
+    username: String,
     startIndex: Int,
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
@@ -365,6 +371,7 @@ fun TabScreen(
         }
         when (tabIndex) {
             0 -> OverviewScreen(
+                username = username,
                 overviewScreenState = state.OverviewScreenState,
                 isFollowing = state.isFollowing,
                 organisation = state.UserOrganisations,
@@ -406,6 +413,7 @@ fun TabScreen(
 
 @Composable
 fun OverviewScreen(
+    username: String,
     overviewScreenState: UserOverviewScreen,
     isFollowing: Boolean,
     organisation: Resource<OrgModel>,
@@ -415,6 +423,8 @@ fun OverviewScreen(
     onNavigate: (Int, String?) -> Unit,
     onAction: (String, String) -> Unit
 ) {
+
+    val authUser = PreferenceHelper.getAuthenticatedUsername(LocalContext.current)
 
     when (overviewScreenState) {
         is UserOverviewScreen.Loading -> {
@@ -538,33 +548,33 @@ fun OverviewScreen(
                         )
                     }
                 }
-
-                if (isFollowing) {
-                    Button(
-                        onClick = { onUnfollowClicked() },
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_unfollow),
-                            contentDescription = "unfollow button"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Unfollow")
-                    }
-                } else {
-                    Button(
-                        onClick = { onFollowClicked() },
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_follow),
-                            contentDescription = "follow button"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Follow")
+                if (authUser != username) {
+                    if (isFollowing) {
+                        Button(
+                            onClick = { onUnfollowClicked() },
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_unfollow),
+                                contentDescription = "unfollow button"
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "Unfollow")
+                        }
+                    } else {
+                        Button(
+                            onClick = { onFollowClicked() },
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_follow),
+                                contentDescription = "follow button"
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "Follow")
+                        }
                     }
                 }
-
 
                 if (overviewScreenState.user.company != null) {
                     Row(
