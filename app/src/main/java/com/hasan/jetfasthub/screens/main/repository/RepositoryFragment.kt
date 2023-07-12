@@ -1,10 +1,17 @@
 package com.hasan.jetfasthub.screens.main.repository
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
@@ -62,6 +70,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
@@ -81,9 +90,7 @@ class RepositoryFragment : Fragment() {
     private val repositoryViewModel: RepositoryViewModel by viewModel()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
@@ -93,35 +100,68 @@ class RepositoryFragment : Fragment() {
         Log.d("ahi3646", "onCreateView: $owner --- $repo")
 
         repositoryViewModel.getRepo(
-            token = token,
-            owner = owner,
-            repo = repo
+            token = token, owner = owner, repo = repo
         )
 
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by repositoryViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(
-                        state,
-                        onBottomBarClicked = { repositoryScreen ->
-                            repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
-                        },
-                        onItemClicked = { dest, data ->
-                            when (dest) {
-                                -1 -> {
-                                    findNavController().popBackStack()
-                                }
+                    MainContent(state, onBottomBarClicked = { repositoryScreen ->
+                        repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
+                    }, onItemClicked = { dest, data ->
+                        when (dest) {
+                            -1 -> {
+                                findNavController().popBackStack()
+                            }
 
-                                else -> {
-                                    val bundle = Bundle()
-                                    bundle.putString("home_data", owner)
-                                    findNavController().navigate(dest, bundle)
-                                    Log.d("ahi3646", "onCreateView repo: $owner - - $data  ")
-                                }
+                            else -> {
+                                val bundle = Bundle()
+                                bundle.putString("home_data", owner)
+                                findNavController().navigate(dest, bundle)
+                                Log.d("ahi3646", "onCreateView repo: $owner - - $data  ")
                             }
                         }
-                    )
+                    }, onAction = { action, data ->
+                        when (action) {
+                            "share" -> {
+                                val context = requireContext()
+                                val type = "text/plain"
+                                val subject = "Your subject"
+                                val shareWith = "ShareWith"
+
+                                val intent = Intent(Intent.ACTION_SEND)
+                                intent.type = type
+                                intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                intent.putExtra(Intent.EXTRA_TEXT, data)
+
+                                ContextCompat.startActivity(
+                                    context, Intent.createChooser(intent, shareWith), null
+                                )
+                            }
+
+                            "browser" -> {
+                                var webpage = Uri.parse(data)
+
+                                if (!data!!.startsWith("http://") && !data.startsWith("https://")) {
+                                    webpage = Uri.parse("http://$data")
+                                }
+                                val urlIntent = Intent(
+                                    Intent.ACTION_VIEW, webpage
+                                )
+                                requireContext().startActivity(urlIntent)
+                            }
+
+                            "copy" -> {
+                                val clipboardManager =
+                                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clipData = ClipData.newPlainText("text", data)
+                                clipboardManager.setPrimaryClip(clipData)
+                                Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        }
+                    })
                 }
             }
         }
@@ -134,7 +174,8 @@ class RepositoryFragment : Fragment() {
 private fun MainContent(
     state: RepositoryScreenState,
     onBottomBarClicked: (RepositoryScreens) -> Unit,
-    onItemClicked: (Int, String?) -> Unit
+    onItemClicked: (Int, String?) -> Unit,
+    onAction: (String, String?) -> Unit
 ) {
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
@@ -142,11 +183,9 @@ private fun MainContent(
     )
     val scope = rememberCoroutineScope()
 
-
-
     BottomSheetScaffold(
         sheetContent = {
-            if(state.repo.data!=null){
+            if (state.repo.data != null) {
                 Column(
                     Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.Start,
@@ -178,40 +217,39 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { sheetPadding ->
-        Scaffold(
-            modifier = Modifier.padding(sheetPadding),
-            topBar = {
-                Column(Modifier.fillMaxWidth()) {
-                    TitleHeader(
-                        state = state.repo,
-                        onItemClicked = onItemClicked,
-                        onAction = { action ->
-                            when (action) {
-                                "info" -> {
-                                    scope.launch {
-                                        if (sheetState.isCollapsed) {
-                                            sheetState.expand()
-                                        } else {
-                                            sheetState.collapse()
-                                        }
+        Scaffold(modifier = Modifier.padding(sheetPadding), topBar = {
+            Column(Modifier.fillMaxWidth()) {
+                TitleHeader(state = state.repo,
+                    onItemClicked = onItemClicked,
+                    onAction = { action ->
+                        when (action) {
+                            "info" -> {
+                                scope.launch {
+                                    if (sheetState.isCollapsed) {
+                                        sheetState.expand()
+                                    } else {
+                                        sheetState.collapse()
                                     }
                                 }
                             }
                         }
-                    )
-                    Toolbar(state = state.repo, onItemClicked = onItemClicked)
-                }
-            },
-            bottomBar = {
-                BottomNav(onBottomBarClicked)
+                    })
+                Toolbar(
+                    state = state.repo, onItemClicked = onItemClicked, onAction = onAction
+                )
             }
-        ) { paddingValues ->
-
+        }, bottomBar = {
+            BottomNav(onBottomBarClicked, state.repo)
+        }) { paddingValues ->
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(paddingValues = paddingValues)
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
                 RepositoryScreens.PullRequest -> PullRequestsScreen(paddingValues = paddingValues)
-                RepositoryScreens.Projects -> ProjectsScreen(paddingValues = paddingValues)
+                RepositoryScreens.Projects -> {
+                    if ((state.repo.data != null) && state.repo.data.has_projects) {
+                        ProjectsScreen(paddingValues = paddingValues)
+                    }
+                }
             }
         }
     }
@@ -345,83 +383,351 @@ private fun ProjectsScreen(paddingValues: PaddingValues) {
 }
 
 @Composable
-private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit) {
-    Surface(elevation = 16.dp) {
-        BottomAppBar(containerColor = Color.White) {
-            BottomNavigationItem(
-                alwaysShowLabel = false,
-                icon = {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
-                        contentDescription = "Code Screen"
+private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Resource<RepoModel>) {
+    when (state) {
+
+        is Resource.Loading -> {
+            Surface(elevation = 16.dp) {
+                BottomAppBar(containerColor = Color.White) {
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
+                                contentDescription = "Code Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Code",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp
+                            )
+                        },
+                        selected = false,
+                        onClick = {},
                     )
-                },
-                label = {
+
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
+                                contentDescription = "Issues Screen"
+                            )
+                        },
+                        label = { Text("Issues") },
+                        selected = false,
+                        onClick = {},
+                    )
+
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
+                                contentDescription = "PullRequest Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Pull Requests",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp,
+                                softWrap = false,
+                            )
+                        },
+                        selected = false,
+                        onClick = {},
+                    )
+                }
+            }
+        }
+
+        is Resource.Success -> {
+            val repository = state.data!!
+            val context = LocalContext.current
+
+            Surface(elevation = 16.dp) {
+                BottomAppBar(containerColor = Color.White) {
+                    BottomNavigationItem(
+                        alwaysShowLabel = false,
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
+                                contentDescription = "Code Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Code",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp
+                            )
+                        },
+                        selected = false,
+                        onClick = {
+                            onBottomBarClicked(RepositoryScreens.Code)
+                        },
+                    )
+
+                    BottomNavigationItem(
+                        alwaysShowLabel = false,
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
+                                contentDescription = "Issues Screen"
+                            )
+                        },
+                        label = { Text("Issues") },
+                        selected = false,
+                        onClick = {
+                            if (repository.has_issues) {
+                                onBottomBarClicked(RepositoryScreens.Issues)
+                            } else {
+                                Toast.makeText(
+                                    context, "Issue section has been disabled", Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                    )
+
+                    BottomNavigationItem(
+                        alwaysShowLabel = true,
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
+                                contentDescription = "PullRequest Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Pull Requests",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp,
+                                softWrap = false,
+                            )
+                        },
+                        selected = false,
+                        onClick = {
+                            onBottomBarClicked(RepositoryScreens.PullRequest)
+                        },
+                    )
+
+                    BottomNavigationItem(
+                        alwaysShowLabel = false,
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_project),
+                                contentDescription = "PullRequest Screen"
+                            )
+                        },
+                        label = { Text("Projects") },
+                        selected = false,
+                        onClick = {
+                            onBottomBarClicked(RepositoryScreens.Projects)
+                        },
+                    )
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Surface(elevation = 16.dp) {
+                BottomAppBar(containerColor = Color.White) {
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
+                                contentDescription = "Code Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Code",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp
+                            )
+                        },
+                        selected = false,
+                        onClick = {},
+                    )
+
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
+                                contentDescription = "Issues Screen"
+                            )
+                        },
+                        label = { Text("Issues") },
+                        selected = false,
+                        onClick = {},
+                    )
+
+                    BottomNavigationItem(
+                        icon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
+                                contentDescription = "PullRequest Screen"
+                            )
+                        },
+                        label = {
+                            Text(
+                                "Pull Requests",
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 13.sp,
+                                softWrap = false,
+                            )
+                        },
+                        selected = false,
+                        onClick = {},
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun TitleHeader(
+    state: Resource<RepoModel>, onItemClicked: (Int, String?) -> Unit, onAction: (String) -> Unit
+) {
+    when (state) {
+        is Resource.Loading -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Spacer(modifier = Modifier.width(16.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_person_24),
+                    contentDescription = "avatar icon",
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+        }
+
+        is Resource.Success -> {
+            val repository = state.data!!
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                GlideImage(
+                    failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                    imageModel = {
+                        repository.owner.avatar_url
+                    }, // loading a network image using an URL.
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            onItemClicked(
+                                R.id.action_repositoryFragment_to_profileFragment,
+                                repository.owner.login
+                            )
+                        },
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.CenterStart,
+                        contentDescription = "Actor Avatar"
+                    )
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        "Code",
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp
+                        text = repository.full_name,
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = MaterialTheme.typography.subtitle1,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                },
-                selected = false,
-                onClick = {
-                    onBottomBarClicked(RepositoryScreens.Code)
-                },
-            )
 
-            BottomNavigationItem(
-                alwaysShowLabel = false,
-                icon = {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                        contentDescription = "Issues Screen"
-                    )
-                },
-                label = { Text("Issues") },
-                selected = false,
-                onClick = {
-                    onBottomBarClicked(RepositoryScreens.Issues)
-                },
-            )
+                    Row {
+                        Text(
+                            text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                        if (repository.language != null) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = repository.language.toString(),
+                                fontSize = 14.sp,
+                                color = Color.Yellow
+                            )
+                        }
+                    }
+                }
 
-            BottomNavigationItem(
-                alwaysShowLabel = true,
-                icon = {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                        contentDescription = "PullRequest Screen"
-                    )
-                },
-                label = {
-                    Text(
-                        "Pull Requests",
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp,
-                        softWrap = false,
-                    )
-                },
-                selected = false,
-                onClick = {
-                    onBottomBarClicked(RepositoryScreens.PullRequest)
-                },
-            )
+                Spacer(modifier = Modifier.weight(1F))
 
-            BottomNavigationItem(
-                alwaysShowLabel = false,
-                icon = {
+                IconButton(onClick = { /*TODO*/ }) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_project),
-                        contentDescription = "PullRequest Screen"
+                        painter = painterResource(id = R.drawable.ic_label),
+                        contentDescription = "label"
                     )
-                },
-                label = { Text("Projects") },
-                selected = false,
-                onClick = {
-                    onBottomBarClicked(RepositoryScreens.Projects)
-                },
-            )
+                }
+
+                IconButton(onClick = {
+                    onAction("info")
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_info_outline),
+                        contentDescription = "info"
+                    )
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Spacer(modifier = Modifier.width(16.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_person_24),
+                    contentDescription = "avatar icon",
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
         }
     }
 }
@@ -430,14 +736,106 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit) {
 private fun Toolbar(
     state: Resource<RepoModel>,
     onItemClicked: (Int, String?) -> Unit,
+    onAction: (String, String?) -> Unit
 ) {
-
     var showMenu by remember { mutableStateOf(false) }
-
     when (state) {
-        is Resource.Loading -> {}
+
+        is Resource.Loading -> {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                IconButton(onClick = { onItemClicked(-1, null) }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(0.dp)
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_eye),
+                                contentDescription = "Watch"
+                            )
+                        }
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_star),
+                                contentDescription = "Star"
+                            )
+                        }
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_fork),
+                                contentDescription = "Star"
+                            )
+                        }
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_pin),
+                                contentDescription = "Pin"
+                            )
+                        }
+                    }
+                }
+
+                Box {
+                    IconButton(
+                        onClick = {
+                            showMenu = !showMenu
+                        },
+                    ) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                    ) {
+                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                            showMenu = false
+                        })
+                    }
+                }
+            }
+        }
+
         is Resource.Success -> {
             val repository = state.data!!
+
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -548,126 +946,123 @@ private fun Toolbar(
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
-                        //offset = pressOffset
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(text = "Share") },
-                            onClick = { showMenu = false })
-                        DropdownMenuItem(
-                            text = { Text(text = "Open in browser") },
-                            onClick = { showMenu = false })
-                        DropdownMenuItem(
-                            text = { Text(text = "Copy URL") },
-                            onClick = { showMenu = false })
+                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                            onAction("share", repository.html_url)
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                            onAction("browser", repository.html_url)
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                            onAction("copy", repository.html_url)
+                            showMenu = false
+                        })
+                        if(repository.fork){
+                            DropdownMenuItem(text = { Text(text = repository.parent.full_name) }, onClick = {
+                                //refresh repository screen
+                                showMenu = false
+                            })
+                        }
                     }
                 }
 
             }
         }
 
-        is Resource.Failure -> {}
-    }
-}
-
-@Composable
-private fun TitleHeader(
-    state: Resource<RepoModel>,
-    onItemClicked: (Int, String?) -> Unit,
-    onAction: (String) -> Unit
-) {
-    when (state) {
-        is Resource.Loading -> {}
-        is Resource.Success -> {
-
-            val repository = state.data!!
-
+        is Resource.Failure -> {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
             ) {
 
-                GlideImage(
-                    failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-                    imageModel = {
-                        repository.owner.avatar_url
-                    }, // loading a network image using an URL.
-                    modifier = Modifier
-                        .size(48.dp, 48.dp)
-                        .size(48.dp, 48.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            onItemClicked(
-                                R.id.action_repositoryFragment_to_profileFragment,
-                                repository.owner.login
-                            )
-                        },
-                    imageOptions = ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.CenterStart,
-                        contentDescription = "Actor Avatar"
-                    )
-                )
+                IconButton(onClick = { onItemClicked(-1, null) }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                 ) {
-                    Text(
-                        text = repository.full_name,
-                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                        color = Color.Black,
-                        style = MaterialTheme.typography.subtitle1,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(0.dp)
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_eye),
+                                contentDescription = "Watch"
+                            )
+                        }
+                    }
 
-                    Row {
-                        Text(
-                            text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                        if (repository.language != null) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = repository.language.toString(),
-                                fontSize = 14.sp,
-                                color = Color.Yellow
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_star),
+                                contentDescription = "Star"
+                            )
+                        }
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_fork),
+                                contentDescription = "Star"
+                            )
+                        }
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_pin),
+                                contentDescription = "Pin"
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1F))
+                Box {
+                    IconButton(
+                        onClick = {
+                            showMenu = !showMenu
+                        },
+                    ) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    }
 
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_label),
-                        contentDescription = "label"
-                    )
-                }
-
-                IconButton(onClick = {
-                    onAction("info")
-                }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info_outline),
-                        contentDescription = "info"
-                    )
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                    ) {
+                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                            showMenu = false
+                        })
+                    }
                 }
             }
         }
 
-        is Resource.Failure -> {}
     }
 }
+
