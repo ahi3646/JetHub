@@ -121,6 +121,7 @@ class ProfileFragment : Fragment() {
 
         val extra = arguments?.getString("home_extra") ?: "0"
         val username = arguments?.getString("home_data") ?: ""
+        Log.d("ahi3646", "onCreateView profile: $username -- $extra ")
         val startIndex = try {
             extra.toInt()
         } catch (e: Exception) {

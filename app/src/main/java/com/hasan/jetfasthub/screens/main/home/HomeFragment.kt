@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.home
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -399,11 +400,14 @@ fun FeedsScreen(
             ) {
                 items(receivedEventsState.events) { eventItem ->
                     ItemEventCard(eventItem) {
+                        val uri = Uri.parse(eventItem.repo.url).lastPathSegment
                         onNavigate(
-                            R.id.action_homeFragment_to_profileFragment,
+//                            R.id.action_homeFragment_to_profileFragment,
+                            R.id.action_homeFragment_to_repositoryFragment,
                             eventItem.actor.login,
-                            null
+                            uri,
                         )
+                        Log.d("ahi3646", "FeedsScreen: $uri ")
                     }
                 }
             }

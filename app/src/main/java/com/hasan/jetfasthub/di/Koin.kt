@@ -17,6 +17,8 @@ import com.hasan.jetfasthub.data.OrganisationImpl
 import com.hasan.jetfasthub.data.OrganisationRepository
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
+import com.hasan.jetfasthub.data.Repository
+import com.hasan.jetfasthub.data.RepositoryImpl
 import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
@@ -104,7 +106,8 @@ val eventsModule = module {
 }
 
 val repositoryModule = module {
-    viewModel { RepositoryViewModel() }
+    single <Repository>{ RepositoryImpl(get()) }
+    viewModel { RepositoryViewModel(get()) }
 }
 
 val notificationsModule = module {
