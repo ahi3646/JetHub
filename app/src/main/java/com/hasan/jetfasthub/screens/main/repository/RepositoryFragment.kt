@@ -117,10 +117,10 @@ class RepositoryFragment : Fragment() {
 
                             else -> {
                                 val bundle = Bundle()
-                                if(data!=null){
+                                if (data != null) {
                                     bundle.putString("home_data", data)
                                 }
-                                if(extra!=null){
+                                if (extra != null) {
                                     bundle.putString("home_extra", extra)
                                 }
                                 findNavController().navigate(dest, bundle)
@@ -222,30 +222,37 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { sheetPadding ->
-        Scaffold(modifier = Modifier.padding(sheetPadding), topBar = {
-            Column(Modifier.fillMaxWidth()) {
-                TitleHeader(state = state.repo,
-                    onItemClicked = onItemClicked,
-                    onAction = { action ->
-                        when (action) {
-                            "info" -> {
-                                scope.launch {
-                                    if (sheetState.isCollapsed) {
-                                        sheetState.expand()
-                                    } else {
-                                        sheetState.collapse()
+        Scaffold(
+            modifier = Modifier.padding(sheetPadding),
+            topBar = {
+                Column(Modifier.fillMaxWidth()) {
+                    TitleHeader(
+                        state = state.repo,
+                        onItemClicked = onItemClicked,
+                        onAction = { action ->
+                            when (action) {
+                                "info" -> {
+                                    scope.launch {
+                                        if (sheetState.isCollapsed) {
+                                            sheetState.expand()
+                                        } else {
+                                            sheetState.collapse()
+                                        }
                                     }
                                 }
                             }
                         }
-                    })
-                Toolbar(
-                    state = state.repo, onItemClicked = onItemClicked, onAction = onAction
-                )
+                    )
+                    Toolbar(
+                        state = state.repo, onItemClicked = onItemClicked, onAction = onAction
+                    )
+                }
+            },
+            bottomBar = {
+                BottomNav(onBottomBarClicked, state.repo, state.selectedBottomBarItem)
             }
-        }, bottomBar = {
-            BottomNav(onBottomBarClicked, state.repo)
-        }) { paddingValues ->
+        ) { paddingValues ->
+
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(paddingValues = paddingValues)
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
@@ -388,7 +395,13 @@ private fun ProjectsScreen(paddingValues: PaddingValues) {
 }
 
 @Composable
-private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Resource<RepoModel>) {
+private fun BottomNav(
+    onBottomBarClicked: (RepositoryScreens) -> Unit,
+    state: Resource<RepoModel>,
+    bottomItems: RepositoryScreens
+) {
+    val context = LocalContext.current
+
     when (state) {
 
         is Resource.Loading -> {
@@ -450,12 +463,24 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
 
         is Resource.Success -> {
             val repository = state.data!!
-            val context = LocalContext.current
+
+            val isCodeCurrent = remember {
+                mutableStateOf(true)
+            }
+            val isIssuesCurrent = remember {
+                mutableStateOf(false)
+            }
+            val isPRCurrent = remember {
+                mutableStateOf(false)
+            }
+            val isProjectsCurrent = remember {
+                mutableStateOf(false)
+            }
 
             Surface(elevation = 16.dp) {
                 BottomAppBar(containerColor = Color.White) {
                     BottomNavigationItem(
-                        alwaysShowLabel = false,
+                        alwaysShowLabel = isCodeCurrent.value,
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
@@ -472,12 +497,16 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
                         },
                         selected = false,
                         onClick = {
+                            isCodeCurrent.value = true
+                            isIssuesCurrent.value = false
+                            isPRCurrent.value = false
+                            isProjectsCurrent.value = false
                             onBottomBarClicked(RepositoryScreens.Code)
                         },
                     )
 
                     BottomNavigationItem(
-                        alwaysShowLabel = false,
+                        alwaysShowLabel = isIssuesCurrent.value,
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
@@ -488,6 +517,11 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
                         selected = false,
                         onClick = {
                             if (repository.has_issues) {
+                                isCodeCurrent.value = false
+                                isIssuesCurrent.value = true
+                                isPRCurrent.value = false
+                                isProjectsCurrent.value = false
+
                                 onBottomBarClicked(RepositoryScreens.Issues)
                             } else {
                                 Toast.makeText(
@@ -498,7 +532,7 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
                     )
 
                     BottomNavigationItem(
-                        alwaysShowLabel = true,
+                        alwaysShowLabel = isPRCurrent.value,
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
@@ -516,12 +550,16 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
                         },
                         selected = false,
                         onClick = {
+                            isCodeCurrent.value = false
+                            isIssuesCurrent.value = false
+                            isPRCurrent.value = true
+                            isProjectsCurrent.value = false
                             onBottomBarClicked(RepositoryScreens.PullRequest)
                         },
                     )
 
                     BottomNavigationItem(
-                        alwaysShowLabel = false,
+                        alwaysShowLabel = isProjectsCurrent.value,
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_project),
@@ -531,6 +569,10 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
                         label = { Text("Projects") },
                         selected = false,
                         onClick = {
+                            isCodeCurrent.value = false
+                            isIssuesCurrent.value = false
+                            isPRCurrent.value = false
+                            isProjectsCurrent.value = true
                             onBottomBarClicked(RepositoryScreens.Projects)
                         },
                     )
@@ -539,6 +581,8 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
         }
 
         is Resource.Failure -> {
+            Toast.makeText(context, "Can't load data !", Toast.LENGTH_SHORT).show()
+
             Surface(elevation = 16.dp) {
                 BottomAppBar(containerColor = Color.White) {
                     BottomNavigationItem(
@@ -675,7 +719,7 @@ private fun TitleHeader(
 
                     Row {
                         Text(
-                            text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
+                            text = ParseDateFormat.getTimeAgo(repository.pushed_at).toString(),
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
