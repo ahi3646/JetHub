@@ -109,7 +109,7 @@ class RepositoryFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(state, onBottomBarClicked = { repositoryScreen ->
                         repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
-                    }, onItemClicked = { dest, data ->
+                    }, onItemClicked = { dest, data, extra ->
                         when (dest) {
                             -1 -> {
                                 findNavController().popBackStack()
@@ -117,7 +117,12 @@ class RepositoryFragment : Fragment() {
 
                             else -> {
                                 val bundle = Bundle()
-                                bundle.putString("home_data", owner)
+                                if(data!=null){
+                                    bundle.putString("home_data", data)
+                                }
+                                if(extra!=null){
+                                    bundle.putString("home_extra", extra)
+                                }
                                 findNavController().navigate(dest, bundle)
                                 Log.d("ahi3646", "onCreateView repo: $owner - - $data  ")
                             }
@@ -161,12 +166,12 @@ class RepositoryFragment : Fragment() {
                                     .show()
                             }
                         }
-                    })
+                    }
+                    )
                 }
             }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -174,7 +179,7 @@ class RepositoryFragment : Fragment() {
 private fun MainContent(
     state: RepositoryScreenState,
     onBottomBarClicked: (RepositoryScreens) -> Unit,
-    onItemClicked: (Int, String?) -> Unit,
+    onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
@@ -595,7 +600,9 @@ private fun BottomNav(onBottomBarClicked: (RepositoryScreens) -> Unit, state: Re
 
 @Composable
 private fun TitleHeader(
-    state: Resource<RepoModel>, onItemClicked: (Int, String?) -> Unit, onAction: (String) -> Unit
+    state: Resource<RepoModel>,
+    onItemClicked: (Int, String?, String?) -> Unit,
+    onAction: (String) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
@@ -641,7 +648,8 @@ private fun TitleHeader(
                         .clickable {
                             onItemClicked(
                                 R.id.action_repositoryFragment_to_profileFragment,
-                                repository.owner.login
+                                repository.owner.login,
+                                null
                             )
                         },
                     imageOptions = ImageOptions(
@@ -735,7 +743,7 @@ private fun TitleHeader(
 @Composable
 private fun Toolbar(
     state: Resource<RepoModel>,
-    onItemClicked: (Int, String?) -> Unit,
+    onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -748,7 +756,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null) }) {
+                IconButton(onClick = { onItemClicked(-1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
@@ -842,7 +850,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null) }) {
+                IconButton(onClick = { onItemClicked(-1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
@@ -959,11 +967,17 @@ private fun Toolbar(
                             onAction("copy", repository.html_url)
                             showMenu = false
                         })
-                        if(repository.fork){
-                            DropdownMenuItem(text = { Text(text = repository.parent.full_name) }, onClick = {
-                                //refresh repository screen
-                                showMenu = false
-                            })
+                        if (repository.fork) {
+                            DropdownMenuItem(
+                                text = { Text(text = repository.parent.full_name) },
+                                onClick = {
+                                    onItemClicked(
+                                        R.id.action_repositoryFragment_self,
+                                        repository.parent.owner.login,
+                                        repository.parent.name
+                                    )
+                                    showMenu = false
+                                })
                         }
                     }
                 }
@@ -978,7 +992,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null) }) {
+                IconButton(onClick = { onItemClicked(-1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
