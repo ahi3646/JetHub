@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.repository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
+import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.utility.Resource
@@ -68,12 +69,35 @@ class RepositoryViewModel(private val repository: Repository): ViewModel() {
         }
     }
 
+    fun getReleases(token: String, owner: String, repo: String, page: Int){
+        viewModelScope.launch {
+            try {
+                repository.getReleases(token, owner, repo, page).let { releasesModelResponse ->
+                    if (releasesModelResponse.isSuccessful){
+                        _state.update {
+                            it.copy(Releases = Resource.Success(releasesModelResponse.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(Releases = Resource.Failure(releasesModelResponse.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(Releases = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val repo: Resource<RepoModel> = Resource.Loading(),
-    val Contributors: Resource<Contributors> = Resource.Loading()
+    val Contributors: Resource<Contributors> = Resource.Loading(),
+    val Releases: Resource<ReleasesModel> = Resource.Loading()
 )
 
 interface RepositoryScreens {

@@ -5,6 +5,7 @@ import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.home.authenticated_user.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
@@ -18,6 +19,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
+import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
@@ -156,7 +158,7 @@ interface GitHubService {
     suspend fun getReceivedUserEvents(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
-    ): Response<ReceivedEvents>
+    ): Response<ReceivedEventsModel>
 
     @Headers("Accept: application/vnd.github+json")
     @PUT("user/following/{username}")
@@ -295,5 +297,14 @@ interface GitHubService {
         @Path("repo") repo: String,
         @Query("page") page:Int
     ): Response<Contributors>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("/repos/{owner}/{repo}/releases")
+    suspend fun getReleases(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Query("page") page: Int
+    ): Response<ReleasesModel>
 
 }

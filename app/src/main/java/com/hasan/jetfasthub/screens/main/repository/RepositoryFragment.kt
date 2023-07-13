@@ -38,7 +38,7 @@ import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Tab
 import androidx.compose.material.Text
@@ -74,6 +74,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,6 +85,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
+import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.ContributorsItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -114,6 +117,9 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo
         )
         repositoryViewModel.getContributors(
+            token = token, owner = owner, repo = repo, page = 1
+        )
+        repositoryViewModel.getReleases(
             token = token, owner = owner, repo = repo, page = 1
         )
 
@@ -212,7 +218,7 @@ private fun MainContent(
                 ) {
                     Text(
                         text = state.repo.data.full_name,
-                        style = androidx.compose.material3.MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -298,9 +304,10 @@ private fun CodeScreen(
     val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
     var tabIndex by remember { mutableStateOf(0) }
 
-    Column(modifier = Modifier
-        .padding(paddingValues)
-        .fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxWidth()
     ) {
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
@@ -326,8 +333,133 @@ private fun CodeScreen(
             0 -> {}
             1 -> {}
             2 -> {}
-            3 -> {}
-            4 -> ContributorsScreen(state.Contributors, onItemClicked, paddingValues)
+            3 -> ReleasesScreen(state.Releases)
+            4 -> ContributorsScreen(state.Contributors, onItemClicked)
+        }
+    }
+}
+
+@Composable
+private fun ReleasesScreen(
+    releases: Resource<ReleasesModel>,
+) {
+    when (releases) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(releases.data!!) { index, release ->
+                    ReleaseItemCard(releasesModelItem = release)
+                    if (index < releases.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data !")
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun ReleaseItemCard(
+    releasesModelItem: ReleasesModelItem,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+
+            })
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .padding(start = 8.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = releasesModelItem.name,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = buildAnnotatedString {
+                    append(releasesModelItem.author.login)
+                    append(" ")
+                    if (releasesModelItem.draft) {
+                        append("Drafted")
+                    } else {
+                        append("Released")
+                    }
+                    append(" ")
+                    append(
+                        ParseDateFormat.getDateFromString(releasesModelItem.created_at).toString()
+                    )
+                },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = {
+
+                },
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_download),
+                    contentDescription = "release download"
+                )
+            }
         }
     }
 }
@@ -336,7 +468,6 @@ private fun CodeScreen(
 private fun ContributorsScreen(
     contributors: Resource<Contributors>,
     onItemClicked: (Int, String?, String?) -> Unit,
-    paddingValues: PaddingValues
 ) {
     when (contributors) {
         is Resource.Loading -> {
@@ -429,7 +560,7 @@ private fun ContributorsItemCard(
                     text = contributorsItem.login,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -859,7 +990,6 @@ private fun TitleHeader(
                             text = repository.full_name,
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                             color = Color.Black,
-                            style = MaterialTheme.typography.subtitle1,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )

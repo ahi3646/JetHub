@@ -83,6 +83,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
 import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
@@ -445,7 +446,7 @@ fun PullRequestScreen() {
 
 @Composable
 private fun ItemEventCard(
-    eventItem: ReceivedEventsItem,
+    eventItem: ReceivedEventsModelItem,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
     Card(
@@ -461,7 +462,7 @@ private fun ItemEventCard(
                         onNavigate(
                             R.id.action_homeFragment_to_repositoryFragment,
                             eventItem.actor.login,
-                            uri,
+                            eventItem.payload.forkee.name,
                         )
                     }
 
