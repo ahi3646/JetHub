@@ -21,7 +21,7 @@ data class RepoModel(
     val default_branch: String,
     val delete_branch_on_merge: Boolean,
     val deployments_url: String,
-    val description: String,
+    val description: String?,
     val disabled: Boolean,
     val downloads_url: String,
     val events_url: String,

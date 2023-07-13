@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,18 +20,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -44,6 +49,7 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -78,6 +84,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
+import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.ContributorsItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
@@ -104,6 +112,9 @@ class RepositoryFragment : Fragment() {
 
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
+        )
+        repositoryViewModel.getContributors(
+            token = token, owner = owner, repo = repo, page = 1
         )
 
         return ComposeView(requireContext()).apply {
@@ -204,9 +215,13 @@ private fun MainContent(
                         style = androidx.compose.material3.MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = state.repo.data.description
-                    )
+
+                    if (state.repo.data.description != null) {
+                        Text(
+                            text = state.repo.data.description
+                        )
+                    }
+
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -256,7 +271,12 @@ private fun MainContent(
         ) { paddingValues ->
 
             when (state.selectedBottomBarItem) {
-                RepositoryScreens.Code -> CodeScreen(paddingValues = paddingValues)
+                RepositoryScreens.Code -> CodeScreen(
+                    paddingValues = paddingValues,
+                    state = state,
+                    onItemClicked = onItemClicked
+                )
+
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
                 RepositoryScreens.PullRequest -> PullRequestsScreen(paddingValues = paddingValues)
                 RepositoryScreens.Projects -> {
@@ -270,36 +290,156 @@ private fun MainContent(
 }
 
 @Composable
-private fun CodeScreen(paddingValues: PaddingValues) {
+private fun CodeScreen(
+    paddingValues: PaddingValues,
+    state: RepositoryScreenState,
+    onItemClicked: (Int, String?, String?) -> Unit
+) {
     val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
     var tabIndex by remember { mutableStateOf(0) }
 
-    ScrollableTabRow(
-        selectedTabIndex = tabIndex,
-        containerColor = Color.White,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(paddingValues)
+    Column(modifier = Modifier
+        .padding(paddingValues)
+        .fillMaxWidth()
     ) {
-        tabs.forEachIndexed { index, title ->
-            Tab(
-                selected = tabIndex == index, onClick = { tabIndex = index },
-                text = {
-                    if (tabIndex == index) {
-                        androidx.compose.material3.Text(title, color = Color.Blue)
-                    } else {
-                        androidx.compose.material3.Text(title, color = Color.Black)
-                    }
-                },
-            )
+        ScrollableTabRow(
+            selectedTabIndex = tabIndex,
+            containerColor = Color.White,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index,
+                    onClick = { tabIndex = index },
+                    text = {
+                        if (tabIndex == index) {
+                            androidx.compose.material3.Text(title, color = Color.Blue)
+                        } else {
+                            androidx.compose.material3.Text(title, color = Color.Black)
+                        }
+                    },
+                )
+            }
+        }
+        when (tabIndex) {
+            0 -> {}
+            1 -> {}
+            2 -> {}
+            3 -> {}
+            4 -> ContributorsScreen(state.Contributors, onItemClicked, paddingValues)
         }
     }
-    when (tabIndex) {
-        0 -> {}
-        1 -> {}
-        2 -> {}
-        3 -> {}
-        4 -> {}
+}
+
+@Composable
+private fun ContributorsScreen(
+    contributors: Resource<Contributors>,
+    onItemClicked: (Int, String?, String?) -> Unit,
+    paddingValues: PaddingValues
+) {
+    when (contributors) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is Resource.Success -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                itemsIndexed(contributors.data!!) { index, contributor ->
+                    ContributorsItemCard(
+                        contributor,
+                        onItemClicked
+                    )
+                    if (index < contributors.data.lastIndex) {
+                        Divider(
+                            color = Color.Gray,
+                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContributorsItemCard(
+    contributorsItem: ContributorsItem,
+    onItemClicked: (Int, String?, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+                onItemClicked(
+                    R.id.action_repositoryFragment_to_profileFragment,
+                    contributorsItem.login,
+                    null
+                )
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    contributorsItem.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = contributorsItem.login,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(text = "Commits (${contributorsItem.contributions})")
+
+            }
+        }
     }
 }
 

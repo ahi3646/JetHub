@@ -18,6 +18,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
+import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
@@ -284,5 +285,15 @@ interface GitHubService {
         @Path("owner") owner: String,
         @Path("repo") repo: String
     ): Response<RepoModel>
+
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/contributors")
+    suspend fun getContributors(
+        @Header("Authorization") authToken: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Query("page") page:Int
+    ): Response<Contributors>
 
 }
