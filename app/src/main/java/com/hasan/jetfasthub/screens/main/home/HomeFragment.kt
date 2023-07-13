@@ -111,11 +111,11 @@ class HomeFragment : Fragment() {
         homeViewModel.getAuthenticatedUser(token)
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { authenticatedUser ->
                 Log.d("ahi3646", "onCreateView onSave: ${authenticatedUser.login} ")
-                PreferenceHelper.saveAuthenticatedUser(requireContext(),authenticatedUser.login )
+                PreferenceHelper.saveAuthenticatedUser(requireContext(), authenticatedUser.login)
 
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
-        }.launchIn(lifecycleScope)
+            }.launchIn(lifecycleScope)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -254,6 +254,7 @@ private fun MainContent(
                         state.receivedEventsState,
                         onNavigate
                     )
+
                     AppScreens.Issues -> IssuesScreen()
                     AppScreens.PullRequests -> PullRequestScreen()
                 }
@@ -373,7 +374,8 @@ fun BottomNav(
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
-    receivedEventsState: ReceivedEventsState, onNavigate: (Int, String?, String?) -> Unit
+    receivedEventsState: ReceivedEventsState,
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
     when (receivedEventsState) {
 
@@ -399,16 +401,7 @@ fun FeedsScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 items(receivedEventsState.events) { eventItem ->
-                    ItemEventCard(eventItem) {
-                        val uri = Uri.parse(eventItem.repo.url).lastPathSegment
-                        onNavigate(
-//                            R.id.action_homeFragment_to_profileFragment,
-                            R.id.action_homeFragment_to_repositoryFragment,
-                            eventItem.actor.login,
-                            uri,
-                        )
-                        Log.d("ahi3646", "FeedsScreen: $uri ")
-                    }
+                    ItemEventCard(eventItem, onNavigate)
                 }
             }
         }
@@ -427,7 +420,6 @@ fun FeedsScreen(
 
     }
 }
-
 
 @Composable
 fun IssuesScreen() {
@@ -451,25 +443,58 @@ fun PullRequestScreen() {
     }
 }
 
-
-// events item card
 @Composable
 private fun ItemEventCard(
-    eventItem: ReceivedEventsItem, onItemClicked: (eventItem: ReceivedEventsItem) -> Unit
+    eventItem: ReceivedEventsItem,
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onItemClicked(eventItem)
-            })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp)
+            .clickable {
+                val uri = Uri.parse(eventItem.repo.url).lastPathSegment
+                val parentUsername = Uri.parse(eventItem.repo.url).pathSegments[1]
+
+                when (eventItem.type) {
+                    "ForkEvent" -> {
+                        onNavigate(
+                            R.id.action_homeFragment_to_repositoryFragment,
+                            eventItem.actor.login,
+                            uri,
+                        )
+                    }
+
+                    "ReleaseEvent" -> {
+                        onNavigate(
+                            R.id.action_homeFragment_to_repositoryFragment,
+                            parentUsername,
+                            uri,
+                        )
+                    }
+
+                    else -> {
+                        onNavigate(
+                            R.id.action_homeFragment_to_repositoryFragment,
+                            parentUsername,
+                            uri,
+                        )
+                    }
+                }
+                Log.d(
+                    "ahi3646",
+                    "FeedsScreen: $uri  --- ${eventItem.actor.login}  -- ${eventItem.type} - $parentUsername "
+                )
+            },
+        elevation = 0.dp,
+        backgroundColor = Color.White
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(6.dp)
         ) {
+
             GlideImage(
                 failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                 imageModel = {
@@ -478,7 +503,14 @@ private fun ItemEventCard(
                 modifier = Modifier
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .clickable {
+                        onNavigate(
+                            R.id.action_homeFragment_to_profileFragment,
+                            eventItem.actor.login,
+                            null
+                        )
+                    },
                 imageOptions = ImageOptions(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.CenterStart,
@@ -488,7 +520,10 @@ private fun ItemEventCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+            ) {
                 Text(
                     text = buildAnnotatedString {
                         append(eventItem.actor.login)

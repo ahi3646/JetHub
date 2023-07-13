@@ -100,7 +100,7 @@ class RepositoryFragment : Fragment() {
         val owner = arguments?.getString("home_data") ?: ""
         val repo = arguments?.getString("home_extra") ?: ""
 
-        Log.d("ahi3646", "onCreateView: $owner --- $repo")
+        Log.d("ahi3646", "onCreateView repo: $owner --- $repo")
 
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
@@ -674,7 +674,6 @@ private fun TitleHeader(
 
         is Resource.Success -> {
             val repository = state.data!!
-            val items = listOf("alik", "alik", "alik", "alik", "alik", "salom", "salom")
 
             var hasTopics by remember {
                 mutableStateOf(false)
@@ -1025,7 +1024,7 @@ private fun Toolbar(
                                     contentDescription = "License"
                                 )
                             }
-                            Text(text = "GPL-3")
+                            Text(text = repository.license.spdx_id, maxLines = 1)
                         }
                     }
                 }
