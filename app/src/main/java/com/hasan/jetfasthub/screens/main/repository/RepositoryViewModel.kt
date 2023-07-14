@@ -25,6 +25,12 @@ class RepositoryViewModel(private val repository: Repository): ViewModel() {
         }
     }
 
+    fun onBottomSheetChanged(bottomSheet: BottomSheetScreens?){
+        _state.update {
+            it.copy(bottomSheets = bottomSheet)
+        }
+    }
+
     fun getRepo(token: String, owner: String, repo: String){
         viewModelScope.launch {
             try {
@@ -97,8 +103,14 @@ data class RepositoryScreenState(
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val repo: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),
-    val Releases: Resource<ReleasesModel> = Resource.Loading()
+    val Releases: Resource<ReleasesModel> = Resource.Loading(),
+    val bottomSheets: BottomSheetScreens? = null
 )
+
+sealed class BottomSheetScreens(){
+    class RepositoryInfoSheet(val repo: Resource<RepoModel>): BottomSheetScreens()
+    class ReleaseItemSheet(val release: Resource<ReleasesModel>): BottomSheetScreens()
+}
 
 interface RepositoryScreens {
 

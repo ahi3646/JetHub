@@ -96,6 +96,7 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -111,8 +112,6 @@ class RepositoryFragment : Fragment() {
         val owner = arguments?.getString("home_data") ?: ""
         val repo = arguments?.getString("home_extra") ?: ""
 
-        Log.d("ahi3646", "onCreateView repo: $owner --- $repo")
-
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
         )
@@ -127,66 +126,69 @@ class RepositoryFragment : Fragment() {
             setContent {
                 val state by repositoryViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(state, onBottomBarClicked = { repositoryScreen ->
-                        repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
-                    }, onItemClicked = { dest, data, extra ->
-                        when (dest) {
-                            -1 -> {
-                                findNavController().popBackStack()
-                            }
-
-                            else -> {
-                                val bundle = Bundle()
-                                if (data != null) {
-                                    bundle.putString("home_data", data)
+                    MainContent(
+                        state = state,
+                        onBottomBarClicked = { repositoryScreen ->
+                            repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
+                        },
+                        onItemClicked = { dest, data, extra ->
+                            when (dest) {
+                                -1 -> {
+                                    findNavController().popBackStack()
                                 }
-                                if (extra != null) {
-                                    bundle.putString("home_extra", extra)
+
+                                else -> {
+                                    val bundle = Bundle()
+                                    if (data != null) {
+                                        bundle.putString("home_data", data)
+                                    }
+                                    if (extra != null) {
+                                        bundle.putString("home_extra", extra)
+                                    }
+                                    findNavController().navigate(dest, bundle)
                                 }
-                                findNavController().navigate(dest, bundle)
-                                Log.d("ahi3646", "onCreateView repo: $owner - - $data  ")
                             }
-                        }
-                    }, onAction = { action, data ->
-                        when (action) {
-                            "share" -> {
-                                val context = requireContext()
-                                val type = "text/plain"
-                                val subject = "Your subject"
-                                val shareWith = "ShareWith"
+                        },
+                        onAction = { action, data ->
+                            when (action) {
+                                "share" -> {
+                                    val context = requireContext()
+                                    val type = "text/plain"
+                                    val subject = "Your subject"
+                                    val shareWith = "ShareWith"
 
-                                val intent = Intent(Intent.ACTION_SEND)
-                                intent.type = type
-                                intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                intent.putExtra(Intent.EXTRA_TEXT, data)
+                                    val intent = Intent(Intent.ACTION_SEND)
+                                    intent.type = type
+                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                    intent.putExtra(Intent.EXTRA_TEXT, data)
 
-                                ContextCompat.startActivity(
-                                    context, Intent.createChooser(intent, shareWith), null
-                                )
-                            }
-
-                            "browser" -> {
-                                var webpage = Uri.parse(data)
-
-                                if (!data!!.startsWith("http://") && !data.startsWith("https://")) {
-                                    webpage = Uri.parse("http://$data")
+                                    ContextCompat.startActivity(
+                                        context, Intent.createChooser(intent, shareWith), null
+                                    )
                                 }
-                                val urlIntent = Intent(
-                                    Intent.ACTION_VIEW, webpage
-                                )
-                                requireContext().startActivity(urlIntent)
-                            }
 
-                            "copy" -> {
-                                val clipboardManager =
-                                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clipData = ClipData.newPlainText("text", data)
-                                clipboardManager.setPrimaryClip(clipData)
-                                Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
-                                    .show()
+                                "browser" -> {
+                                    var webpage = Uri.parse(data)
+
+                                    if (!data!!.startsWith("http://") && !data.startsWith("https://")) {
+                                        webpage = Uri.parse("http://$data")
+                                    }
+                                    val urlIntent = Intent(
+                                        Intent.ACTION_VIEW, webpage
+                                    )
+                                    requireContext().startActivity(urlIntent)
+                                }
+
+                                "copy" -> {
+                                    val clipboardManager =
+                                        requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clipData = ClipData.newPlainText("text", data)
+                                    clipboardManager.setPrimaryClip(clipData)
+                                    Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
                             }
-                        }
-                    }
+                        },
                     )
                 }
             }
@@ -200,45 +202,34 @@ private fun MainContent(
     state: RepositoryScreenState,
     onBottomBarClicked: (RepositoryScreens) -> Unit,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
 ) {
-    val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Collapsed,
+        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
+    )
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
-    val scope = rememberCoroutineScope()
+    var currentSheets: BottomSheetScreens? by remember {
+        mutableStateOf(state.bottomSheets)
+    }
+
+    Log.d("ahi3646", "MainContent: ${sheetScaffoldState.bottomSheetState.currentValue}")
 
     BottomSheetScaffold(
         sheetContent = {
-            if (state.repo.data != null) {
-                Column(
-                    Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = state.repo.data.full_name,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    if (state.repo.data.description != null) {
-                        Text(
-                            text = state.repo.data.description
-                        )
-                    }
-
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Button(onClick = { scope.launch { sheetState.collapse() } }) {
-                            Text(text = "OK")
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                    }
+            when (currentSheets) {
+                is BottomSheetScreens.ReleaseItemSheet -> {
+                    Text(text = "Release", Modifier.padding(32.dp))
                 }
+
+                is BottomSheetScreens.RepositoryInfoSheet -> {
+                    Text(text = "Release", Modifier.padding(32.dp))
+                }
+
+                else -> {}
             }
         },
         scaffoldState = sheetScaffoldState,
@@ -257,6 +248,7 @@ private fun MainContent(
                                 "info" -> {
                                     scope.launch {
                                         if (sheetState.isCollapsed) {
+                                            currentSheets = BottomSheetScreens.RepositoryInfoSheet(state.repo)
                                             sheetState.expand()
                                         } else {
                                             sheetState.collapse()
@@ -280,7 +272,17 @@ private fun MainContent(
                 RepositoryScreens.Code -> CodeScreen(
                     paddingValues = paddingValues,
                     state = state,
-                    onItemClicked = onItemClicked
+                    onItemClicked = onItemClicked,
+                    onAction = { action ->
+                        scope.launch {
+                            if (sheetState.isCollapsed) {
+                                currentSheets = BottomSheetScreens.ReleaseItemSheet()
+                                sheetState.expand()
+                            } else {
+                                sheetState.collapse()
+                            }
+                        }
+                    }
                 )
 
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
@@ -296,10 +298,83 @@ private fun MainContent(
 }
 
 @Composable
+private fun RepositoryInfoSheet(
+    closeSheet: () -> Unit,
+    state: RepositoryScreenState,
+    onBottomSheetChanged: (BottomSheetScreens?) -> Unit,
+    scope: CoroutineScope
+) {
+    when (state.bottomSheets) {
+        is BottomSheetScreens.RepositoryInfoSheet -> {
+            when (state.bottomSheets.repo) {
+                is Resource.Loading -> {}
+                is Resource.Success -> {
+                    val repository = state.bottomSheets.repo
+                    if (repository.data != null) {
+                        Column(
+                            Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = repository.data.full_name,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            if (repository.data.description != null) {
+                                Text(
+                                    text = repository.data.description
+                                )
+                            }
+
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            closeSheet()
+                                            onBottomSheetChanged(null)
+                                        }
+                                    }
+                                ) {
+                                    Text(text = "OK")
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                            }
+                        }
+                    }
+                }
+
+                is Resource.Failure -> {}
+            }
+        }
+
+        is BottomSheetScreens.ReleaseItemSheet -> {
+            when (state.bottomSheets.release) {
+                is Resource.Loading -> {}
+                is Resource.Success -> {
+                    val release = state.bottomSheets.release
+                    Text(text = "second", Modifier.padding(16.dp))
+                }
+
+                is Resource.Failure -> {}
+            }
+        }
+
+        else -> {}
+    }
+}
+
+@Composable
 private fun CodeScreen(
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
-    onItemClicked: (Int, String?, String?) -> Unit
+    onItemClicked: (Int, String?, String?) -> Unit,
+    onAction: (String) -> Unit
 ) {
     val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
     var tabIndex by remember { mutableStateOf(0) }
@@ -333,7 +408,7 @@ private fun CodeScreen(
             0 -> {}
             1 -> {}
             2 -> {}
-            3 -> ReleasesScreen(state.Releases)
+            3 -> ReleasesScreen(state.Releases, onAction)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
     }
@@ -342,6 +417,7 @@ private fun CodeScreen(
 @Composable
 private fun ReleasesScreen(
     releases: Resource<ReleasesModel>,
+    onAction: (String) -> Unit
 ) {
     when (releases) {
         is Resource.Loading -> {
@@ -363,7 +439,7 @@ private fun ReleasesScreen(
                 verticalArrangement = Arrangement.Top
             ) {
                 itemsIndexed(releases.data!!) { index, release ->
-                    ReleaseItemCard(releasesModelItem = release)
+                    ReleaseItemCard(releasesModelItem = release, onAction)
                     if (index < releases.data.lastIndex) {
                         Divider(
                             color = Color.Gray,
@@ -390,12 +466,13 @@ private fun ReleasesScreen(
 @Composable
 private fun ReleaseItemCard(
     releasesModelItem: ReleasesModelItem,
+    onAction: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-
+                onAction("release")
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -426,18 +503,19 @@ private fun ReleaseItemCard(
 
                 Text(
                     text = buildAnnotatedString {
-                    append(releasesModelItem.author.login)
-                    append(" ")
-                    if (releasesModelItem.draft) {
-                        append("Drafted")
-                    } else {
-                        append("Released")
-                    }
-                    append(" ")
-                    append(
-                        ParseDateFormat.getDateFromString(releasesModelItem.created_at).toString()
-                    )
-                },
+                        append(releasesModelItem.author.login)
+                        append(" ")
+                        if (releasesModelItem.draft) {
+                            append("Drafted")
+                        } else {
+                            append("Released")
+                        }
+                        append(" ")
+                        append(
+                            ParseDateFormat.getDateFromString(releasesModelItem.created_at)
+                                .toString()
+                        )
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -454,7 +532,7 @@ private fun ReleaseItemCard(
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
                     .clip(CircleShape),
-                ) {
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_download),
                     contentDescription = "release download"
@@ -955,7 +1033,8 @@ private fun TitleHeader(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     GlideImage(
                         failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
