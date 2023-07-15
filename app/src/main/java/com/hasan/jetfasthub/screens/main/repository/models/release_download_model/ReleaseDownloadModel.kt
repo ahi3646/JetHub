@@ -4,4 +4,6 @@ data class ReleaseDownloadModel(
     val title: String,
     val url: String,
     val extension: String,
+    val downloadCount: Int,
+    val notificationTitle: String
 )

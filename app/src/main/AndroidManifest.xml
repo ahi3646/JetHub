@@ -46,6 +46,12 @@
 
         </activity>
 
+        <receiver android:name=".data.download.DownloadCompletedReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

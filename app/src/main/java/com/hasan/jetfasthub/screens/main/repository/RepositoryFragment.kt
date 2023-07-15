@@ -89,6 +89,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -103,6 +104,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.net.URL
 
 class RepositoryFragment : Fragment() {
 
@@ -483,7 +485,6 @@ private fun ReleasesScreen(
             }
         }
     }
-
 }
 
 @Composable
@@ -497,12 +498,17 @@ private fun ReleaseItemCard(
     }
     val releases = arrayListOf<ReleaseDownloadModel>()
 
+    val contentResolver = LocalContext.current.contentResolver
+    val downloader = AndroidDownloader(LocalContext.current)
+
     if (releasesModelItem.zipball_url.isNotEmpty()) {
         releases.add(
             ReleaseDownloadModel(
                 title = "Source code (zip)",
                 url = releasesModelItem.tarball_url,
-                extension = ".zip"
+                extension = "application/zip",
+                downloadCount = 0,
+                notificationTitle = releasesModelItem.tag_name
             )
         )
     }
@@ -511,18 +517,26 @@ private fun ReleaseItemCard(
             ReleaseDownloadModel(
                 title = "Source code (tar.gz)",
                 url = releasesModelItem.tarball_url,
-                extension = ".tar.gz"
+                extension = "application/x-gzip",
+                downloadCount = 0,
+                notificationTitle = releasesModelItem.tag_name
             )
         )
     }
-    if (releasesModelItem.assets.isNotEmpty()){
+    if (releasesModelItem.assets.isNotEmpty()) {
         releasesModelItem.assets.forEach { asset ->
             releases.add(
                 ReleaseDownloadModel(
                     title = asset.name,
                     url = asset.browser_download_url,
-                    extension = asset.download_count.toString()
+                    extension = asset.content_type,
+                    downloadCount = asset.download_count,
+                    notificationTitle = releasesModelItem.tag_name
                 )
+            )
+            Log.d(
+                "ahi3646",
+                "ReleaseItemCard: ext ${contentResolver.getType(Uri.parse(asset.browser_download_url))} "
             )
         }
     }
@@ -559,11 +573,17 @@ private fun ReleaseItemCard(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { },
+                                    .clickable {
+                                        downloader.download(release)
+                                    },
                                 elevation = 0.dp
                             ) {
+                                val title =
+                                    if (release.downloadCount != 0) {
+                                        "${release.title} (${release.downloadCount})"
+                                    } else release.title
                                 Text(
-                                    text = release.title,
+                                    text = title,
                                     fontSize = 18.sp,
                                     modifier = Modifier.padding(
                                         start = 16.dp,
