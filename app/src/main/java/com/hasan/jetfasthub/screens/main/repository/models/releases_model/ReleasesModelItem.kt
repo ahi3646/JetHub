@@ -4,7 +4,7 @@ data class ReleasesModelItem(
     val assets: List<Asset>,
     val assets_url: String,
     val author: Author,
-    val body: String,
+    val body: String?,
     val created_at: String,
     val draft: Boolean,
     val html_url: String,

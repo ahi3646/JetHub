@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -80,6 +82,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -96,7 +100,6 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -130,6 +133,9 @@ class RepositoryFragment : Fragment() {
                         state = state,
                         onBottomBarClicked = { repositoryScreen ->
                             repositoryViewModel.onBottomBarItemClicked(repositoryScreen)
+                        },
+                        onCurrentSheetChanged = { currentSheet ->
+                            repositoryViewModel.onBottomSheetChanged(currentSheet)
                         },
                         onItemClicked = { dest, data, extra ->
                             when (dest) {
@@ -203,6 +209,7 @@ private fun MainContent(
     onBottomBarClicked: (RepositoryScreens) -> Unit,
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (BottomSheetScreens) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
@@ -212,24 +219,29 @@ private fun MainContent(
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
-    var currentSheets: BottomSheetScreens? by remember {
-        mutableStateOf(state.bottomSheets)
-    }
 
-    Log.d("ahi3646", "MainContent: ${sheetScaffoldState.bottomSheetState.currentValue}")
+    val closeSheet: () -> Unit = {
+        scope.launch {
+            sheetState.collapse()
+        }
+    }
 
     BottomSheetScaffold(
         sheetContent = {
-            when (currentSheets) {
+            when (state.currentSheet) {
                 is BottomSheetScreens.ReleaseItemSheet -> {
-                    Text(text = "Release", Modifier.padding(32.dp))
+                    ReleaseInfoSheet(
+                        releaseItem = state.currentSheet.releaseItem,
+                        closeSheet = closeSheet
+                    )
                 }
 
-                is BottomSheetScreens.RepositoryInfoSheet -> {
-                    Text(text = "Release", Modifier.padding(32.dp))
+                BottomSheetScreens.RepositoryInfoSheet -> {
+                    RepositoryInfoSheet(
+                        closeSheet = closeSheet,
+                        state = state,
+                    )
                 }
-
-                else -> {}
             }
         },
         scaffoldState = sheetScaffoldState,
@@ -243,17 +255,13 @@ private fun MainContent(
                     TitleHeader(
                         state = state.repo,
                         onItemClicked = onItemClicked,
-                        onAction = { action ->
-                            when (action) {
-                                "info" -> {
-                                    scope.launch {
-                                        if (sheetState.isCollapsed) {
-                                            currentSheets = BottomSheetScreens.RepositoryInfoSheet(state.repo)
-                                            sheetState.expand()
-                                        } else {
-                                            sheetState.collapse()
-                                        }
-                                    }
+                        onCurrentSheetChanged = {
+                            onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
+                            scope.launch {
+                                if (sheetState.isCollapsed) {
+                                    sheetState.expand()
+                                } else {
+                                    sheetState.collapse()
                                 }
                             }
                         }
@@ -273,10 +281,10 @@ private fun MainContent(
                     paddingValues = paddingValues,
                     state = state,
                     onItemClicked = onItemClicked,
-                    onAction = { action ->
+                    onCurrentSheetChanged = { release ->
+                        onCurrentSheetChanged(BottomSheetScreens.ReleaseItemSheet(release))
                         scope.launch {
                             if (sheetState.isCollapsed) {
-                                currentSheets = BottomSheetScreens.ReleaseItemSheet()
                                 sheetState.expand()
                             } else {
                                 sheetState.collapse()
@@ -298,74 +306,88 @@ private fun MainContent(
 }
 
 @Composable
+private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> Unit) {
+
+    Column(
+        Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = releaseItem.name,
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (releaseItem.body != null) {
+            Text(
+                text = releaseItem.body.toString()
+            )
+        }
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = {
+                    closeSheet()
+                }
+            ) {
+                Text(text = "Cancel", color = Color.Red)
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Button(
+                onClick = {
+                    closeSheet()
+                }
+            ) {
+                Text(text = "OK", color = Color.Blue)
+            }
+        }
+    }
+}
+
+@Composable
 private fun RepositoryInfoSheet(
-    closeSheet: () -> Unit,
     state: RepositoryScreenState,
-    onBottomSheetChanged: (BottomSheetScreens?) -> Unit,
-    scope: CoroutineScope
+    closeSheet: () -> Unit
 ) {
-    when (state.bottomSheets) {
-        is BottomSheetScreens.RepositoryInfoSheet -> {
-            when (state.bottomSheets.repo) {
-                is Resource.Loading -> {}
-                is Resource.Success -> {
-                    val repository = state.bottomSheets.repo
-                    if (repository.data != null) {
-                        Column(
-                            Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = repository.data.full_name,
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
+    val repository = state.repo
+    if (repository.data != null) {
+        Column(
+            Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = repository.data.full_name,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-                            if (repository.data.description != null) {
-                                Text(
-                                    text = repository.data.description
-                                )
-                            }
+            if (repository.data.description != null) {
+                Text(
+                    text = repository.data.description
+                )
+            }
 
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Button(
-                                    onClick = {
-                                        scope.launch {
-                                            closeSheet()
-                                            onBottomSheetChanged(null)
-                                        }
-                                    }
-                                ) {
-                                    Text(text = "OK")
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                            }
-                        }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        closeSheet()
                     }
+                ) {
+                    Text(text = "OK")
                 }
-
-                is Resource.Failure -> {}
+                Spacer(modifier = Modifier.width(12.dp))
             }
         }
-
-        is BottomSheetScreens.ReleaseItemSheet -> {
-            when (state.bottomSheets.release) {
-                is Resource.Loading -> {}
-                is Resource.Success -> {
-                    val release = state.bottomSheets.release
-                    Text(text = "second", Modifier.padding(16.dp))
-                }
-
-                is Resource.Failure -> {}
-            }
-        }
-
-        else -> {}
     }
 }
 
@@ -374,7 +396,7 @@ private fun CodeScreen(
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onAction: (String) -> Unit
+    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit
 ) {
     val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
     var tabIndex by remember { mutableStateOf(0) }
@@ -408,7 +430,7 @@ private fun CodeScreen(
             0 -> {}
             1 -> {}
             2 -> {}
-            3 -> ReleasesScreen(state.Releases, onAction)
+            3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
     }
@@ -417,7 +439,7 @@ private fun CodeScreen(
 @Composable
 private fun ReleasesScreen(
     releases: Resource<ReleasesModel>,
-    onAction: (String) -> Unit
+    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit
 ) {
     when (releases) {
         is Resource.Loading -> {
@@ -439,7 +461,7 @@ private fun ReleasesScreen(
                 verticalArrangement = Arrangement.Top
             ) {
                 itemsIndexed(releases.data!!) { index, release ->
-                    ReleaseItemCard(releasesModelItem = release, onAction)
+                    ReleaseItemCard(releasesModelItem = release, onCurrentSheetChanged)
                     if (index < releases.data.lastIndex) {
                         Divider(
                             color = Color.Gray,
@@ -466,13 +488,90 @@ private fun ReleasesScreen(
 @Composable
 private fun ReleaseItemCard(
     releasesModelItem: ReleasesModelItem,
-    onAction: (String) -> Unit
+    onCurrentSheetChanged: (release: ReleasesModelItem) -> Unit,
 ) {
+
+    var isDialogShown by remember {
+        mutableStateOf(false)
+    }
+
+    val listReleases = listOf(
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello",
+        "hello"
+    )
+
+    if (isDialogShown) {
+        Dialog(
+            onDismissRequest = { isDialogShown = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Log.d("ahi3646", "ReleaseItemCard: invoked ")
+            Card(
+                elevation = 5.dp,
+                shape = RoundedCornerShape(15.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.90f)
+                    .fillMaxHeight(0.33f)
+                    .border(1.dp, color = Color.Black, shape = RoundedCornerShape(15.dp))
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Releases",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LazyColumn {
+                        itemsIndexed(listReleases) { index, title ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { },
+                                elevation = 0.dp
+                            ) {
+                                Text(
+                                    text = title,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 12.dp,
+                                        bottom =12.dp
+                                    )
+                                )
+                            }
+                            if (index < listReleases.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onAction("release")
+                onCurrentSheetChanged(releasesModelItem)
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -482,6 +581,7 @@ private fun ReleaseItemCard(
             modifier = Modifier
                 .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
             Column(
@@ -526,7 +626,7 @@ private fun ReleaseItemCard(
 
             IconButton(
                 onClick = {
-
+                    isDialogShown = true
                 },
                 modifier = Modifier
                     .size(48.dp, 48.dp)
@@ -988,7 +1088,6 @@ private fun BottomNav(
                 }
             }
         }
-
     }
 }
 
@@ -996,7 +1095,7 @@ private fun BottomNav(
 private fun TitleHeader(
     state: Resource<RepoModel>,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onAction: (String) -> Unit
+    onCurrentSheetChanged: () -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
@@ -1034,7 +1133,7 @@ private fun TitleHeader(
                         .fillMaxWidth()
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     GlideImage(
                         failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
@@ -1096,8 +1195,6 @@ private fun TitleHeader(
                         }
                     }
 
-                    Spacer(modifier = Modifier.weight(1F))
-
                     if (repository.topics.isNotEmpty()) {
                         IconButton(onClick = {
                             hasTopics = !hasTopics
@@ -1110,7 +1207,7 @@ private fun TitleHeader(
                     }
 
                     IconButton(onClick = {
-                        onAction("info")
+                        onCurrentSheetChanged()
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_info_outline),

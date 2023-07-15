@@ -84,7 +84,6 @@ import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
-import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEventsItem
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
