@@ -11,7 +11,7 @@ interface Downloader {
     fun download(release: ReleaseDownloadModel): Long
 }
 
-class AndroidDownloader(private val context: Context) : Downloader {
+class AndroidDownloader(context: Context) : Downloader {
 
     private val downloadManager = context.getSystemService(DownloadManager::class.java)
 

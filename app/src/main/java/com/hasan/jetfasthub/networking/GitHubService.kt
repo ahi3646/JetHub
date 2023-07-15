@@ -42,6 +42,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
+import retrofit2.http.Url
 
 interface GitHubService {
 
@@ -306,5 +307,11 @@ interface GitHubService {
         @Path("repo") repo: String,
         @Query("page") page: Int
     ): Response<ReleasesModel>
+
+    @Headers("Accept: application/vnd.github.html")
+    suspend fun getReadmeAsHtml(
+        @Header("Authorization") token: String,
+        @Url url: String
+    ): Response<String>
 
 }

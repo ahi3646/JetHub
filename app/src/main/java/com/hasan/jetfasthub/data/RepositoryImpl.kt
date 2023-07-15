@@ -26,6 +26,8 @@ interface Repository {
         page: Int
     ): Response<ReleasesModel>
 
+    suspend fun getReadmeAsHtml(token: String, url: String): Response<String>
+
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
@@ -64,6 +66,14 @@ class RepositoryImpl(private val context: Context) : Repository {
             repo = repo,
             page = page
         )
+    }
+
+    override suspend fun getReadmeAsHtml(token: String, url: String): Response<String> {
+        return RetrofitInstance(context).gitHubService.getReadmeAsHtml(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            url = url
+        )
+
     }
 
 }

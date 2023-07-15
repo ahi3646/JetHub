@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -87,6 +86,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.accompanist.web.WebView
+import com.google.accompanist.web.rememberWebViewState
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
@@ -104,7 +105,6 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.net.URL
 
 class RepositoryFragment : Fragment() {
 
@@ -439,6 +439,7 @@ private fun CodeScreen(
     }
 }
 
+
 @Composable
 private fun ReleasesScreen(
     releases: Resource<ReleasesModel>,
@@ -498,7 +499,7 @@ private fun ReleaseItemCard(
     }
     val releases = arrayListOf<ReleaseDownloadModel>()
 
-    val contentResolver = LocalContext.current.contentResolver
+    //delegate this feature to viewModel
     val downloader = AndroidDownloader(LocalContext.current)
 
     if (releasesModelItem.zipball_url.isNotEmpty()) {
@@ -534,10 +535,6 @@ private fun ReleaseItemCard(
                     notificationTitle = releasesModelItem.tag_name
                 )
             )
-            Log.d(
-                "ahi3646",
-                "ReleaseItemCard: ext ${contentResolver.getType(Uri.parse(asset.browser_download_url))} "
-            )
         }
     }
 
@@ -546,7 +543,6 @@ private fun ReleaseItemCard(
             onDismissRequest = { isDialogShown = false },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
-            Log.d("ahi3646", "ReleaseItemCard: invoked ")
             Card(
                 elevation = 5.dp,
                 shape = RoundedCornerShape(15.dp),
@@ -679,6 +675,17 @@ private fun ReleaseItemCard(
             }
         }
     }
+}
+
+@Composable
+private fun ReadMe(){
+    val webViewState = rememberWebViewState(url = "")
+    WebView(
+        state = webViewState,
+        //this later might be problem for play market upload
+        //onCreated = {it.settings.javaScriptEnabled = true},
+        captureBackPresses = true
+    )
 }
 
 @Composable
