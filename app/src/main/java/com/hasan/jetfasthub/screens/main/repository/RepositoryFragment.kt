@@ -89,6 +89,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -494,19 +495,37 @@ private fun ReleaseItemCard(
     var isDialogShown by remember {
         mutableStateOf(false)
     }
+    val releases = arrayListOf<ReleaseDownloadModel>()
 
-    val listReleases = listOf(
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello",
-        "hello"
-    )
+    if (releasesModelItem.zipball_url.isNotEmpty()) {
+        releases.add(
+            ReleaseDownloadModel(
+                title = "Source code (zip)",
+                url = releasesModelItem.tarball_url,
+                extension = ".zip"
+            )
+        )
+    }
+    if (releasesModelItem.tarball_url.isNotEmpty()) {
+        releases.add(
+            ReleaseDownloadModel(
+                title = "Source code (tar.gz)",
+                url = releasesModelItem.tarball_url,
+                extension = ".tar.gz"
+            )
+        )
+    }
+    if (releasesModelItem.assets.isNotEmpty()){
+        releasesModelItem.assets.forEach { asset ->
+            releases.add(
+                ReleaseDownloadModel(
+                    title = asset.name,
+                    url = asset.browser_download_url,
+                    extension = asset.download_count.toString()
+                )
+            )
+        }
+    }
 
     if (isDialogShown) {
         Dialog(
@@ -536,7 +555,7 @@ private fun ReleaseItemCard(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     LazyColumn {
-                        itemsIndexed(listReleases) { index, title ->
+                        itemsIndexed(releases) { index, release ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -544,17 +563,17 @@ private fun ReleaseItemCard(
                                 elevation = 0.dp
                             ) {
                                 Text(
-                                    text = title,
+                                    text = release.title,
                                     fontSize = 18.sp,
                                     modifier = Modifier.padding(
                                         start = 16.dp,
                                         end = 16.dp,
                                         top = 12.dp,
-                                        bottom =12.dp
+                                        bottom = 12.dp
                                     )
                                 )
                             }
-                            if (index < listReleases.lastIndex) {
+                            if (index < releases.lastIndex) {
                                 Divider(
                                     color = Color.Gray,
                                     modifier = Modifier.fillMaxWidth()
