@@ -1,16 +1,21 @@
 package com.hasan.jetfasthub.screens.main.repository
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hasan.jetfasthub.data.Repository
+import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.utility.Resource
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -134,6 +139,63 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun getContentFiles(token: String, owner: String, repo: String, path: String, ref: String) {
+        viewModelScope.launch {
+            try {
+                repository.getContentFiles(token, owner, repo, path, ref).let { contentFiles ->
+                    if (contentFiles.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                RepositoryFiles = Resource.Success(contentFiles.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                RepositoryFiles = Resource.Failure(
+                                    contentFiles.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        RepositoryFiles = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
+    fun getBranches(token: String, owner: String, repo: String): Flow<BranchModel> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.getBranches(token, owner, repo).let { branches ->
+                    if(branches.isSuccessful){
+                        trySend(branches.body()!!)
+                        _state.update {
+                            it.copy(Branches = Resource.Success(branches.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(Branches = Resource.Failure(branches.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(Branches = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("callback_ahi", "callback stop : ")
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -142,7 +204,9 @@ data class RepositoryScreenState(
     val Contributors: Resource<Contributors> = Resource.Loading(),
     val Releases: Resource<ReleasesModel> = Resource.Loading(),
     val currentSheet: BottomSheetScreens = BottomSheetScreens.RepositoryInfoSheet,
-    val ReadmeHtml: Resource<String> = Resource.Loading()
+    val ReadmeHtml: Resource<String> = Resource.Loading(),
+    val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
+    val Branches: Resource<BranchModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {

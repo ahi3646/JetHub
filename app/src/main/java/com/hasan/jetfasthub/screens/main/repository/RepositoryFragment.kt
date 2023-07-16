@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,6 +61,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,6 +80,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,12 +88,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
+import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
+import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -103,6 +111,8 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -121,11 +131,45 @@ class RepositoryFragment : Fragment() {
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
         )
+        repositoryViewModel.getBranches(
+            token = token, owner = owner, repo = repo
+        )
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach {branches ->
+                val branchesList = arrayListOf<String>()
+                branches.forEach {
+                    branchesList.add(it.name)
+                    Log.d("ahi3646", "onCreateView branches: ${it.name}")
+                }
+
+                val initialBranch: String = if (branchesList.isNotEmpty()){
+                    if(branchesList.contains("main")){
+                        "main"
+                    }
+                    else if(branchesList.contains("master")){
+                        "master"
+                    }else{
+                        branchesList[0]
+                    }
+                }else{
+                    "main"
+                }
+
+                repositoryViewModel.getContentFiles(
+                    token = token, owner = owner, repo = repo, path = "", ref = initialBranch
+                )
+
+            }.launchIn(lifecycleScope)
+
         repositoryViewModel.getContributors(
             token = token, owner = owner, repo = repo, page = 1
         )
         repositoryViewModel.getReleases(
             token = token, owner = owner, repo = repo, page = 1
+        )
+
+        repositoryViewModel.getContentFiles(
+            token = token, owner = owner, repo = repo, path = "", ref = "main"
         )
 
         return ComposeView(requireContext()).apply {
@@ -195,6 +239,10 @@ class RepositoryFragment : Fragment() {
                                     clipboardManager.setPrimaryClip(clipData)
                                     Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
                                         .show()
+                                }
+
+                                "on_path_change" -> {
+
                                 }
                             }
                         },
@@ -293,7 +341,8 @@ private fun MainContent(
                                 sheetState.collapse()
                             }
                         }
-                    }
+                    },
+                    onAction = onAction
                 )
 
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
@@ -399,10 +448,11 @@ private fun CodeScreen(
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit
+    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit,
+    onAction: (String, String?) -> Unit
 ) {
     val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -430,15 +480,303 @@ private fun CodeScreen(
             }
         }
         when (tabIndex) {
-            0 -> {}
-            1 -> {}
-            2 -> {}
+            0 -> ReadMe()
+            1 -> FilesScreen(state.RepositoryFiles, onAction)
+            2 -> CommitsScreen()
             3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
     }
 }
 
+@Composable
+private fun FilesScreen(
+    state: Resource<FilesModel>,
+    onAction: (String, String?) -> Unit
+) {
+
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
+
+        is Resource.Success -> {
+
+            val files = state.data!!
+
+            Column(
+                Modifier
+                    .background(Color.White)
+                    .fillMaxSize()
+            ) {
+
+                Row(
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_branch),
+                        contentDescription = "branch icon"
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+
+                            }
+                    ) {
+                        Text(
+                            text = "Here should be branch of repositories",
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_dropdown_icon),
+                            contentDescription = "dropdown"
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = {
+
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_home),
+                            contentDescription = "direction"
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_right_arrow),
+                        contentDescription = "right arrow"
+                    )
+                    LazyRow(Modifier.weight(1F)) {
+//                        items(files){file ->
+//                            FilePathRowItemCard(path = file.path )
+//                        }
+                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_download),
+                        contentDescription = "direction"
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "direction"
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_search),
+                        contentDescription = "direction"
+                    )
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(state.data) { index, file ->
+                        when (file.type) {
+                            "dir" -> {
+                                FileFolderItemCard(file, onAction)
+                            }
+
+                            "file" -> {
+                                FileDocumentItemCard(file, onAction)
+                            }
+
+                            else -> {}
+                        }
+                        if (index < state.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+
+}
+
+
+@Composable
+private fun FilePathRowItemCard(path: String) {
+    Row(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Path")
+        Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
+    }
+}
+
+
+@Composable
+private fun FileFolderItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
+    Row(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable {
+                onAction("on_path_change", file.path)
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_folder),
+            contentDescription = "folder icon"
+        )
+
+        Text(
+            text = file.name,
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(1F),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Icon(
+            painter = painterResource(id = R.drawable.ic_overflow),
+            contentDescription = "option menu"
+        )
+    }
+}
+
+@Composable
+private fun FileDocumentItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
+    Row(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable {
+                onAction("on_path_change", file.path)
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_document),
+            contentDescription = "Document icon"
+        )
+
+        Text(
+            text = file.name,
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(1F),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Icon(
+            painter = painterResource(id = R.drawable.ic_overflow),
+            contentDescription = "option menu"
+        )
+    }
+}
+
+@Composable
+private fun CommitsScreen() {
+
+}
+
+@Composable
+private fun CommitsItem() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = {
+
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+//            GlideImage(
+//                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+//                imageModel = {
+//                    "contributorsItem.avatar_url"
+//                }, // loading a network image using an URL.
+//                modifier = Modifier
+//                    .size(48.dp, 48.dp)
+//                    .size(48.dp, 48.dp)
+//                    .clip(CircleShape),
+//                imageOptions = ImageOptions(
+//                    contentScale = ContentScale.Crop,
+//                    alignment = Alignment.CenterStart,
+//                    contentDescription = "Actor Avatar"
+//                )
+//            )
+
+            Image(
+                painter = painterResource(id = R.drawable.baseline_person_24),
+                contentDescription = "avatar icon",
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Text(
+                    text = "contributorsItem.login",
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = Color.Black,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(text = "Commits (contributorsItem.contributions)")
+
+            }
+        }
+    }
+}
 
 @Composable
 private fun ReleasesScreen(
@@ -678,7 +1016,7 @@ private fun ReleaseItemCard(
 }
 
 @Composable
-private fun ReadMe(){
+private fun ReadMe() {
     val webViewState = rememberWebViewState(url = "")
     WebView(
         state = webViewState,
@@ -801,7 +1139,7 @@ private fun ContributorsItemCard(
 @Composable
 private fun IssuesScreen(paddingValues: PaddingValues) {
     val tabs = listOf("OPENED", "CLOSED")
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
 
     TabRow(
         selectedTabIndex = tabIndex,
@@ -832,7 +1170,7 @@ private fun IssuesScreen(paddingValues: PaddingValues) {
 @Composable
 private fun PullRequestsScreen(paddingValues: PaddingValues) {
     val tabs = listOf("OPENED", "CLOSED")
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
 
     TabRow(
         selectedTabIndex = tabIndex,
@@ -863,7 +1201,7 @@ private fun PullRequestsScreen(paddingValues: PaddingValues) {
 @Composable
 private fun ProjectsScreen(paddingValues: PaddingValues) {
     val tabs = listOf("OPENED", "CLOSED")
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
 
     TabRow(
         selectedTabIndex = tabIndex,

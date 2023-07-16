@@ -2,6 +2,8 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -27,6 +29,20 @@ interface Repository {
     ): Response<ReleasesModel>
 
     suspend fun getReadmeAsHtml(token: String, url: String): Response<String>
+
+    suspend fun getContentFiles(
+        token: String,
+        owner: String,
+        repo: String,
+        path: String,
+        ref: String
+    ): Response<FilesModel>
+
+    suspend fun getBranches(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<BranchModel>
 
 }
 
@@ -74,6 +90,34 @@ class RepositoryImpl(private val context: Context) : Repository {
             url = url
         )
 
+    }
+
+    override suspend fun getContentFiles(
+        token: String,
+        owner: String,
+        repo: String,
+        path: String,
+        ref: String
+    ): Response<FilesModel> {
+        return RetrofitInstance(context).gitHubService.getContentFiles(
+            token = token,
+            owner = owner,
+            repo = repo,
+            path = path,
+            ref = ref
+        )
+    }
+
+    override suspend fun getBranches(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<BranchModel> {
+        return RetrofitInstance(context).gitHubService.getBranches(
+            token = token,
+            owner = owner,
+            repo = repo,
+        )
     }
 
 }
