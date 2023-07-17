@@ -119,6 +119,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class RepositoryFragment : Fragment() {
 
     private val repositoryViewModel: RepositoryViewModel by viewModel()
+    private lateinit var initialBranch: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -135,23 +136,22 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo
         )
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach {branches ->
+            .onEach { branches ->
                 val branchesList = arrayListOf<String>()
                 branches.forEach {
                     branchesList.add(it.name)
                     Log.d("ahi3646", "onCreateView branches: ${it.name}")
                 }
 
-                val initialBranch: String = if (branchesList.isNotEmpty()){
-                    if(branchesList.contains("main")){
+                initialBranch = if (branchesList.isNotEmpty()) {
+                    if (branchesList.contains("main")) {
                         "main"
-                    }
-                    else if(branchesList.contains("master")){
+                    } else if (branchesList.contains("master")) {
                         "master"
-                    }else{
+                    } else {
                         branchesList[0]
                     }
-                }else{
+                } else {
                     "main"
                 }
 
@@ -242,6 +242,13 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_path_change" -> {
+                                    repositoryViewModel.getContentFiles(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        path = data ?: "",
+                                        ref = initialBranch
+                                    )
 
                                 }
                             }
@@ -492,7 +499,7 @@ private fun CodeScreen(
 @Composable
 private fun FilesScreen(
     state: Resource<FilesModel>,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
 ) {
 
     when (state) {
@@ -508,7 +515,9 @@ private fun FilesScreen(
 
         is Resource.Success -> {
 
-            val files = state.data!!
+            val paths = remember {
+                mutableListOf<FileModel>()
+            }
 
             Column(
                 Modifier
@@ -562,22 +571,18 @@ private fun FilesScreen(
                             contentDescription = "direction"
                         )
                     }
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_right_arrow),
-                        contentDescription = "right arrow"
-                    )
                     LazyRow(Modifier.weight(1F)) {
-//                        items(files){file ->
-//                            FilePathRowItemCard(path = file.path )
-//                        }
+                        items(paths) { file ->
+                            FilePathRowItemCard(file, onAction)
+                        }
                     }
                     Icon(
                         painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = "direction"
+                        contentDescription = "download"
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "direction"
+                        contentDescription = "add icon"
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.ic_search),
@@ -592,14 +597,29 @@ private fun FilesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(state.data) { index, file ->
+                    itemsIndexed(state.data!!) { index, file ->
                         when (file.type) {
                             "dir" -> {
-                                FileFolderItemCard(file, onAction)
+                                FileFolderItemCard(
+                                    file = file,
+                                    onAction = onAction,
+                                    onPathChanged = { changedFile ->
+                                        if (paths.contains(changedFile)){
+                                            paths.subList(0, paths.indexOf(changedFile)).clear()
+                                        }else
+                                        paths.add(changedFile)
+                                    }
+                                )
                             }
 
                             "file" -> {
-                                FileDocumentItemCard(file, onAction)
+                                FileDocumentItemCard(
+                                    file = file,
+                                    onAction = onAction,
+                                    onPathChanged = { changedFile ->
+                                        paths.add(changedFile)
+                                    }
+                                )
                             }
 
                             else -> {}
@@ -632,27 +652,35 @@ private fun FilesScreen(
 
 
 @Composable
-private fun FilePathRowItemCard(path: String) {
+private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
     Row(
         modifier = Modifier
             .background(Color.White)
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable {
+                onAction("on_path_change", file.path)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Path")
+        Text(text = file.name)
         Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
     }
 }
 
 
 @Composable
-private fun FileFolderItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
+private fun FileFolderItemCard(
+    file: FileModel,
+    onAction: (String, String?) -> Unit,
+    onPathChanged: (file: FileModel) -> Unit
+) {
     Row(
         modifier = Modifier
             .background(Color.White)
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
+                onPathChanged(file)
                 onAction("on_path_change", file.path)
             },
         verticalAlignment = Alignment.CenterVertically
@@ -679,13 +707,18 @@ private fun FileFolderItemCard(file: FileModel, onAction: (String, String?) -> U
 }
 
 @Composable
-private fun FileDocumentItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
+private fun FileDocumentItemCard(
+    file: FileModel,
+    onAction: (String, String?) -> Unit,
+    onPathChanged: (file: FileModel) -> Unit
+) {
     Row(
         modifier = Modifier
             .background(Color.White)
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
+                onPathChanged(file)
                 onAction("on_path_change", file.path)
             },
         verticalAlignment = Alignment.CenterVertically
