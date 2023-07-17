@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -43,6 +44,15 @@ interface Repository {
         owner: String,
         repo: String
     ): Response<BranchModel>
+
+    suspend fun getCommits(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String,
+        path: String,
+        page: Int
+    ): Response<CommitsModel>
 
 }
 
@@ -117,6 +127,24 @@ class RepositoryImpl(private val context: Context) : Repository {
             token = token,
             owner = owner,
             repo = repo,
+        )
+    }
+
+    override suspend fun getCommits(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String,
+        path: String,
+        page: Int
+    ): Response<CommitsModel> {
+        return RetrofitInstance(context).gitHubService.getCommits(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            branch = branch,
+            path = path,
+            page = page
         )
     }
 

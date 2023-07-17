@@ -19,6 +19,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -331,5 +332,16 @@ interface GitHubService {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
     ): Response<BranchModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/commits")
+    suspend fun getCommits(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Query("sha") branch: String,
+        @Query("path") path: String,
+        @Query("page") page: Int
+    ): Response<CommitsModel>
 
 }

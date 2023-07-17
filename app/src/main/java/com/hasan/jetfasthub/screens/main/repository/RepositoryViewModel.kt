@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -196,6 +197,28 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun getCommits(token: String, owner: String, repo: String, branch: String, path: String, page: Int){
+        viewModelScope.launch {
+            try {
+                repository.getCommits(token, owner, repo, branch, path,  page).let { commits ->
+                    if (commits.isSuccessful){
+                        _state.update {
+                            it.copy(Commits = Resource.Success(commits.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(Commits = Resource.Failure(commits.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(Commits = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -206,7 +229,8 @@ data class RepositoryScreenState(
     val currentSheet: BottomSheetScreens = BottomSheetScreens.RepositoryInfoSheet,
     val ReadmeHtml: Resource<String> = Resource.Loading(),
     val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
-    val Branches: Resource<BranchModel> = Resource.Loading()
+    val Branches: Resource<BranchModel> = Resource.Loading(),
+    val Commits: Resource<CommitsModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {

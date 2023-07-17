@@ -97,6 +97,8 @@ import com.google.accompanist.web.rememberWebViewState
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
+import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
+import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
@@ -159,7 +161,12 @@ class RepositoryFragment : Fragment() {
                     token = token, owner = owner, repo = repo, path = "", ref = initialBranch
                 )
 
+                repositoryViewModel.getCommits(
+                    token = token, owner = owner, repo = repo, branch = initialBranch, page = 1, path = ""
+                )
+
             }.launchIn(lifecycleScope)
+
 
         repositoryViewModel.getContributors(
             token = token, owner = owner, repo = repo, page = 1
@@ -489,7 +496,7 @@ private fun CodeScreen(
         when (tabIndex) {
             0 -> ReadMe()
             1 -> FilesScreen(state.RepositoryFiles, onAction)
-            2 -> CommitsScreen()
+            2 -> CommitsScreen(state.Commits)
             3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
@@ -527,7 +534,6 @@ private fun FilesScreen(
 
                 Row(
                     modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -541,6 +547,7 @@ private fun FilesScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                             .clickable {
 
                             }
@@ -604,10 +611,12 @@ private fun FilesScreen(
                                     file = file,
                                     onAction = onAction,
                                     onPathChanged = { changedFile ->
-                                        if (paths.contains(changedFile)){
+                                        if (paths.contains(changedFile)) {
+                                            Log.d("ahi3646", "FilesScreen: contains ")
                                             paths.subList(0, paths.indexOf(changedFile)).clear()
-                                        }else
-                                        paths.add(changedFile)
+                                        } else {
+                                            paths.add(changedFile)
+                                        }
                                     }
                                 )
                             }
@@ -745,12 +754,95 @@ private fun FileDocumentItemCard(
 }
 
 @Composable
-private fun CommitsScreen() {
+private fun CommitsScreen(commits: Resource<CommitsModel>) {
+    when (commits) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            Column(
+                Modifier
+                    .background(Color.White)
+                    .fillMaxSize()
+            ) {
+
+                Row(
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_branch),
+                        contentDescription = "branch icon"
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+
+                            }
+                    ) {
+                        Text(
+                            text = "Here should be branch of repositories",
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_dropdown_icon),
+                            contentDescription = "dropdown"
+                        )
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(commits.data!!) { index, commit ->
+                        CommitsItem(commit)
+                        if (index < commits.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier
+                                    .padding(start = 6.dp, end = 6.dp)
+                                    .fillMaxWidth(0.7F)
+                                    .align(Alignment.End)
+                            )
+                        }
+                    }
+                }
+
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
 }
 
 @Composable
-private fun CommitsItem() {
+private fun CommitsItem(commit: CommitsModelItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -764,37 +856,37 @@ private fun CommitsItem() {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-//            GlideImage(
-//                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-//                imageModel = {
-//                    "contributorsItem.avatar_url"
-//                }, // loading a network image using an URL.
-//                modifier = Modifier
-//                    .size(48.dp, 48.dp)
-//                    .size(48.dp, 48.dp)
-//                    .clip(CircleShape),
-//                imageOptions = ImageOptions(
-//                    contentScale = ContentScale.Crop,
-//                    alignment = Alignment.CenterStart,
-//                    contentDescription = "Actor Avatar"
-//                )
-//            )
-
-            Image(
-                painter = painterResource(id = R.drawable.baseline_person_24),
-                contentDescription = "avatar icon",
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    commit.author.avatar_url
+                }, // loading a network image using an URL.
                 modifier = Modifier
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop,
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
             )
+
+//            Image(
+//                painter = painterResource(id = R.drawable.baseline_person_24),
+//                contentDescription = "avatar icon",
+//                modifier = Modifier
+//                    .size(48.dp, 48.dp)
+//                    .size(48.dp, 48.dp)
+//                    .clip(CircleShape),
+//                contentScale = ContentScale.Crop,
+//            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
                 Text(
-                    text = "contributorsItem.login",
+                    text = commit.commit.message,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = MaterialTheme.typography.titleSmall,
@@ -804,7 +896,11 @@ private fun CommitsItem() {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(text = "Commits (contributorsItem.contributions)")
+                Text(text = buildAnnotatedString {
+                    append(commit.author.login)
+                    append(" ")
+                    append(ParseDateFormat.getDateFromString(commit.commit.author.date).toString())
+                })
 
             }
         }
