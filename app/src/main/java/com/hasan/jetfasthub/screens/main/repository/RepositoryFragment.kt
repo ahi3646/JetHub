@@ -179,6 +179,10 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo, path = "", ref = "main"
         )
 
+        repositoryViewModel.isWatchingRepo(
+            token = token, owner = owner, repo = repo
+        )
+
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by repositoryViewModel.state.collectAsState()
@@ -257,6 +261,14 @@ class RepositoryFragment : Fragment() {
                                         ref = initialBranch
                                     )
 
+                                }
+                                "watch_repo" -> {
+                                    repositoryViewModel.watchRepo(
+                                        token, owner, repo
+                                    ).flowWithLifecycle(lifecycle,Lifecycle.State.STARTED).onEach {
+                                        repositoryViewModel.changeSubscriptionStatus(it.subscribed)
+                                        Log.d("ahi3646", "onCreateView: ${it.subscribed}")
+                                    }.launchIn(lifecycleScope)
                                 }
                             }
                         },
@@ -1815,12 +1827,10 @@ private fun Toolbar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(0.dp)
                     ) {
-                        IconButton(onClick = {  }) {
-
+                        IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Watch",
-                                tint = if(state.isWatching) Color.Blue else Color.Black
+                                contentDescription = "Watch"
                             )
                         }
                     }
@@ -1841,7 +1851,9 @@ private fun Toolbar(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        IconButton(onClick = {  }) {
+                        IconButton(onClick = {
+
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
                                 contentDescription = "Star"
@@ -1906,15 +1918,23 @@ private fun Toolbar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
+
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(0.dp)
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            if (state.isWatching){
+                                onAction("unwatch_repo", null)
+                            }else{
+                                onAction("watch_repo", null)
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Watch"
+                                contentDescription = "Watch",
+                                tint = if(state.isWatching) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.subscribers_count.toString())

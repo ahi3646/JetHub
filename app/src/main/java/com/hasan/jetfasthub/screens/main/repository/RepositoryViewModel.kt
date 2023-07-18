@@ -11,6 +11,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
+import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -170,22 +171,22 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getBranches(token: String, owner: String, repo: String): Flow<BranchModel> = callbackFlow{
+    fun getBranches(token: String, owner: String, repo: String): Flow<BranchModel> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.getBranches(token, owner, repo).let { branches ->
-                    if(branches.isSuccessful){
+                    if (branches.isSuccessful) {
                         trySend(branches.body()!!)
                         _state.update {
                             it.copy(Branches = Resource.Success(branches.body()!!))
                         }
-                    }else{
+                    } else {
                         _state.update {
                             it.copy(Branches = Resource.Failure(branches.errorBody().toString()))
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(Branches = Resource.Failure(e.message.toString()))
                 }
@@ -197,21 +198,28 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getCommits(token: String, owner: String, repo: String, branch: String, path: String, page: Int){
+    fun getCommits(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String,
+        path: String,
+        page: Int
+    ) {
         viewModelScope.launch {
             try {
-                repository.getCommits(token, owner, repo, branch, path,  page).let { commits ->
-                    if (commits.isSuccessful){
+                repository.getCommits(token, owner, repo, branch, path, page).let { commits ->
+                    if (commits.isSuccessful) {
                         _state.update {
                             it.copy(Commits = Resource.Success(commits.body()!!))
                         }
-                    }else{
+                    } else {
                         _state.update {
                             it.copy(Commits = Resource.Failure(commits.errorBody().toString()))
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(Commits = Resource.Failure(e.message.toString()))
                 }
@@ -219,27 +227,36 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun isWatchingRepo(token: String, owner: String, repo: String){
+    fun isWatchingRepo(token: String, owner: String, repo: String) {
+        Log.d("ahi3646", "isWatchingRepo: triggered ")
         viewModelScope.launch {
             try {
                 repository.isWatchingRepo(
                     token, owner, repo
-                ).let {isWatchingRepoResponse ->
-                    if(isWatchingRepoResponse.isSuccessful){
+                ).let { isWatchingRepoResponse ->
+                    if (isWatchingRepoResponse.isSuccessful) {
+                        Log.d(
+                            "ahi3646",
+                            "isWatchingRepo: triggered - ${isWatchingRepoResponse.body()!!.subscribed}  "
+                        )
                         _state.update {
                             it.copy(
-                                isWatching = true
+                                isWatching = isWatchingRepoResponse.body()!!.subscribed
                             )
                         }
-                    }else{
+                    } else {
+                        Log.d(
+                            "ahi3646",
+                            "isWatchingRepo: triggered - ${isWatchingRepoResponse.body()!!.subscribed} "
+                        )
                         _state.update {
                             it.copy(
-                                isWatching = false
+                                isWatching = isWatchingRepoResponse.body()!!.subscribed
                             )
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         isWatching = false
@@ -249,6 +266,36 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun changeSubscriptionStatus(status: Boolean) {
+        _state.update {
+            it.copy(
+                isWatching = status
+            )
+        }
+    }
+
+    fun watchRepo(token: String, owner: String, repo: String): Flow<RepoSubscriptionModel> =
+        callbackFlow {
+            viewModelScope.launch {
+                try {
+                    repository.watchRepo(
+                        token, owner, repo
+                    ).let { watchRepoResponse ->
+                        if (watchRepoResponse.isSuccessful) {
+                            trySend(watchRepoResponse.body()!!)
+                        } else {
+                            trySend(watchRepoResponse.body()!!)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d("ahi3646", "watchRepo: network error ")
+                }
+            }
+            awaitClose {
+                channel.close()
+                Log.d("ahi3646", "watchRepo: channel closed ")
+            }
+        }
 
 
 }

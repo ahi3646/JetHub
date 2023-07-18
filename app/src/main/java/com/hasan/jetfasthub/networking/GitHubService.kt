@@ -350,7 +350,17 @@ interface GitHubService {
     suspend fun isWatchingRepo(
         @Header("Authorization") token: String,
         @Path("owner") owner: String,
-        @Path("repo") repo: String,
+        @Path("repo") repo: String
     ): Response<RepoSubscriptionModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @PUT("repos/{owner}/{repo}/subscription")
+    suspend fun watchRepo(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String
+    ): Response<RepoSubscriptionModel>
+
+
 
 }

@@ -61,6 +61,12 @@ interface Repository {
         repo: String
     ): Response<RepoSubscriptionModel>
 
+    suspend fun watchRepo(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<RepoSubscriptionModel>
+
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
@@ -161,6 +167,18 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String
     ): Response<RepoSubscriptionModel> {
         return RetrofitInstance(context).gitHubService.isWatchingRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo
+        )
+    }
+
+    override suspend fun watchRepo(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<RepoSubscriptionModel> {
+        return RetrofitInstance(context).gitHubService.watchRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
