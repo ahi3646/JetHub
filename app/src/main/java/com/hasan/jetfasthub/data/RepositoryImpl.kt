@@ -9,6 +9,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
@@ -73,6 +74,11 @@ interface Repository {
         repo: String
     ): Response<Boolean>
 
+    suspend fun getWatchers(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<SubscriptionsModel>
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
@@ -197,6 +203,18 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String
     ): Response<Boolean> {
         return RetrofitInstance(context).gitHubService.unwatchRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo
+        )
+    }
+
+    override suspend fun getWatchers(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<SubscriptionsModel> {
+        return RetrofitInstance(context).gitHubService.getWatchers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo

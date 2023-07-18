@@ -1,6 +1,9 @@
 package com.hasan.jetfasthub.screens.main.repository
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
@@ -12,6 +15,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -235,33 +239,22 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                     token, owner, repo
                 ).let { isWatchingRepoResponse ->
                     if (isWatchingRepoResponse.isSuccessful) {
-                        Log.d(
-                            "ahi3646",
-                            "isWatchingRepo: triggered - ${isWatchingRepoResponse.body()!!.subscribed}  "
-                        )
-                        _state.update {
-                            it.copy(
-                                isWatching = isWatchingRepoResponse.body()!!.subscribed
-                            )
-                        }
-                    } else {
-                        Log.d(
-                            "ahi3646",
-                            "isWatchingRepo: triggered - ${isWatchingRepoResponse.body()!!.subscribed} "
-                        )
                         _state.update {
                             it.copy(
                                 isWatching = isWatchingRepoResponse.body()!!.subscribed
                             )
                         }
                     }
+                    else {
+                        _state.update {
+                            it.copy(
+                                isWatching = false
+                            )
+                        }
+                    }
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isWatching = false
-                    )
-                }
+                Log.d("ahi3646", "isWatchingRepo: ${e.message} ")
             }
         }
     }
@@ -301,7 +294,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         callbackFlow {
             viewModelScope.launch {
                 try {
-                    repository.watchRepo(
+                    repository.unwatchRepo(
                         token, owner, repo
                     ).let { watchRepoResponse ->
                         if (watchRepoResponse.code() == 204) {
@@ -311,7 +304,6 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                         }
                     }
                 } catch (e: Exception) {
-                    trySend(false)
                     Log.d("ahi3646", "watchRepo: network error - ${e.message} ")
                 }
             }
@@ -320,6 +312,34 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                 Log.d("ahi3646", "watchRepo: channel closed ")
             }
         }
+
+    fun getWatchers(token: String, owner: String, repo: String) {
+        viewModelScope.launch {
+            try {
+                repository.getWatchers(token, owner, repo).let { subscribers ->
+                    if (subscribers.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                Watchers = Resource.Success(subscribers.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                Watchers = Resource.Failure(subscribers.errorBody().toString())
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        Watchers = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
 
 }
 
@@ -333,7 +353,8 @@ data class RepositoryScreenState(
     val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
     val Branches: Resource<BranchModel> = Resource.Loading(),
     val Commits: Resource<CommitsModel> = Resource.Loading(),
-    val isWatching: Boolean = false
+    val isWatching: Boolean = false,
+    val Watchers: Resource<SubscriptionsModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {

@@ -25,6 +25,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
@@ -368,6 +369,14 @@ interface GitHubService {
         @Path("owner") owner: String,
         @Path("repo") repo: String
     ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/subscribers")
+    suspend fun getWatchers(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String
+    ): Response<SubscriptionsModel>
 
 
 

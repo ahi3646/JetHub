@@ -272,12 +272,12 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.watchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        repositoryViewModel.changeSubscriptionStatus(it.subscribed)
                                         if (it.subscribed) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
                                             )
                                         }
-                                        repositoryViewModel.changeSubscriptionStatus(it.subscribed)
                                         Log.d("ahi3646", "onCreateView: ${it.subscribed}")
                                     }.launchIn(lifecycleScope)
                                 }
@@ -286,12 +286,12 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.unwatchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        repositoryViewModel.changeSubscriptionStatus(!it)
                                         if (it) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
                                             )
                                         }
-                                        repositoryViewModel.changeSubscriptionStatus(it)
                                         Log.d("ahi3646", "onCreateView: $it")
                                     }.launchIn(lifecycleScope)
                                 }
@@ -1956,6 +1956,7 @@ private fun Toolbar(
                                 onAction("watch_repo", null)
                             }
                         }) {
+                            Log.d("ahi3646", "Toolbar: - main  - ${state.isWatching} ")
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = "Watch",
