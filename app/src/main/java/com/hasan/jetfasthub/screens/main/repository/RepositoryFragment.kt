@@ -188,6 +188,10 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo
         )
 
+        repositoryViewModel.isStarringRepo(
+            token = token, owner = owner, repo = repo
+        )
+
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by repositoryViewModel.state.collectAsState()
@@ -1970,10 +1974,17 @@ private fun Toolbar(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            if(state.isStarring){
+                                onAction("un_star", null)
+                            }else{
+                                onAction("star", null)
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_star),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = if(state.isStarring) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.stargazers_count.toString())

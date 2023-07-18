@@ -25,6 +25,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
@@ -378,6 +379,22 @@ interface GitHubService {
         @Path("repo") repo: String
     ): Response<SubscriptionsModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/stargazers")
+    suspend fun getStargazers(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Query("page") page: Int
+    ): Response<StargazersModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("user/starred/{owner}/{repo}")
+    suspend fun checkStarring(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+    ): Response<Boolean>
 
 
 }

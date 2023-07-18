@@ -15,6 +15,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
@@ -341,6 +342,62 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun getStargazers(token: String, owner: String, repo: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getStargazers(token, owner, repo, page).let { stargazersModelResponse ->
+                    if (stargazersModelResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                Stargazers = Resource.Success(stargazersModelResponse.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                Stargazers = Resource.Failure(stargazersModelResponse.errorBody().toString())
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        Stargazers = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
+    fun isStarringRepo(token: String, owner: String, repo: String) {
+        Log.d("ahi3646", "isWatchingRepo: triggered ")
+        viewModelScope.launch {
+            try {
+                repository.checkStarring(
+                    token, owner, repo
+                ).let { starringResponse ->
+                    if (starringResponse.code() == 204) {
+                        _state.update {
+                            it.copy(
+                                isStarring = true
+                            )
+                        }
+                    }
+                    else {
+                        _state.update {
+                            it.copy(
+                                isStarring = false
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("ahi3646", "isWatchingRepo: ${e.message} ")
+            }
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -354,7 +411,9 @@ data class RepositoryScreenState(
     val Branches: Resource<BranchModel> = Resource.Loading(),
     val Commits: Resource<CommitsModel> = Resource.Loading(),
     val isWatching: Boolean = false,
-    val Watchers: Resource<SubscriptionsModel> = Resource.Loading()
+    val Watchers: Resource<SubscriptionsModel> = Resource.Loading(),
+    val Stargazers: Resource<StargazersModel> = Resource.Loading(),
+    val isStarring : Boolean = false
 )
 
 sealed interface BottomSheetScreens {

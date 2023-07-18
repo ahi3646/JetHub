@@ -9,6 +9,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
@@ -79,6 +80,20 @@ interface Repository {
         owner: String,
         repo: String
     ): Response<SubscriptionsModel>
+
+    suspend fun getStargazers(
+        token: String,
+        owner: String,
+        repo: String,
+        page: Int
+    ): Response<StargazersModel>
+
+    suspend fun checkStarring(
+        token: String,
+        owner: String,
+        repo: String,
+    ): Response<Boolean>
+
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
@@ -218,6 +233,32 @@ class RepositoryImpl(private val context: Context) : Repository {
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
+        )
+    }
+
+    override suspend fun getStargazers(
+        token: String,
+        owner: String,
+        repo: String,
+        page: Int
+    ): Response<StargazersModel> {
+        return RetrofitInstance(context).gitHubService.getStargazers(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            page = page
+        )
+    }
+
+    override suspend fun checkStarring(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<Boolean> {
+        return RetrofitInstance(context).gitHubService.checkStarring(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
         )
     }
 
