@@ -242,7 +242,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                     if (isWatchingRepoResponse.isSuccessful) {
                         _state.update {
                             it.copy(
-                                isWatching = isWatchingRepoResponse.body()!!.subscribed
+                                isWatching = true
                             )
                         }
                     }
@@ -264,6 +264,14 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         _state.update {
             it.copy(
                 isWatching = status
+            )
+        }
+    }
+
+    fun changeStarringStatus(status: Boolean){
+        _state.update {
+            it.copy(
+                isStarring = status
             )
         }
     }
@@ -395,6 +403,46 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             } catch (e: Exception) {
                 Log.d("ahi3646", "isWatchingRepo: ${e.message} ")
             }
+        }
+    }
+
+    fun starRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.starRepo(token, owner, repo).let { response ->
+                    if(response.code() == 204){
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("ahi3646", "starRepo: ${e.message.toString()} ")
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "starRepo: channel close ")
+        }
+    }
+
+    fun unStarRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.unStarRepo(token, owner, repo).let { response ->
+                    if(response.code() == 204){
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("ahi3646", "starRepo: ${e.message.toString()} ")
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "unStarRepo: channel closed ")
         }
     }
 

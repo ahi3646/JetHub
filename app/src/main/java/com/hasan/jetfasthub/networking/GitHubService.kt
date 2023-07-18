@@ -396,5 +396,21 @@ interface GitHubService {
         @Path("repo") repo: String,
     ): Response<Boolean>
 
+    @Headers("Accept: application/vnd.github+json")
+    @PUT("user/starred/{owner}/{repo}")
+    suspend fun starRepo(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("user/starred/{owner}/{repo}")
+    suspend fun unStarRepo(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+    ): Response<Boolean>
+
 
 }

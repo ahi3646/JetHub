@@ -94,6 +94,18 @@ interface Repository {
         repo: String,
     ): Response<Boolean>
 
+    suspend fun starRepo(
+        token: String,
+        owner: String,
+        repo: String,
+    ): Response<Boolean>
+
+    suspend fun unStarRepo(
+        token: String,
+        owner: String,
+        repo: String,
+    ): Response<Boolean>
+
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
@@ -256,6 +268,22 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String
     ): Response<Boolean> {
         return RetrofitInstance(context).gitHubService.checkStarring(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+        )
+    }
+
+    override suspend fun starRepo(token: String, owner: String, repo: String): Response<Boolean> {
+        return RetrofitInstance(context).gitHubService.starRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+        )
+    }
+
+    override suspend fun unStarRepo(token: String, owner: String, repo: String): Response<Boolean> {
+        return RetrofitInstance(context).gitHubService.unStarRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,

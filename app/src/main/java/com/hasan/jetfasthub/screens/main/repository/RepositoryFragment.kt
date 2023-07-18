@@ -136,9 +136,7 @@ class RepositoryFragment : Fragment() {
         )
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
-        )
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { branches ->
+        ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
                 val branchesList = arrayListOf<String>()
                 branches.forEach {
                     branchesList.add(it.name)
@@ -224,6 +222,7 @@ class RepositoryFragment : Fragment() {
                         },
                         onAction = { action, data ->
                             when (action) {
+
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -299,6 +298,54 @@ class RepositoryFragment : Fragment() {
                                         Log.d("ahi3646", "onCreateView: $it")
                                     }.launchIn(lifecycleScope)
                                 }
+
+                                "star_repo" -> {
+                                    repositoryViewModel.starRepo(
+                                        token, owner, repo
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                            if (it) {
+                                                repositoryViewModel.changeStarringStatus(true)
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "You starred repo",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                repositoryViewModel.getRepo(
+                                                    token = token, owner = owner, repo = repo
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Action can't be done currently",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.launchIn(lifecycleScope)
+                                }
+
+                                "un_star_repo" -> {
+                                    repositoryViewModel.unStarRepo(
+                                        token, owner, repo
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                            if (it) {
+                                                repositoryViewModel.changeStarringStatus(false)
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "You unstarred repo",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                repositoryViewModel.getRepo(
+                                                    token = token, owner = owner, repo = repo
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Action can't be done currently",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.launchIn(lifecycleScope)
+                                }
                             }
                         },
                     )
@@ -337,8 +384,7 @@ private fun MainContent(
             when (state.currentSheet) {
                 is BottomSheetScreens.ReleaseItemSheet -> {
                     ReleaseInfoSheet(
-                        releaseItem = state.currentSheet.releaseItem,
-                        closeSheet = closeSheet
+                        releaseItem = state.currentSheet.releaseItem, closeSheet = closeSheet
                     )
                 }
 
@@ -354,33 +400,27 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { sheetPadding ->
-        Scaffold(
-            modifier = Modifier.padding(sheetPadding),
-            topBar = {
-                Column(Modifier.fillMaxWidth()) {
-                    TitleHeader(
-                        state = state.repo,
-                        onItemClicked = onItemClicked,
-                        onCurrentSheetChanged = {
-                            onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
-                            scope.launch {
-                                if (sheetState.isCollapsed) {
-                                    sheetState.expand()
-                                } else {
-                                    sheetState.collapse()
-                                }
+        Scaffold(modifier = Modifier.padding(sheetPadding), topBar = {
+            Column(Modifier.fillMaxWidth()) {
+                TitleHeader(state = state.repo,
+                    onItemClicked = onItemClicked,
+                    onCurrentSheetChanged = {
+                        onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
+                        scope.launch {
+                            if (sheetState.isCollapsed) {
+                                sheetState.expand()
+                            } else {
+                                sheetState.collapse()
                             }
                         }
-                    )
-                    Toolbar(
-                        state = state, onItemClicked = onItemClicked, onAction = onAction
-                    )
-                }
-            },
-            bottomBar = {
-                BottomNav(onBottomBarClicked, state.repo)
+                    })
+                Toolbar(
+                    state = state, onItemClicked = onItemClicked, onAction = onAction
+                )
             }
-        ) { paddingValues ->
+        }, bottomBar = {
+            BottomNav(onBottomBarClicked, state.repo)
+        }) { paddingValues ->
 
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(
@@ -421,8 +461,7 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = releaseItem.name,
-            style = MaterialTheme.typography.titleLarge
+            text = releaseItem.name, style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -437,19 +476,15 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = {
-                    closeSheet()
-                }
-            ) {
+            Button(onClick = {
+                closeSheet()
+            }) {
                 Text(text = "Cancel", color = Color.Red)
             }
             Spacer(modifier = Modifier.width(12.dp))
-            Button(
-                onClick = {
-                    closeSheet()
-                }
-            ) {
+            Button(onClick = {
+                closeSheet()
+            }) {
                 Text(text = "OK", color = Color.Blue)
             }
         }
@@ -458,8 +493,7 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 
 @Composable
 private fun RepositoryInfoSheet(
-    state: RepositoryScreenState,
-    closeSheet: () -> Unit
+    state: RepositoryScreenState, closeSheet: () -> Unit
 ) {
     val repository = state.repo
     if (repository.data != null) {
@@ -469,8 +503,7 @@ private fun RepositoryInfoSheet(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = repository.data.full_name,
-                style = MaterialTheme.typography.titleLarge
+                text = repository.data.full_name, style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -485,11 +518,9 @@ private fun RepositoryInfoSheet(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = {
-                        closeSheet()
-                    }
-                ) {
+                Button(onClick = {
+                    closeSheet()
+                }) {
                     Text(text = "OK")
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -517,8 +548,7 @@ private fun CodeScreen(
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
             containerColor = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -574,8 +604,7 @@ private fun FilesScreen(
             ) {
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -583,16 +612,14 @@ private fun FilesScreen(
                         painter = painterResource(id = R.drawable.ic_branch),
                         contentDescription = "branch icon"
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                             .clickable {
 
-                            }
-                    ) {
+                            }) {
                         Text(
                             text = "Here should be branch of repositories",
                             textAlign = TextAlign.Start,
@@ -648,8 +675,7 @@ private fun FilesScreen(
                     itemsIndexed(state.data!!) { index, file ->
                         when (file.type) {
                             "dir" -> {
-                                FileFolderItemCard(
-                                    file = file,
+                                FileFolderItemCard(file = file,
                                     onAction = onAction,
                                     onPathChanged = { changedFile ->
                                         if (paths.contains(changedFile)) {
@@ -658,18 +684,15 @@ private fun FilesScreen(
                                         } else {
                                             paths.add(changedFile)
                                         }
-                                    }
-                                )
+                                    })
                             }
 
                             "file" -> {
-                                FileDocumentItemCard(
-                                    file = file,
+                                FileDocumentItemCard(file = file,
                                     onAction = onAction,
                                     onPathChanged = { changedFile ->
                                         paths.add(changedFile)
-                                    }
-                                )
+                                    })
                             }
 
                             else -> {}
@@ -709,8 +732,7 @@ private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> 
             .padding(4.dp)
             .clickable {
                 onAction("on_path_change", file.path)
-            },
-        verticalAlignment = Alignment.CenterVertically
+            }, verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = file.name)
         Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
@@ -720,9 +742,7 @@ private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> 
 
 @Composable
 private fun FileFolderItemCard(
-    file: FileModel,
-    onAction: (String, String?) -> Unit,
-    onPathChanged: (file: FileModel) -> Unit
+    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -732,12 +752,10 @@ private fun FileFolderItemCard(
             .clickable {
                 onPathChanged(file)
                 onAction("on_path_change", file.path)
-            },
-        verticalAlignment = Alignment.CenterVertically
+            }, verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_folder),
-            contentDescription = "folder icon"
+            painter = painterResource(id = R.drawable.ic_folder), contentDescription = "folder icon"
         )
 
         Text(
@@ -758,9 +776,7 @@ private fun FileFolderItemCard(
 
 @Composable
 private fun FileDocumentItemCard(
-    file: FileModel,
-    onAction: (String, String?) -> Unit,
-    onPathChanged: (file: FileModel) -> Unit
+    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -770,8 +786,7 @@ private fun FileDocumentItemCard(
             .clickable {
                 onPathChanged(file)
                 onAction("on_path_change", file.path)
-            },
-        verticalAlignment = Alignment.CenterVertically
+            }, verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_document),
@@ -825,15 +840,13 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
                         painter = painterResource(id = R.drawable.ic_branch),
                         contentDescription = "branch icon"
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
 
-                            }
-                    ) {
+                            }) {
                         Text(
                             text = "Here should be branch of repositories",
                             textAlign = TextAlign.Start,
@@ -1062,8 +1075,7 @@ private fun ReleaseItemCard(
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "Releases",
@@ -1079,28 +1091,20 @@ private fun ReleaseItemCard(
                                     .fillMaxWidth()
                                     .clickable {
                                         downloader.download(release)
-                                    },
-                                elevation = 0.dp
+                                    }, elevation = 0.dp
                             ) {
-                                val title =
-                                    if (release.downloadCount != 0) {
-                                        "${release.title} (${release.downloadCount})"
-                                    } else release.title
+                                val title = if (release.downloadCount != 0) {
+                                    "${release.title} (${release.downloadCount})"
+                                } else release.title
                                 Text(
-                                    text = title,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier.padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        top = 12.dp,
-                                        bottom = 12.dp
+                                    text = title, fontSize = 18.sp, modifier = Modifier.padding(
+                                        start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp
                                     )
                                 )
                             }
                             if (index < releases.lastIndex) {
                                 Divider(
-                                    color = Color.Gray,
-                                    modifier = Modifier.fillMaxWidth()
+                                    color = Color.Gray, modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
@@ -1116,20 +1120,16 @@ private fun ReleaseItemCard(
             .clickable(onClick = {
                 onCurrentSheetChanged(releasesModelItem)
             })
-            .padding(4.dp),
-        elevation = 0.dp,
-        backgroundColor = Color.White
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
-            modifier = Modifier
-                .padding(6.dp),
+            modifier = Modifier.padding(6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
             Column(
-                modifier = Modifier
-                    .padding(start = 8.dp),
+                modifier = Modifier.padding(start = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -1155,12 +1155,9 @@ private fun ReleaseItemCard(
                         }
                         append(" ")
                         append(
-                            ParseDateFormat.getTimeAgo(releasesModelItem.created_at)
-                                .toString()
+                            ParseDateFormat.getTimeAgo(releasesModelItem.created_at).toString()
                         )
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    }, maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
 
             }
@@ -1222,8 +1219,7 @@ private fun ContributorsScreen(
             ) {
                 itemsIndexed(contributors.data!!) { index, contributor ->
                     ContributorsItemCard(
-                        contributor,
-                        onItemClicked
+                        contributor, onItemClicked
                     )
                     if (index < contributors.data.lastIndex) {
                         Divider(
@@ -1249,17 +1245,14 @@ private fun ContributorsScreen(
 
 @Composable
 private fun ContributorsItemCard(
-    contributorsItem: ContributorsItem,
-    onItemClicked: (Int, String?, String?) -> Unit
+    contributorsItem: ContributorsItem, onItemClicked: (Int, String?, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
                 onItemClicked(
-                    R.id.action_repositoryFragment_to_profileFragment,
-                    contributorsItem.login,
-                    null
+                    R.id.action_repositoryFragment_to_profileFragment, contributorsItem.login, null
                 )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
@@ -1401,8 +1394,7 @@ private fun ProjectsScreen(paddingValues: PaddingValues) {
 
 @Composable
 private fun BottomNav(
-    onBottomBarClicked: (RepositoryScreens) -> Unit,
-    state: Resource<RepoModel>
+    onBottomBarClicked: (RepositoryScreens) -> Unit, state: Resource<RepoModel>
 ) {
     val context = LocalContext.current
 
@@ -1785,14 +1777,9 @@ private fun TitleHeader(
                                 color = Color.Gray
                             ) {
                                 Text(
-                                    text = topic,
-                                    Modifier.padding(
-                                        top = 4.dp,
-                                        bottom = 4.dp,
-                                        start = 6.dp,
-                                        end = 6.dp
-                                    ),
-                                    color = Color.Blue
+                                    text = topic, Modifier.padding(
+                                        top = 4.dp, bottom = 4.dp, start = 6.dp, end = 6.dp
+                                    ), color = Color.Blue
                                 )
                             }
                         }
@@ -1975,16 +1962,17 @@ private fun Toolbar(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         IconButton(onClick = {
-                            if(state.isStarring){
-                                onAction("un_star", null)
-                            }else{
-                                onAction("star", null)
+                            Log.d("ahi3646", "Toolbar: starring  - ${state.isStarring} ")
+                            if (state.isStarring) {
+                                onAction("un_star_repo", null)
+                            } else {
+                                onAction("star_repo", null)
                             }
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_star),
                                 contentDescription = "Star",
-                                tint = if(state.isStarring) Color.Blue else Color.Black
+                                tint = if (state.isStarring) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.stargazers_count.toString())
@@ -2073,8 +2061,7 @@ private fun Toolbar(
                             showMenu = false
                         })
                         if (repository.fork) {
-                            DropdownMenuItem(
-                                text = { Text(text = repository.parent.full_name) },
+                            DropdownMenuItem(text = { Text(text = repository.parent.full_name) },
                                 onClick = {
                                     onItemClicked(
                                         R.id.action_repositoryFragment_self,
