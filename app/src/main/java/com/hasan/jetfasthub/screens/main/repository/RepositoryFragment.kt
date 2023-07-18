@@ -162,7 +162,12 @@ class RepositoryFragment : Fragment() {
                 )
 
                 repositoryViewModel.getCommits(
-                    token = token, owner = owner, repo = repo, branch = initialBranch, page = 1, path = ""
+                    token = token,
+                    owner = owner,
+                    repo = repo,
+                    branch = initialBranch,
+                    page = 1,
+                    path = ""
                 )
 
             }.launchIn(lifecycleScope)
@@ -262,12 +267,32 @@ class RepositoryFragment : Fragment() {
                                     )
 
                                 }
+
                                 "watch_repo" -> {
                                     repositoryViewModel.watchRepo(
                                         token, owner, repo
-                                    ).flowWithLifecycle(lifecycle,Lifecycle.State.STARTED).onEach {
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it.subscribed) {
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = owner, repo = repo
+                                            )
+                                        }
                                         repositoryViewModel.changeSubscriptionStatus(it.subscribed)
                                         Log.d("ahi3646", "onCreateView: ${it.subscribed}")
+                                    }.launchIn(lifecycleScope)
+                                }
+
+                                "unwatch_repo" -> {
+                                    repositoryViewModel.unwatchRepo(
+                                        token, owner, repo
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it) {
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = owner, repo = repo
+                                            )
+                                        }
+                                        repositoryViewModel.changeSubscriptionStatus(it)
+                                        Log.d("ahi3646", "onCreateView: $it")
                                     }.launchIn(lifecycleScope)
                                 }
                             }
@@ -1925,16 +1950,16 @@ private fun Toolbar(
                         modifier = Modifier.padding(0.dp)
                     ) {
                         IconButton(onClick = {
-                            if (state.isWatching){
+                            if (state.isWatching) {
                                 onAction("unwatch_repo", null)
-                            }else{
+                            } else {
                                 onAction("watch_repo", null)
                             }
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = "Watch",
-                                tint = if(state.isWatching) Color.Blue else Color.Black
+                                tint = if (state.isWatching) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.subscribers_count.toString())

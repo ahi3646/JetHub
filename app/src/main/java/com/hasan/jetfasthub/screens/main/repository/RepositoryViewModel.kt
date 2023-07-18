@@ -297,6 +297,29 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             }
         }
 
+    fun unwatchRepo(token: String, owner: String, repo: String): Flow<Boolean> =
+        callbackFlow {
+            viewModelScope.launch {
+                try {
+                    repository.watchRepo(
+                        token, owner, repo
+                    ).let { watchRepoResponse ->
+                        if (watchRepoResponse.code() == 204) {
+                            trySend(true)
+                        } else {
+                            trySend(false)
+                        }
+                    }
+                } catch (e: Exception) {
+                    trySend(false)
+                    Log.d("ahi3646", "watchRepo: network error - ${e.message} ")
+                }
+            }
+            awaitClose {
+                channel.close()
+                Log.d("ahi3646", "watchRepo: channel closed ")
+            }
+        }
 
 }
 

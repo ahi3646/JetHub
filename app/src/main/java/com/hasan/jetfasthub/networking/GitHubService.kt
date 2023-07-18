@@ -361,6 +361,14 @@ interface GitHubService {
         @Path("repo") repo: String
     ): Response<RepoSubscriptionModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("repos/{owner}/{repo}/subscription")
+    suspend fun unwatchRepo(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String
+    ): Response<Boolean>
+
 
 
 }
