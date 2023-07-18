@@ -21,6 +21,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.Starre
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
+import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -411,6 +412,14 @@ interface GitHubService {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
     ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/forks")
+    suspend fun getForks(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+    ): Response<ForksModel>
 
 
 }

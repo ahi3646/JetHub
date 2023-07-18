@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -137,39 +136,37 @@ class RepositoryFragment : Fragment() {
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
         ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
-                val branchesList = arrayListOf<String>()
-                branches.forEach {
-                    branchesList.add(it.name)
-                    Log.d("ahi3646", "onCreateView branches: ${it.name}")
-                }
+            val branchesList = arrayListOf<String>()
+            branches.forEach {
+                branchesList.add(it.name)
+            }
 
-                initialBranch = if (branchesList.isNotEmpty()) {
-                    if (branchesList.contains("main")) {
-                        "main"
-                    } else if (branchesList.contains("master")) {
-                        "master"
-                    } else {
-                        branchesList[0]
-                    }
-                } else {
+            initialBranch = if (branchesList.isNotEmpty()) {
+                if (branchesList.contains("main")) {
                     "main"
+                } else if (branchesList.contains("master")) {
+                    "master"
+                } else {
+                    branchesList[0]
                 }
+            } else {
+                "main"
+            }
 
-                repositoryViewModel.getContentFiles(
-                    token = token, owner = owner, repo = repo, path = "", ref = initialBranch
-                )
+            repositoryViewModel.getContentFiles(
+                token = token, owner = owner, repo = repo, path = "", ref = initialBranch
+            )
 
-                repositoryViewModel.getCommits(
-                    token = token,
-                    owner = owner,
-                    repo = repo,
-                    branch = initialBranch,
-                    page = 1,
-                    path = ""
-                )
+            repositoryViewModel.getCommits(
+                token = token,
+                owner = owner,
+                repo = repo,
+                branch = initialBranch,
+                page = 1,
+                path = ""
+            )
 
-            }.launchIn(lifecycleScope)
-
+        }.launchIn(lifecycleScope)
 
         repositoryViewModel.getContributors(
             token = token, owner = owner, repo = repo, page = 1
@@ -281,7 +278,6 @@ class RepositoryFragment : Fragment() {
                                                 token = token, owner = owner, repo = repo
                                             )
                                         }
-                                        Log.d("ahi3646", "onCreateView: ${it.subscribed}")
                                     }.launchIn(lifecycleScope)
                                 }
 
@@ -295,7 +291,6 @@ class RepositoryFragment : Fragment() {
                                                 token = token, owner = owner, repo = repo
                                             )
                                         }
-                                        Log.d("ahi3646", "onCreateView: $it")
                                     }.launchIn(lifecycleScope)
                                 }
 
@@ -303,48 +298,48 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.starRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                            if (it) {
-                                                repositoryViewModel.changeStarringStatus(true)
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "You starred repo",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                repositoryViewModel.getRepo(
-                                                    token = token, owner = owner, repo = repo
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Action can't be done currently",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }.launchIn(lifecycleScope)
+                                        if (it) {
+                                            repositoryViewModel.changeStarringStatus(true)
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "You starred repo",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = owner, repo = repo
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Action can't be done currently",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
                                 }
 
                                 "un_star_repo" -> {
                                     repositoryViewModel.unStarRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                            if (it) {
-                                                repositoryViewModel.changeStarringStatus(false)
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "You unstarred repo",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                repositoryViewModel.getRepo(
-                                                    token = token, owner = owner, repo = repo
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Action can't be done currently",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }.launchIn(lifecycleScope)
+                                        if (it) {
+                                            repositoryViewModel.changeStarringStatus(false)
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "You unstarred repo",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = owner, repo = repo
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Action can't be done currently",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
                                 }
                             }
                         },
@@ -679,7 +674,6 @@ private fun FilesScreen(
                                     onAction = onAction,
                                     onPathChanged = { changedFile ->
                                         if (paths.contains(changedFile)) {
-                                            Log.d("ahi3646", "FilesScreen: contains ")
                                             paths.subList(0, paths.indexOf(changedFile)).clear()
                                         } else {
                                             paths.add(changedFile)
@@ -1947,7 +1941,6 @@ private fun Toolbar(
                                 onAction("watch_repo", null)
                             }
                         }) {
-                            Log.d("ahi3646", "Toolbar: - main  - ${state.isWatching} ")
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = "Watch",
@@ -1962,7 +1955,6 @@ private fun Toolbar(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         IconButton(onClick = {
-                            Log.d("ahi3646", "Toolbar: starring  - ${state.isStarring} ")
                             if (state.isStarring) {
                                 onAction("un_star_repo", null)
                             } else {

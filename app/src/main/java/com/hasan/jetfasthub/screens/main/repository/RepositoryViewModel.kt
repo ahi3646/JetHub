@@ -10,6 +10,7 @@ import com.hasan.jetfasthub.data.Repository
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
+import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -245,8 +246,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                                 isWatching = true
                             )
                         }
-                    }
-                    else {
+                    } else {
                         _state.update {
                             it.copy(
                                 isWatching = false
@@ -268,7 +268,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun changeStarringStatus(status: Boolean){
+    fun changeStarringStatus(status: Boolean) {
         _state.update {
             it.copy(
                 isStarring = status
@@ -363,7 +363,9 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                     } else {
                         _state.update {
                             it.copy(
-                                Stargazers = Resource.Failure(stargazersModelResponse.errorBody().toString())
+                                Stargazers = Resource.Failure(
+                                    stargazersModelResponse.errorBody().toString()
+                                )
                             )
                         }
                     }
@@ -391,8 +393,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                                 isStarring = true
                             )
                         }
-                    }
-                    else {
+                    } else {
                         _state.update {
                             it.copy(
                                 isStarring = false
@@ -406,17 +407,17 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun starRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+    fun starRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.starRepo(token, owner, repo).let { response ->
-                    if(response.code() == 204){
+                    if (response.code() == 204) {
                         trySend(true)
-                    }else{
+                    } else {
                         trySend(false)
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d("ahi3646", "starRepo: ${e.message.toString()} ")
             }
         }
@@ -426,23 +427,53 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun unStarRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+    fun unStarRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.unStarRepo(token, owner, repo).let { response ->
-                    if(response.code() == 204){
+                    if (response.code() == 204) {
                         trySend(true)
-                    }else{
+                    } else {
                         trySend(false)
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d("ahi3646", "starRepo: ${e.message.toString()} ")
             }
         }
         awaitClose {
             channel.close()
             Log.d("ahi3646", "unStarRepo: channel closed ")
+        }
+    }
+
+    fun getForks(token: String, owner: String, repo: String) {
+        viewModelScope.launch {
+            try {
+                repository.getForks(token, owner, repo).let { forksModelResponse ->
+                    if (forksModelResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                Forks = Resource.Success(forksModelResponse.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                Forks = Resource.Failure(
+                                    forksModelResponse.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        Forks = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
         }
     }
 
@@ -461,7 +492,8 @@ data class RepositoryScreenState(
     val isWatching: Boolean = false,
     val Watchers: Resource<SubscriptionsModel> = Resource.Loading(),
     val Stargazers: Resource<StargazersModel> = Resource.Loading(),
-    val isStarring : Boolean = false
+    val isStarring: Boolean = false,
+    val Forks: Resource<ForksModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {

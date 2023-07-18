@@ -5,6 +5,7 @@ import com.hasan.jetfasthub.networking.RetrofitInstance
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
+import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -105,6 +106,12 @@ interface Repository {
         owner: String,
         repo: String,
     ): Response<Boolean>
+
+    suspend fun getForks(
+        token: String,
+        owner: String,
+        repo: String,
+    ): Response<ForksModel>
 
 }
 
@@ -284,6 +291,14 @@ class RepositoryImpl(private val context: Context) : Repository {
 
     override suspend fun unStarRepo(token: String, owner: String, repo: String): Response<Boolean> {
         return RetrofitInstance(context).gitHubService.unStarRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+        )
+    }
+
+    override suspend fun getForks(token: String, owner: String, repo: String): Response<ForksModel> {
+        return RetrofitInstance(context).gitHubService.getForks(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
