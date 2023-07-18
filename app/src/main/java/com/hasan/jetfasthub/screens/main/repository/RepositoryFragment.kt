@@ -332,7 +332,7 @@ private fun MainContent(
                         }
                     )
                     Toolbar(
-                        state = state.repo, onItemClicked = onItemClicked, onAction = onAction
+                        state = state, onItemClicked = onItemClicked, onAction = onAction
                     )
                 }
             },
@@ -1788,12 +1788,12 @@ private fun TitleHeader(
 
 @Composable
 private fun Toolbar(
-    state: Resource<RepoModel>,
+    state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    when (state) {
+    when (state.repo) {
 
         is Resource.Loading -> {
             Row(
@@ -1819,7 +1819,8 @@ private fun Toolbar(
 
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Watch"
+                                contentDescription = "Watch",
+                                tint = if(state.isWatching) Color.Blue else Color.Black
                             )
                         }
                     }
@@ -1840,7 +1841,7 @@ private fun Toolbar(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {  }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
                                 contentDescription = "Star"
@@ -1889,7 +1890,7 @@ private fun Toolbar(
         }
 
         is Resource.Success -> {
-            val repository = state.data!!
+            val repository = state.repo.data!!
 
             Row(
                 verticalAlignment = Alignment.Top,
