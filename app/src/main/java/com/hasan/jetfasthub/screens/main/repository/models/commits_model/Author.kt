@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.screens.main.repository.models.commits_model
 
 data class Author(
-    val avatar_url: String,
+    val avatar_url: String?,
     val events_url: String,
     val followers_url: String,
     val following_url: String,

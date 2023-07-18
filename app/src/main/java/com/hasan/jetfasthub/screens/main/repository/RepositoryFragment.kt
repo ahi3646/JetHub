@@ -92,8 +92,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberWebViewState
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
@@ -205,21 +203,17 @@ class RepositoryFragment : Fragment() {
                             repositoryViewModel.onBottomSheetChanged(currentSheet)
                         },
                         onItemClicked = { dest, data, extra ->
-                            when (dest) {
-                                -1 -> {
-                                    findNavController().popBackStack()
+                            if (dest == -1) {
+                                findNavController().popBackStack()
+                            } else {
+                                val bundle = Bundle()
+                                if (data != null) {
+                                    bundle.putString("home_data", data)
                                 }
-
-                                else -> {
-                                    val bundle = Bundle()
-                                    if (data != null) {
-                                        bundle.putString("home_data", data)
-                                    }
-                                    if (extra != null) {
-                                        bundle.putString("home_extra", extra)
-                                    }
-                                    findNavController().navigate(dest, bundle)
+                                if (extra != null) {
+                                    bundle.putString("home_extra", extra)
                                 }
+                                findNavController().navigate(dest, bundle)
                             }
                         },
                         onAction = { action, data ->
@@ -441,7 +435,7 @@ private fun MainContent(
                         ) {
                             Button(onClick = {
                                 closeSheet()
-                                if(state.hasForked){
+                                if (state.hasForked) {
                                     onAction("fork_repo", null)
                                 }
                             }) {
@@ -683,9 +677,9 @@ private fun FilesScreen(
             ) {
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_branch),
@@ -695,7 +689,7 @@ private fun FilesScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+                            .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
                             .clickable {
 
                             }) {
@@ -713,10 +707,11 @@ private fun FilesScreen(
 
                 Row(
                     modifier = Modifier
-                        .padding(end = 16.dp)
+                        .padding(start = 5.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+
                     IconButton(onClick = {
 
                     }) {
@@ -725,23 +720,34 @@ private fun FilesScreen(
                             contentDescription = "direction"
                         )
                     }
+
                     LazyRow(Modifier.weight(1F)) {
                         items(paths) { file ->
                             FilePathRowItemCard(file, onAction)
                         }
                     }
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = "download"
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "add icon"
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_search),
-                        contentDescription = "direction"
-                    )
+
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_download),
+                            contentDescription = "download"
+                        )
+                    }
+
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "add icon"
+                        )
+                    }
+
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_search),
+                            contentDescription = "direction"
+                        )
+                    }
+
                 }
 
                 LazyColumn(
@@ -751,7 +757,7 @@ private fun FilesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(state.data!!) { index, file ->
+                    items(state.data!!) { file ->
                         when (file.type) {
                             "dir" -> {
                                 FileFolderItemCard(file = file,
@@ -774,12 +780,6 @@ private fun FilesScreen(
                             }
 
                             else -> {}
-                        }
-                        if (index < state.data.lastIndex) {
-                            Divider(
-                                color = Color.Gray,
-                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-                            )
                         }
                     }
                 }
@@ -822,74 +822,92 @@ private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> 
 private fun FileFolderItemCard(
     file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
-            .background(Color.White)
-            .padding(8.dp)
             .fillMaxWidth()
             .clickable {
                 onPathChanged(file)
                 onAction("on_path_change", file.path)
-            }, verticalAlignment = Alignment.CenterVertically
+            },
+        elevation = 0.dp,
+        backgroundColor = Color.White
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_folder), contentDescription = "folder icon"
-        )
-
-        Text(
-            text = file.name,
+        Row(
             modifier = Modifier
-                .padding(8.dp)
-                .weight(1F),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_folder),
+                contentDescription = "folder icon"
+            )
 
-        Icon(
-            painter = painterResource(id = R.drawable.ic_overflow),
-            contentDescription = "option menu"
-        )
+            Text(
+                text = file.name,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1F),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_overflow),
+                contentDescription = "option menu"
+            )
+        }
     }
+
 }
 
 @Composable
 private fun FileDocumentItemCard(
     file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
-            .background(Color.White)
-            .padding(8.dp)
             .fillMaxWidth()
             .clickable {
                 onPathChanged(file)
                 onAction("on_path_change", file.path)
-            }, verticalAlignment = Alignment.CenterVertically
+            },
+        elevation = 0.dp,
+        backgroundColor = Color.White
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_document),
-            contentDescription = "Document icon"
-        )
-
-        Text(
-            text = file.name,
+        Row(
             modifier = Modifier
-                .padding(8.dp)
-                .weight(1F),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+                .background(Color.White)
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_document),
+                contentDescription = "Document icon"
+            )
 
-        Icon(
-            painter = painterResource(id = R.drawable.ic_overflow),
-            contentDescription = "option menu"
-        )
+            Text(
+                text = file.name,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1F),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_overflow),
+                contentDescription = "option menu"
+            )
+        }
     }
 }
 
 @Composable
 private fun CommitsScreen(commits: Resource<CommitsModel>) {
     when (commits) {
+
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -909,10 +927,9 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
 
                 Row(
                     modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_branch),
@@ -922,6 +939,7 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
                             .clickable {
 
                             }) {
@@ -950,8 +968,9 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
                             Divider(
                                 color = Color.Gray,
                                 modifier = Modifier
-                                    .padding(start = 6.dp, end = 6.dp)
-                                    .fillMaxWidth(0.7F)
+                                    .height(0.5.dp)
+                                    .padding(start = 72.dp, end = 6.dp)
+                                    .fillMaxWidth()
                                     .align(Alignment.End)
                             )
                         }
@@ -988,31 +1007,36 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            GlideImage(
-                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-                imageModel = {
-                    commit.author.avatar_url
-                }, // loading a network image using an URL.
-                modifier = Modifier
-                    .size(48.dp, 48.dp)
-                    .size(48.dp, 48.dp)
-                    .clip(CircleShape),
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.CenterStart,
-                    contentDescription = "Actor Avatar"
+            if (commit.author.avatar_url != null) {
+                GlideImage(
+                    failure = {
+                        // i dunno but this line didn't triggered when the state was failure
+                        painterResource(id = R.drawable.baseline_account_circle_24)
+                    },
+                    imageModel = {
+                        commit.author.avatar_url
+                    },
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.CenterStart,
+                        contentDescription = "Actor Avatar"
+                    )
                 )
-            )
-
-//            Image(
-//                painter = painterResource(id = R.drawable.baseline_person_24),
-//                contentDescription = "avatar icon",
-//                modifier = Modifier
-//                    .size(48.dp, 48.dp)
-//                    .size(48.dp, 48.dp)
-//                    .clip(CircleShape),
-//                contentScale = ContentScale.Crop,
-//            )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_account_circle_24),
+                    contentDescription = "avatar icon",
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -1056,21 +1080,31 @@ private fun ReleasesScreen(
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(releases.data!!) { index, release ->
-                    ReleaseItemCard(releasesModelItem = release, onCurrentSheetChanged)
-                    if (index < releases.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-                        )
+            if (releases.data!!.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(releases.data) { index, release ->
+                        ReleaseItemCard(releasesModelItem = release, onCurrentSheetChanged)
+                        if (index < releases.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No releases yet :)")
                 }
             }
         }
@@ -1262,13 +1296,13 @@ private fun ReleaseItemCard(
 
 @Composable
 private fun ReadMe() {
-    val webViewState = rememberWebViewState(url = "")
-    WebView(
-        state = webViewState,
-        //this later might be problem for play market upload
-        //onCreated = {it.settings.javaScriptEnabled = true},
-        captureBackPresses = true
-    )
+//    val webViewState = rememberWebViewState(url = "")
+//    WebView(
+//        state = webViewState,
+//        //this later might be problem for play market upload
+//        //onCreated = {it.settings.javaScriptEnabled = true},
+//        captureBackPresses = true
+//    )
 }
 
 @Composable
@@ -1277,6 +1311,7 @@ private fun ContributorsScreen(
     onItemClicked: (Int, String?, String?) -> Unit,
 ) {
     when (contributors) {
+
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1302,7 +1337,9 @@ private fun ContributorsScreen(
                     if (index < contributors.data.lastIndex) {
                         Divider(
                             color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            modifier = Modifier
+                                .padding(start = 74.dp)
+                                .fillMaxWidth()
                         )
                     }
                 }
@@ -1328,11 +1365,14 @@ private fun ContributorsItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onItemClicked(
-                    R.id.action_repositoryFragment_to_profileFragment, contributorsItem.login, null
-                )
-            })
+            .clickable(
+                onClick = {
+                    onItemClicked(
+                        R.id.action_repositoryFragment_to_profileFragment,
+                        contributorsItem.login,
+                        null
+                    )
+                })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
@@ -1358,10 +1398,12 @@ private fun ContributorsItemCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+            Column(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
                     text = contributorsItem.login,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
@@ -1751,11 +1793,14 @@ private fun TitleHeader(
                 mutableStateOf(false)
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp)
+            ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
