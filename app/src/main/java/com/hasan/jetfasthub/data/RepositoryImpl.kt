@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesMode
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
+import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
@@ -53,6 +54,12 @@ interface Repository {
         path: String,
         page: Int
     ): Response<CommitsModel>
+
+    suspend fun isWatchingRepo(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<RepoSubscriptionModel>
 
 }
 
@@ -145,6 +152,18 @@ class RepositoryImpl(private val context: Context) : Repository {
             branch = branch,
             path = path,
             page = page
+        )
+    }
+
+    override suspend fun isWatchingRepo(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<RepoSubscriptionModel> {
+        return RetrofitInstance(context).gitHubService.isWatchingRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo
         )
     }
 

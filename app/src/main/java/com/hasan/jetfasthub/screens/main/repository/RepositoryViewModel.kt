@@ -219,6 +219,38 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun isWatchingRepo(token: String, owner: String, repo: String){
+        viewModelScope.launch {
+            try {
+                repository.isWatchingRepo(
+                    token, owner, repo
+                ).let {isWatchingRepoResponse ->
+                    if(isWatchingRepoResponse.isSuccessful){
+                        _state.update {
+                            it.copy(
+                                isWatching = true
+                            )
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(
+                                isWatching = false
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(
+                        isWatching = false
+                    )
+                }
+            }
+        }
+    }
+
+
+
 }
 
 data class RepositoryScreenState(
@@ -230,7 +262,8 @@ data class RepositoryScreenState(
     val ReadmeHtml: Resource<String> = Resource.Loading(),
     val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
     val Branches: Resource<BranchModel> = Resource.Loading(),
-    val Commits: Resource<CommitsModel> = Resource.Loading()
+    val Commits: Resource<CommitsModel> = Resource.Loading(),
+    val isWatching: Boolean = false
 )
 
 sealed interface BottomSheetScreens {

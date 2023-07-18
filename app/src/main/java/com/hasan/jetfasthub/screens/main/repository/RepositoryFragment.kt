@@ -899,7 +899,7 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 Text(text = buildAnnotatedString {
                     append(commit.author.login)
                     append(" ")
-                    append(ParseDateFormat.getDateFromString(commit.commit.author.date).toString())
+                    append(ParseDateFormat.getTimeAgo(commit.commit.author.date).toString())
                 })
 
             }
@@ -1114,7 +1114,7 @@ private fun ReleaseItemCard(
                         }
                         append(" ")
                         append(
-                            ParseDateFormat.getDateFromString(releasesModelItem.created_at)
+                            ParseDateFormat.getTimeAgo(releasesModelItem.created_at)
                                 .toString()
                         )
                     },
@@ -1815,7 +1815,8 @@ private fun Toolbar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(0.dp)
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {  }) {
+
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = "Watch"
