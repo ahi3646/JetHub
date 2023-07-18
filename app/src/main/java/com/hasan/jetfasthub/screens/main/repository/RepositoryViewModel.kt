@@ -1,9 +1,6 @@
 package com.hasan.jetfasthub.screens.main.repository
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
@@ -26,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okio.EOFException
 
 class RepositoryViewModel(private val repository: Repository) : ViewModel() {
 
@@ -260,21 +258,21 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun changeSubscriptionStatus(status: Boolean) {
-        _state.update {
-            it.copy(
-                isWatching = status
-            )
-        }
-    }
-
-    fun changeStarringStatus(status: Boolean) {
-        _state.update {
-            it.copy(
-                isStarring = status
-            )
-        }
-    }
+//    fun changeSubscriptionStatus(status: Boolean) {
+//        _state.update {
+//            it.copy(
+//                isWatching = status
+//            )
+//        }
+//    }
+//
+//    fun changeStarringStatus(status: Boolean) {
+//        _state.update {
+//            it.copy(
+//                isStarring = status
+//            )
+//        }
+//    }
 
     fun watchRepo(token: String, owner: String, repo: String): Flow<RepoSubscriptionModel> =
         callbackFlow {
@@ -284,6 +282,9 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                         token, owner, repo
                     ).let { watchRepoResponse ->
                         if (watchRepoResponse.isSuccessful) {
+                            _state.update {
+                                it.copy(isWatching = true)
+                            }
                             trySend(watchRepoResponse.body()!!)
                         } else {
                             trySend(watchRepoResponse.body()!!)
@@ -307,6 +308,9 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                         token, owner, repo
                     ).let { watchRepoResponse ->
                         if (watchRepoResponse.code() == 204) {
+                            _state.update {
+                                it.copy(isWatching = false)
+                            }
                             trySend(true)
                         } else {
                             trySend(false)
@@ -412,6 +416,9 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             try {
                 repository.starRepo(token, owner, repo).let { response ->
                     if (response.code() == 204) {
+                        _state.update {
+                            it.copy(isStarring = true)
+                        }
                         trySend(true)
                     } else {
                         trySend(false)
@@ -432,6 +439,9 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             try {
                 repository.unStarRepo(token, owner, repo).let { response ->
                     if (response.code() == 204) {
+                        _state.update {
+                            it.copy(isStarring = false)
+                        }
                         trySend(true)
                     } else {
                         trySend(false)
@@ -477,6 +487,36 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun forkRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.forkRepo(token, owner, repo).let { response ->
+                    if(response.code() == 202){
+                        _state.update {
+                            it.copy(hasForked = true)
+                        }
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("ahi3646", "forkRepo: ${e.message} ")
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "forkRepo: channel closed ")
+        }
+    }
+
+    fun changeForkedStatus(status: Boolean){
+        _state.update {
+            it.copy(hasForked = status)
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -493,12 +533,18 @@ data class RepositoryScreenState(
     val Watchers: Resource<SubscriptionsModel> = Resource.Loading(),
     val Stargazers: Resource<StargazersModel> = Resource.Loading(),
     val isStarring: Boolean = false,
-    val Forks: Resource<ForksModel> = Resource.Loading()
+    val Forks: Resource<ForksModel> = Resource.Loading(),
+    val hasForked: Boolean = false
 )
 
 sealed interface BottomSheetScreens {
+
     object RepositoryInfoSheet : BottomSheetScreens
+
     class ReleaseItemSheet(val releaseItem: ReleasesModelItem) : BottomSheetScreens
+
+    object ForkSheet: BottomSheetScreens
+
 }
 
 interface RepositoryScreens {

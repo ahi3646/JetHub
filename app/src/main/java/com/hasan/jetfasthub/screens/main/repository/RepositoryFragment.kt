@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -175,6 +176,10 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo, page = 1
         )
 
+//        repositoryViewModel.getForks(
+//            token = token, repo = repo, owner = owner
+//        )
+
         repositoryViewModel.getContentFiles(
             token = token, owner = owner, repo = repo, path = "", ref = "main"
         )
@@ -272,7 +277,7 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.watchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        repositoryViewModel.changeSubscriptionStatus(it.subscribed)
+                                        //repositoryViewModel.changeSubscriptionStatus(it.subscribed)
                                         if (it.subscribed) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
@@ -285,7 +290,7 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.unwatchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        repositoryViewModel.changeSubscriptionStatus(!it)
+                                        //repositoryViewModel.changeSubscriptionStatus(!it)
                                         if (it) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
@@ -299,7 +304,7 @@ class RepositoryFragment : Fragment() {
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                         if (it) {
-                                            repositoryViewModel.changeStarringStatus(true)
+                                            //repositoryViewModel.changeStarringStatus(true)
                                             Toast.makeText(
                                                 requireContext(),
                                                 "You starred repo",
@@ -323,7 +328,7 @@ class RepositoryFragment : Fragment() {
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                         if (it) {
-                                            repositoryViewModel.changeStarringStatus(false)
+                                            //repositoryViewModel.changeStarringStatus(false)
                                             Toast.makeText(
                                                 requireContext(),
                                                 "You unstarred repo",
@@ -341,6 +346,26 @@ class RepositoryFragment : Fragment() {
                                         }
                                     }.launchIn(lifecycleScope)
                                 }
+
+                                "fork_repo" -> {
+                                    repositoryViewModel.forkRepo(token, owner, repo)
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            Log.d("ahi3646", "onCreateView: fork repo $it")
+                                            if (it) {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "You forked this repository!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                repositoryViewModel.getRepo(
+                                                    token = token, owner = owner, repo = repo
+                                                )
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
                             }
                         },
                     )
@@ -389,33 +414,92 @@ private fun MainContent(
                         state = state,
                     )
                 }
+
+                BottomSheetScreens.ForkSheet -> {
+                    Column(
+                        Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Fork"
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = buildAnnotatedString {
+                                append("Fork")
+                                append(" ")
+                                append(state.repo.data?.full_name)
+                            }
+                        )
+
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(onClick = {
+                                closeSheet()
+                                if(state.hasForked){
+                                    onAction("fork_repo", null)
+                                }
+                            }) {
+                                Text(text = "YES")
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Button(onClick = {
+                                closeSheet()
+                            }) {
+                                Text(text = "NO")
+                            }
+                        }
+                    }
+                }
             }
         },
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { sheetPadding ->
-        Scaffold(modifier = Modifier.padding(sheetPadding), topBar = {
-            Column(Modifier.fillMaxWidth()) {
-                TitleHeader(state = state.repo,
-                    onItemClicked = onItemClicked,
-                    onCurrentSheetChanged = {
-                        onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
-                        scope.launch {
-                            if (sheetState.isCollapsed) {
-                                sheetState.expand()
-                            } else {
-                                sheetState.collapse()
+        Scaffold(
+            modifier = Modifier.padding(sheetPadding),
+            topBar = {
+                Column(Modifier.fillMaxWidth()) {
+                    TitleHeader(
+                        state = state.repo,
+                        onItemClicked = onItemClicked,
+                        onCurrentSheetChanged = {
+                            onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
+                            scope.launch {
+                                if (sheetState.isCollapsed) {
+                                    sheetState.expand()
+                                } else {
+                                    sheetState.collapse()
+                                }
                             }
                         }
-                    })
-                Toolbar(
-                    state = state, onItemClicked = onItemClicked, onAction = onAction
-                )
-            }
-        }, bottomBar = {
-            BottomNav(onBottomBarClicked, state.repo)
-        }) { paddingValues ->
+                    )
+                    Toolbar(
+                        state = state,
+                        onItemClicked = onItemClicked,
+                        onAction = onAction,
+                        onCurrentSheetChanged = {
+                            onCurrentSheetChanged(BottomSheetScreens.ForkSheet)
+                            scope.launch {
+                                if (sheetState.isCollapsed) {
+                                    sheetState.expand()
+                                } else {
+                                    sheetState.collapse()
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            bottomBar = {
+                BottomNav(onBottomBarClicked, state.repo)
+            }) { paddingValues ->
 
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(
@@ -1812,7 +1896,8 @@ private fun TitleHeader(
 private fun Toolbar(
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     when (state.repo) {
@@ -1974,10 +2059,13 @@ private fun Toolbar(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            onCurrentSheetChanged()
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = if (state.hasForked) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.forks_count.toString())
