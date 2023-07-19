@@ -3,6 +3,9 @@ package com.hasan.jetfasthub.networking
 import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializer
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.File
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.Files
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,7 +22,24 @@ class RetrofitInstance(context: Context) {
             //.addInterceptor(AuthenticationInterceptor())
             .addInterceptor(logging).build()
 
+        val deserializer: JsonDeserializer<Files> =
+            JsonDeserializer<Files> { json, typeOfT, context ->
+                val jsonObject = json.asJsonObject
+                val file = File(
+                    jsonObject["filename"].asString,
+                    jsonObject["language"].asString,
+                    jsonObject["raw_url"].asString,
+                    jsonObject["size"].asInt,
+                    jsonObject["type"].asString,
+
+                    )
+                Files(
+                    file
+                )
+            }
+
         val gson = GsonBuilder()
+            .registerTypeAdapter(Files::class.java, deserializer)
             .setLenient()
             .create()
 

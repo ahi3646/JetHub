@@ -98,7 +98,6 @@ import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
-import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -132,6 +131,7 @@ class RepositoryFragment : Fragment() {
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
         )
+
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
         ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
@@ -170,13 +170,10 @@ class RepositoryFragment : Fragment() {
         repositoryViewModel.getContributors(
             token = token, owner = owner, repo = repo, page = 1
         )
+
         repositoryViewModel.getReleases(
             token = token, owner = owner, repo = repo, page = 1
         )
-
-//        repositoryViewModel.getForks(
-//            token = token, repo = repo, owner = owner
-//        )
 
         repositoryViewModel.getContentFiles(
             token = token, owner = owner, repo = repo, path = "", ref = "main"
@@ -218,6 +215,7 @@ class RepositoryFragment : Fragment() {
                         },
                         onAction = { action, data ->
                             when (action) {
+
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -359,6 +357,10 @@ class RepositoryFragment : Fragment() {
                                         .launchIn(lifecycleScope)
                                 }
 
+                                "on_branch_change" -> {
+
+                                }
+
                             }
                         },
                     )
@@ -395,6 +397,7 @@ private fun MainContent(
     BottomSheetScaffold(
         sheetContent = {
             when (state.currentSheet) {
+
                 is BottomSheetScreens.ReleaseItemSheet -> {
                     ReleaseInfoSheet(
                         releaseItem = state.currentSheet.releaseItem, closeSheet = closeSheet
@@ -493,7 +496,6 @@ private fun MainContent(
             bottomBar = {
                 BottomNav(onBottomBarClicked, state.repo)
             }) { paddingValues ->
-
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(
                     paddingValues = paddingValues,
@@ -564,9 +566,7 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 }
 
 @Composable
-private fun RepositoryInfoSheet(
-    state: RepositoryScreenState, closeSheet: () -> Unit
-) {
+private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> Unit) {
     val repository = state.repo
     if (repository.data != null) {
         Column(
@@ -609,8 +609,8 @@ private fun CodeScreen(
     onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
-    val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
     var tabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("README", "FILES", "COMMITS", "RELEASE", "CONTRIBUTORS")
 
     Column(
         modifier = Modifier
@@ -628,9 +628,9 @@ private fun CodeScreen(
                     onClick = { tabIndex = index },
                     text = {
                         if (tabIndex == index) {
-                            androidx.compose.material3.Text(title, color = Color.Blue)
+                            Text(title, color = Color.Blue)
                         } else {
-                            androidx.compose.material3.Text(title, color = Color.Black)
+                            Text(title, color = Color.Black)
                         }
                     },
                 )
@@ -638,7 +638,7 @@ private fun CodeScreen(
         }
         when (tabIndex) {
             0 -> ReadMe()
-            1 -> FilesScreen(state.RepositoryFiles, onAction)
+            1 -> FilesScreen(state, onAction)
             2 -> CommitsScreen(state.Commits)
             3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
@@ -648,11 +648,11 @@ private fun CodeScreen(
 
 @Composable
 private fun FilesScreen(
-    state: Resource<FilesModel>,
+    state: RepositoryScreenState,
     onAction: (String, String?) -> Unit,
 ) {
 
-    when (state) {
+    when (state.RepositoryFiles) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -664,6 +664,93 @@ private fun FilesScreen(
         }
 
         is Resource.Success -> {
+            val files = state.RepositoryFiles
+            val branches = state.Branches.data!!
+
+            val branchesList = arrayListOf<String>()
+            branches.forEach {
+                branchesList.add(it.name)
+            }
+
+            val initialBranch = if (branchesList.isNotEmpty()) {
+                if (branchesList.contains("main")) {
+                    "main"
+                } else if (branchesList.contains("master")) {
+                    "master"
+                } else {
+                    branchesList[0]
+                }
+            } else {
+                "main"
+            }
+
+            var isDialogShown by remember {
+                mutableStateOf(false)
+            }
+
+            if (isDialogShown) {
+                Dialog(
+                    onDismissRequest = { isDialogShown = false },
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = true,
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = false
+                    )
+                ) {
+                    Card(
+                        elevation = 5.dp,
+                        shape = RoundedCornerShape(15.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.90f)
+                            .fillMaxHeight(0.33f)
+                            .border(1.dp, color = Color.Black, shape = RoundedCornerShape(15.dp))
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Releases",
+                                modifier = Modifier.padding(16.dp),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            LazyColumn {
+                                itemsIndexed(branchesList) { index, branch ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                //downloader.download(release)
+                                            }, elevation = 0.dp
+                                    ) {
+                                        Text(
+                                            text = branch,
+                                            fontSize = 18.sp,
+                                            modifier = Modifier.padding(
+                                                start = 16.dp,
+                                                end = 16.dp,
+                                                top = 12.dp,
+                                                bottom = 12.dp
+                                            )
+                                        )
+                                    }
+                                    if (index < branchesList.lastIndex) {
+                                        Divider(
+                                            color = Color.Gray,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(0.5.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             val paths = remember {
                 mutableListOf<FileModel>()
@@ -691,17 +778,20 @@ private fun FilesScreen(
                             .fillMaxWidth()
                             .padding(start = 4.dp)
                             .clickable {
+                                //onAction("on_branch_change", initialBranch)
+                                isDialogShown = true
 
                             }) {
                         Text(
-                            text = "Here should be branch of repositories",
+                            text = initialBranch,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
                         Spacer(Modifier.weight(1F))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                            contentDescription = "dropdown"
+                            contentDescription = "dropdown",
+                            modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
@@ -758,7 +848,7 @@ private fun FilesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    items(state.data!!) { file ->
+                    items(files.data!!) { file ->
                         when (file.type) {
                             "dir" -> {
                                 FileFolderItemCard(file = file,
@@ -952,7 +1042,7 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
                         Spacer(Modifier.weight(1F))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                            contentDescription = "dropdown"
+                            contentDescription = "dropdown",
                         )
                     }
                 }
@@ -1010,24 +1100,24 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 .padding(8.dp)
         ) {
             Log.d("ahi3646", "CommitsItem: ${commit.author.avatar_url} - ${commit.author}")
-                GlideImage(
-                    failure = {
-                        // i dunno but this line didn't triggered when the state was failure
-                        painterResource(id = R.drawable.baseline_account_circle_24)
-                    },
-                    imageModel = {
-                        commit.author.avatar_url
-                    },
-                    modifier = Modifier
-                        .size(48.dp, 48.dp)
-                        .size(48.dp, 48.dp)
-                        .clip(CircleShape),
-                    imageOptions = ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.CenterStart,
-                        contentDescription = "Actor Avatar"
-                    )
+            GlideImage(
+                failure = {
+                    // i dunno but this line didn't triggered when the state was failure
+                    painterResource(id = R.drawable.baseline_account_circle_24)
+                },
+                imageModel = {
+                    commit.author.avatar_url
+                },
+                modifier = Modifier
+                    .size(48.dp, 48.dp)
+                    .size(48.dp, 48.dp)
+                    .clip(CircleShape),
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
                 )
+            )
 
 //                Image(
 //                    painter = painterResource(id = R.drawable.baseline_account_circle_24),

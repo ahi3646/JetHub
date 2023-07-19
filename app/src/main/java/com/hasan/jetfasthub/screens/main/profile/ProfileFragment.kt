@@ -57,6 +57,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -142,10 +144,10 @@ class ProfileFragment : Fragment() {
 
         return ComposeView(requireContext()).apply {
             setContent {
+
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(
-                        startIndex = startIndex,
+                    MainContent(startIndex = startIndex,
                         username = username,
                         state = state,
                         onAction = { action, data ->
@@ -162,9 +164,7 @@ class ProfileFragment : Fragment() {
                                     intent.putExtra(Intent.EXTRA_TEXT, "https://github.com/$data")
 
                                     ContextCompat.startActivity(
-                                        context,
-                                        Intent.createChooser(intent, shareWith),
-                                        null
+                                        context, Intent.createChooser(intent, shareWith), null
                                     )
                                 }
 
@@ -175,8 +175,7 @@ class ProfileFragment : Fragment() {
                                         webpage = Uri.parse("http://$data")
                                     }
                                     val urlIntent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        webpage
+                                        Intent.ACTION_VIEW, webpage
                                     )
                                     requireContext().startActivity(urlIntent)
                                 }
@@ -190,8 +189,7 @@ class ProfileFragment : Fragment() {
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
                                             Log.d("ahi3646", "onCreateView block: $it ")
-                                        }
-                                        .launchIn(lifecycleScope)
+                                        }.launchIn(lifecycleScope)
                                 }
 
                                 "unblock" -> {
@@ -199,14 +197,22 @@ class ProfileFragment : Fragment() {
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
                                             Log.d("ahi3646", "onCreateView unblock: $it ")
-                                        }
-                                        .launchIn(lifecycleScope)
+                                        }.launchIn(lifecycleScope)
                                 }
                             }
                         },
                         onNavigate = { dest, data ->
                             if (dest == -1) {
                                 findNavController().popBackStack()
+                            } else if (dest == 0) {
+                                val bundle = Bundle()
+                                if (data != null) {
+                                    bundle.putString("home_data", data)
+                                }
+                                findNavController().navigate(
+                                    R.id.action_profileFragment_self,
+                                    bundle
+                                )
                             } else {
                                 val bundle = Bundle()
                                 if (data != null) {
@@ -223,8 +229,7 @@ class ProfileFragment : Fragment() {
                                     } else {
                                         Log.d("ahi3646", "onCreateView follow: onEach - false ")
                                     }
-                                }
-                                .launchIn(lifecycleScope)
+                                }.launchIn(lifecycleScope)
                         },
                         onUnfollowClicked = {
                             profileViewModel.unfollowUser(token, username)
@@ -234,10 +239,8 @@ class ProfileFragment : Fragment() {
                                     } else {
                                         Log.d("ahi3646", "onCreateView unfollow: onEach - false ")
                                     }
-                                }
-                                .launchIn(lifecycleScope)
-                        }
-                    )
+                                }.launchIn(lifecycleScope)
+                        })
                 }
             }
         }
@@ -262,60 +265,55 @@ private fun MainContent(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        color = Color.Black,
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 10.dp),
-                        text = username,
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                },
-                navigationIcon = {
+            TopAppBar(title = {
+                Text(
+                    color = Color.Black,
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    text = username,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }, navigationIcon = {
+                IconButton(onClick = {
+                    onNavigate(-1, null)
+                }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                }
+            }, actions = {
+                IconButton(onClick = {
+                    onAction("share", username)
+                }) {
+                    Icon(Icons.Filled.Share, contentDescription = "Share")
+                }
+
+                if (username != authUser) {
                     IconButton(onClick = {
-                        onNavigate(-1, null)
+                        onAction("isUserBlocked", username)
+                        showMenu = !showMenu
                     }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        onAction("share", username)
-                    }) {
-                        Icon(Icons.Filled.Share, contentDescription = "Share")
-                    }
-
-                    if (username != authUser) {
-                        IconButton(onClick = {
-                            onAction("isUserBlocked", username)
-                            showMenu = !showMenu
-                        }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "more option")
-                        }
-                    }
-
-                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-
-                        if (state.isUserBlocked) {
-                            DropdownMenuItem(onClick = {
-                                onAction("unblock", username)
-                                showMenu = false
-                            }) {
-                                Text(text = "Unblock")
-                            }
-                        } else {
-                            DropdownMenuItem(onClick = {
-                                onAction("block", username)
-                                showMenu = false
-                            }) {
-                                Text(text = "Block")
-                            }
-                        }
-
+                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
                     }
                 }
-            )
+
+                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+
+                    if (state.isUserBlocked) {
+                        DropdownMenuItem(onClick = {
+                            onAction("unblock", username)
+                            showMenu = false
+                        }) {
+                            Text(text = "Unblock")
+                        }
+                    } else {
+                        DropdownMenuItem(onClick = {
+                            onAction("block", username)
+                            showMenu = false
+                        }) {
+                            Text(text = "Block")
+                        }
+                    }
+
+                }
+            })
         },
     ) { contentPadding ->
         TabScreen(
@@ -343,7 +341,7 @@ fun TabScreen(
     onUnfollowClicked: () -> Unit,
 ) {
 
-    var tabIndex by remember { mutableStateOf(startIndex) }
+    var tabIndex by remember { mutableIntStateOf(startIndex) }
     val tabs =
         listOf("OVERVIEW", "FEED", "REPOSITORIES", "STARRED", "GISTS", "FOLLOWERS", "FOLLOWING")
 
@@ -442,7 +440,7 @@ fun OverviewScreen(
         }
 
         is UserOverviewScreen.Content -> {
-            var offset by remember { mutableStateOf(0f) }
+            var offset by remember { mutableFloatStateOf(0f) }
 
             Column(
                 modifier = Modifier
@@ -521,10 +519,9 @@ fun OverviewScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
 
-                    Box(modifier = Modifier
-                        .clickable {
-                            onTabChange(6)
-                        }) {
+                    Box(modifier = Modifier.clickable {
+                        onTabChange(6)
+                    }) {
                         Text(
                             text = "Following - ${overviewScreenState.user.following}",
                             modifier = Modifier.padding(8.dp)
@@ -538,14 +535,12 @@ fun OverviewScreen(
                             .width(2.dp),
                     )
 
-                    Box(modifier = Modifier
-                        .clickable {
-                            onTabChange(5)
-                        }) {
+                    Box(modifier = Modifier.clickable {
+                        onTabChange(5)
+                    }) {
                         Text(
                             text = "Followers - ${overviewScreenState.user.followers}",
-                            modifier = Modifier
-                                .padding(12.dp)
+                            modifier = Modifier.padding(12.dp)
                         )
                     }
                 }
@@ -642,14 +637,11 @@ fun OverviewScreen(
                             painter = painterResource(id = R.drawable.ic_email),
                             contentDescription = "Email"
                         )
-                        Text(
-                            text = overviewScreenState.user.email.toString(),
+                        Text(text = overviewScreenState.user.email.toString(),
                             modifier = Modifier
                                 .padding(start = 16.dp)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
+                                .clickable(indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }) {
                                     onAction("share", overviewScreenState.user.email.toString())
                                 },
                             color = Color.Blue
@@ -678,12 +670,10 @@ fun OverviewScreen(
                             painter = painterResource(id = R.drawable.ic_insert_link),
                             contentDescription = "Corporation"
                         )
-                        Text(
-                            text = overviewScreenState.user.blog.toString(),
+                        Text(text = overviewScreenState.user.blog.toString(),
                             modifier = Modifier
                                 .padding(start = 16.dp)
-                                .clickable(
-                                    indication = null,
+                                .clickable(indication = null,
                                     interactionSource = remember { MutableInteractionSource() }) {
                                     onAction("browser", overviewScreenState.user.blog.toString())
                                 },
@@ -800,18 +790,15 @@ fun OverviewScreen(
 
 @Composable
 fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> Unit) {
-    Column(
-        verticalArrangement = Arrangement.Center,
+    Column(verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(4.dp)
             .clickable {
                 onNavigate(
-                    R.id.action_profileFragment_to_organisationsFragment,
-                    organisation.login
+                    R.id.action_profileFragment_to_organisationsFragment, organisation.login
                 )
-            }
-    ) {
+            }) {
 
         GlideImage(
             imageModel = { organisation.avatar_url }, // loading a network image using an URL.
@@ -1042,8 +1029,7 @@ fun RepositoryItem(
                         if (repository.fork) {
                             withStyle(
                                 style = SpanStyle(
-                                    color = Color.Blue,
-                                    fontWeight = FontWeight.Bold
+                                    color = Color.Blue, fontWeight = FontWeight.Bold
                                 )
                             ) {
                                 append("Forked / ")
@@ -1194,8 +1180,7 @@ fun StarredRepositoryItem(
                         if (repository.fork) {
                             withStyle(
                                 style = SpanStyle(
-                                    color = Color.Blue,
-                                    fontWeight = FontWeight.Bold
+                                    color = Color.Blue, fontWeight = FontWeight.Bold
                                 )
                             ) {
                                 append("Forked / ")
@@ -1285,7 +1270,8 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
         }
 
         is Resource.Success -> {
-            if (!gists.data!!.isEmpty()) {
+            Log.d("ahi3646", "GistsScreen: ${gists.data!!}")
+            if (!gists.data.isEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1314,8 +1300,7 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "No gists",
-                        textAlign = TextAlign.Center
+                        text = "No gists", textAlign = TextAlign.Center
                     )
                 }
             }
@@ -1335,7 +1320,8 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
 
 @Composable
 fun GistItemCard(
-    gistModelItem: GistModelItem, onGistItemClick: (Int, String) -> Unit
+    gistModelItem: GistModelItem,
+    onGistItemClick: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -1352,12 +1338,16 @@ fun GistItemCard(
 
         ) {
 
+            Log.d(
+                "ahi3646",
+                "GistItemCard: $gistModelItem \n ${gistModelItem.files} \n ${gistModelItem.files.file.filename}  "
+            )
+
             Text(
-                text = gistModelItem.description,
+                text = "gistModelItem.files.hello_world_rb.filename ?: ",
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
                 fontSize = 18.sp,
-                style = androidx.compose.material.MaterialTheme.typography.subtitle2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

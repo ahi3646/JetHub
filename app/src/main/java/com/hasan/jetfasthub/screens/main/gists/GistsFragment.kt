@@ -35,7 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -94,7 +94,7 @@ class GistsFragment : Fragment() {
                     MainContent(
                         state = state,
                         onNavigate = { dest, data ->
-                            if (dest==-1){
+                            if (dest == -1) {
                                 findNavController().popBackStack()
                             }
                             Log.d("ahi3646", "onCreateView: $dest , $data ")
@@ -126,7 +126,7 @@ private fun TabScreen(
     onRecyclerItemClick: (Int, String?) -> Unit
 ) {
 
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
     val tabs =
         listOf("MY GISTS", "STARRED", "PUBLIC GISTS")
 
@@ -248,19 +248,18 @@ fun GistItemCard(
 
         ) {
 
-            androidx.compose.material.Text(
-                text = gistModelItem.description,
+            Text(
+                text = "gistModelItem.files.hello_world_rb.filename",
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
                 fontSize = 18.sp,
-                style = androidx.compose.material.MaterialTheme.typography.subtitle2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            androidx.compose.material.Text(
+            Text(
                 text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
                 color = Color.Black,
                 modifier = Modifier.padding(start = 2.dp)
@@ -571,7 +570,10 @@ private fun TopAppBarContent(
             IconButton(onClick = {
                 onBackPressed(-1, null)
             }) {
-                Icon(painter = painterResource(id = R.drawable.ic_back), contentDescription = "Back button")
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_back),
+                    contentDescription = "Back button"
+                )
             }
 
             Text(

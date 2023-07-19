@@ -133,6 +133,16 @@
             app:popUpTo="@id/profileFragment"
             app:destination="@id/organisationsFragment" />
 
+        <action
+            android:id="@+id/action_profileFragment_self"
+            app:popUpTo="@id/homeFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"
+            app:destination="@id/profileFragment" />
+
     </fragment>
 
     <fragment
@@ -280,6 +290,7 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
             app:popUpToInclusive="false"/>
+
         <action
             android:id="@+id/action_repositoryFragment_self"
             app:popUpTo="@id/homeFragment"
