@@ -218,7 +218,6 @@ class RepositoryFragment : Fragment() {
                         },
                         onAction = { action, data ->
                             when (action) {
-
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -678,6 +677,7 @@ private fun FilesScreen(
 
                 Row(
                     modifier = Modifier
+                        .padding(start = 18.dp, end = 8.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -685,19 +685,20 @@ private fun FilesScreen(
                         painter = painterResource(id = R.drawable.ic_branch),
                         contentDescription = "branch icon"
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
+                            .padding(start = 4.dp)
                             .clickable {
 
                             }) {
                         Text(
                             text = "Here should be branch of repositories",
                             textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
+                        Spacer(Modifier.weight(1F))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dropdown_icon),
                             contentDescription = "dropdown"
@@ -927,27 +928,28 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
 
                 Row(
                     modifier = Modifier
+                        .padding(start = 18.dp, end = 8.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_branch),
                         contentDescription = "branch icon"
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
+                            .padding(start = 4.dp)
                             .clickable {
 
                             }) {
                         Text(
                             text = "Here should be branch of repositories",
                             textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
+                        Spacer(Modifier.weight(1F))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dropdown_icon),
                             contentDescription = "dropdown"
@@ -1007,7 +1009,7 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            if (commit.author.avatar_url != null) {
+            Log.d("ahi3646", "CommitsItem: ${commit.author.avatar_url} - ${commit.author}")
                 GlideImage(
                     failure = {
                         // i dunno but this line didn't triggered when the state was failure
@@ -1026,17 +1028,16 @@ private fun CommitsItem(commit: CommitsModelItem) {
                         contentDescription = "Actor Avatar"
                     )
                 )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_account_circle_24),
-                    contentDescription = "avatar icon",
-                    modifier = Modifier
-                        .size(48.dp, 48.dp)
-                        .size(48.dp, 48.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
-            }
+
+//                Image(
+//                    painter = painterResource(id = R.drawable.baseline_account_circle_24),
+//                    contentDescription = "avatar icon",
+//                    modifier = Modifier
+//                        .size(48.dp, 48.dp)
+//                        .size(48.dp, 48.dp)
+//                        .clip(CircleShape),
+//                    contentScale = ContentScale.Crop,
+//                )
 
             Spacer(modifier = Modifier.width(16.dp))
 
