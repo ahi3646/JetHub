@@ -1340,228 +1340,227 @@ fun GistItemCard(
 
             Log.d(
                 "ahi3646",
-                "GistItemCard: $gistModelItem \n ${gistModelItem.files} \n ${gistModelItem.files.file.filename}  "
-            )
+                "GistItemCard: ${gistModelItem.files.file} ")
 
-            Text(
-                text = "gistModelItem.files.hello_world_rb.filename ?: ",
-                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                color = Color.Black,
-                fontSize = 18.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+                    Text(
+                        text = "gistModelItem.files.hello_world_rb.filename ?: ",
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer (modifier = Modifier.height(8.dp))
 
-            Text(
-                text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
-                color = Color.Black,
-                modifier = Modifier.padding(start = 2.dp)
-            )
+                            Text (
+                            text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
+                    color = Color.Black,
+                    modifier = Modifier.padding(start = 2.dp)
+                    )
 
+                }
         }
     }
-}
 
-@Composable
-fun FollowersScreen(
-    userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (Int, String) -> Unit
-) {
-    when (userFollowers) {
-        is Resource.Loading -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...")
+    @Composable
+    fun FollowersScreen(
+        userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (Int, String) -> Unit
+    ) {
+        when (userFollowers) {
+            is Resource.Loading -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Loading ...")
+                }
             }
-        }
 
-        is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
-                    FollowersItemCard(
-                        StarredUserRepo, onItemClicked = onFollowersItemClicked
-                    )
-                    if (index < userFollowers.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            is Resource.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
+                        FollowersItemCard(
+                            StarredUserRepo, onItemClicked = onFollowersItemClicked
                         )
+                        if (index < userFollowers.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        is Resource.Failure -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong !")
-            }
-        }
-    }
-}
-
-@Composable
-private fun FollowersItemCard(
-    followersModelItem: FollowersModelItem, onItemClicked: (Int, String) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = {
-                onItemClicked(0, followersModelItem.login)
-            })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(6.dp)
-        ) {
-            GlideImage(
-                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-                imageModel = {
-                    followersModelItem.avatar_url
-                }, // loading a network image using an URL.
-                modifier = Modifier
-                    .size(48.dp, 48.dp)
-                    .size(48.dp, 48.dp)
-                    .clip(CircleShape),
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.CenterStart,
-                    contentDescription = "Actor Avatar"
-                )
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-                Text(
-                    text = followersModelItem.login,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-            }
-        }
-    }
-}
-
-@Composable
-fun FollowingScreen(
-    userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (Int, String) -> Unit
-) {
-    when (userFollowings) {
-        is Resource.Loading -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...")
-            }
-        }
-
-        is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
-                    FollowingsItemCard(
-                        StarredUserRepo, onItemClicked = onFollowingsItemClicked
-                    )
-                    if (index < userFollowings.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-                        )
-                    }
+            is Resource.Failure -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Something went wrong !")
                 }
             }
         }
-
-        is Resource.Failure -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong!")
-            }
-        }
     }
-}
 
-@Composable
-fun FollowingsItemCard(
-    followingModelItem: FollowingModelItem, onItemClicked: (Int, String) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = {
-                onItemClicked(0, followingModelItem.login)
-            })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+    @Composable
+    private fun FollowersItemCard(
+        followersModelItem: FollowersModelItem, onItemClicked: (Int, String) -> Unit
     ) {
-        Row(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp)
+                .clickable(onClick = {
+                    onItemClicked(0, followersModelItem.login)
+                })
+                .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
         ) {
-            GlideImage(
-                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-                imageModel = {
-                    followingModelItem.avatar_url
-                }, // loading a network image using an URL.
+            Row(
                 modifier = Modifier
-                    .size(48.dp, 48.dp)
-                    .size(48.dp, 48.dp)
-                    .clip(CircleShape),
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.CenterStart,
-                    contentDescription = "Actor Avatar"
-                )
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-                Text(
-                    text = followingModelItem.login,
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    style = androidx.compose.material.MaterialTheme.typography.subtitle1,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    .fillMaxWidth()
+                    .padding(6.dp)
+            ) {
+                GlideImage(
+                    failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                    imageModel = {
+                        followersModelItem.avatar_url
+                    }, // loading a network image using an URL.
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.CenterStart,
+                        contentDescription = "Actor Avatar"
+                    )
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
+                Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Text(
+                        text = followersModelItem.login,
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                }
             }
         }
     }
-}
+
+    @Composable
+    fun FollowingScreen(
+        userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (Int, String) -> Unit
+    ) {
+        when (userFollowings) {
+            is Resource.Loading -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Loading ...")
+                }
+            }
+
+            is Resource.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
+                        FollowingsItemCard(
+                            StarredUserRepo, onItemClicked = onFollowingsItemClicked
+                        )
+                        if (index < userFollowings.data.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            is Resource.Failure -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Something went wrong!")
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun FollowingsItemCard(
+        followingModelItem: FollowingModelItem, onItemClicked: (Int, String) -> Unit
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = {
+                    onItemClicked(0, followingModelItem.login)
+                })
+                .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp)
+            ) {
+                GlideImage(
+                    failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                    imageModel = {
+                        followingModelItem.avatar_url
+                    }, // loading a network image using an URL.
+                    modifier = Modifier
+                        .size(48.dp, 48.dp)
+                        .size(48.dp, 48.dp)
+                        .clip(CircleShape),
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.CenterStart,
+                        contentDescription = "Actor Avatar"
+                    )
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Text(
+                        text = followingModelItem.login,
+                        modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                        color = Color.Black,
+                        style = androidx.compose.material.MaterialTheme.typography.subtitle1,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                }
+            }
+        }
+    }

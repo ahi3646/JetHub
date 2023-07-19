@@ -1208,7 +1208,7 @@ private fun ReleasesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "No releases yet :)")
+                    Text(text = "No releases !")
                 }
             }
         }

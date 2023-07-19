@@ -51,6 +51,12 @@ android {
 
 dependencies {
 
+    //jackson
+//    implementation 'com.squareup.retrofit2:converter-jackson:2.7.2'
+//    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
+//    implementation 'com.fasterxml.jackson.core:jackson-core:2.11.1'
+//    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.11.1'
+
     //tablayout
     implementation 'com.google.accompanist:accompanist-pager:0.13.0'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.13.0'
