@@ -10,6 +10,16 @@
         android:label="JetHub" >
 
         <action
+            android:id="@+id/action_homeFragment_to_repositoryFragment"
+            app:launchSingleTop="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@id/homeFragment"
+            app:destination="@id/repositoryFragment" />
+
+        <action
             android:id="@+id/action_homeFragment_to_profileFragment"
             app:launchSingleTop="true"
             app:enterAnim="@anim/fade_in"
@@ -96,15 +106,6 @@
             app:popExitAnim="@anim/fade_out"
             app:popUpTo="@id/homeFragment"
             app:destination="@id/pinnedFragment" />
-        <action
-            android:id="@+id/action_homeFragment_to_repositoryFragment"
-            app:launchSingleTop="true"
-            app:enterAnim="@anim/fade_in"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/fade_out"
-            app:popUpTo="@id/homeFragment"
-            app:destination="@id/repositoryFragment" />
 
     </fragment>
 
@@ -281,6 +282,7 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
             app:popUpToInclusive="true"/>
+
         <action
             android:id="@+id/action_repositoryFragment_to_profileFragment"
             app:destination="@id/profileFragment"

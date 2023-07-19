@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.screens.main.repository.models.commits_model
 
 data class CommitsModelItem(
-    val author: Author,
+    val author: Author?,
     val comments_url: String,
     val commit: Commit,
     val committer: Committer,

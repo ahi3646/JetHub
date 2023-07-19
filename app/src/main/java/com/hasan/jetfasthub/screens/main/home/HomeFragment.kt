@@ -145,9 +145,9 @@ class HomeFragment : Fragment() {
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { dest, data, extra ->
-                            if(dest == -1){
+                            if (dest == -1) {
                                 findNavController().popBackStack()
-                            }else{
+                            } else {
                                 val bundle = Bundle()
                                 if (data != null) {
                                     bundle.putString("home_data", data)
@@ -300,7 +300,7 @@ private fun TopAppBarContent(
         )
 
         IconButton(onClick = {
-            onToolbarItemCLick(R.id.action_homeFragment_to_repositoryFragment, null, null)
+            onToolbarItemCLick(R.id.action_homeFragment_to_notificationsFragment, null, null)
         }) {
             Icon(Icons.Outlined.Notifications, contentDescription = "Notification")
         }

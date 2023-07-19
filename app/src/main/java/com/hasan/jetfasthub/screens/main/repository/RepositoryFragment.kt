@@ -77,11 +77,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -91,7 +93,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
@@ -204,6 +206,7 @@ class RepositoryFragment : Fragment() {
                                 findNavController().popBackStack()
                             } else {
                                 val bundle = Bundle()
+                                //val bundleX = bundleOf("home_date" to data)
                                 if (data != null) {
                                     bundle.putString("home_data", data)
                                 }
@@ -1099,14 +1102,18 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            Log.d("ahi3646", "CommitsItem: ${commit.author.avatar_url} - ${commit.author}")
+
             GlideImage(
                 failure = {
                     // i dunno but this line didn't triggered when the state was failure
                     painterResource(id = R.drawable.baseline_account_circle_24)
                 },
                 imageModel = {
-                    commit.author.avatar_url
+                    if(commit.author != null){
+                        commit.author.avatar_url
+                    }else{
+                       R.drawable.baseline_account_circle_24
+                    }
                 },
                 modifier = Modifier
                     .size(48.dp, 48.dp)
@@ -1144,7 +1151,13 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(text = buildAnnotatedString {
-                    append(commit.author.login)
+                    if (commit.author!=null){
+                        append(commit.author.login)
+                    }else{
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("N/A")
+                        }
+                    }
                     append(" ")
                     append(ParseDateFormat.getTimeAgo(commit.commit.author.date).toString())
                 })
@@ -1265,7 +1278,11 @@ private fun ReleaseItemCard(
     if (isDialogShown) {
         Dialog(
             onDismissRequest = { isDialogShown = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
         ) {
             Card(
                 elevation = 5.dp,
@@ -2141,7 +2158,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null, null) }) {
+                IconButton(onClick = { onItemClicked( -1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
