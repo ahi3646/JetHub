@@ -15,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,7 +38,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
-import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
@@ -48,13 +49,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberBottomSheetScaffoldState
-import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.TabRow
@@ -71,6 +73,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -373,7 +376,7 @@ class RepositoryFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun MainContent(
     state: RepositoryScreenState,
@@ -383,21 +386,37 @@ private fun MainContent(
     onCurrentSheetChanged: (BottomSheetScreens) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val sheetState = rememberBottomSheetState(
-        initialValue = BottomSheetValue.Collapsed,
-        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
-    )
+//    val sheetState = rememberBottomSheetState(
+//        initialValue = BottomSheetValue.Collapsed,
+//        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
+//    )
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = sheetState
+        //bottomSheetState = sheetState
     )
 
     val closeSheet: () -> Unit = {
         scope.launch {
-            sheetState.collapse()
+            sheetScaffoldState.bottomSheetState.collapse()
+//            sheetState.collapse()
         }
     }
 
+    val sheetStateX = androidx.compose.material3.rememberModalBottomSheetState()
+    val scopeX = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     BottomSheetScaffold(
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                scope.launch {
+                    if (sheetScaffoldState.bottomSheetState.isExpanded) {
+                        sheetScaffoldState.bottomSheetState.collapse()
+                    }
+                }
+            })
+        },
+        scaffoldState = sheetScaffoldState,
+        sheetPeekHeight = 0.dp,
         sheetContent = {
             when (state.currentSheet) {
 
@@ -457,12 +476,10 @@ private fun MainContent(
                 }
             }
         },
-        scaffoldState = sheetScaffoldState,
-        sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { sheetPadding ->
         Scaffold(
-            modifier = Modifier.padding(sheetPadding),
+            modifier = Modifier.padding(sheetPadding).navigationBarsPadding(),
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
@@ -471,10 +488,15 @@ private fun MainContent(
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
                             scope.launch {
-                                if (sheetState.isCollapsed) {
-                                    sheetState.expand()
+//                                if (sheetState.isCollapsed) {
+//                                    sheetState.expand()
+//                                } else {
+//                                    sheetState.collapse()
+//                                }
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
                                 } else {
-                                    sheetState.collapse()
+                                    sheetScaffoldState.bottomSheetState.collapse()
                                 }
                             }
                         }
@@ -486,12 +508,15 @@ private fun MainContent(
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.ForkSheet)
                             scope.launch {
-                                if (sheetState.isCollapsed) {
-                                    sheetState.expand()
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
                                 } else {
-                                    sheetState.collapse()
+                                    sheetScaffoldState.bottomSheetState.collapse()
                                 }
                             }
+                        },
+                        onLicenseClicked = {
+                            showBottomSheet = true
                         }
                     )
                 }
@@ -499,6 +524,32 @@ private fun MainContent(
             bottomBar = {
                 BottomNav(onBottomBarClicked, state.repo)
             }) { paddingValues ->
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxHeight(0.5F)
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetStateX
+                ) {
+                    // Sheet content
+                    Button(onClick = {
+                        scopeX.launch { sheetStateX.hide() }.invokeOnCompletion {
+                            if (!sheetStateX.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    }) {
+                        Text("Hide bottom sheet")
+                    }
+                }
+            }
+
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(
                     paddingValues = paddingValues,
@@ -507,10 +558,10 @@ private fun MainContent(
                     onCurrentSheetChanged = { release ->
                         onCurrentSheetChanged(BottomSheetScreens.ReleaseItemSheet(release))
                         scope.launch {
-                            if (sheetState.isCollapsed) {
-                                sheetState.expand()
+                            if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                sheetScaffoldState.bottomSheetState.expand()
                             } else {
-                                sheetState.collapse()
+                                sheetScaffoldState.bottomSheetState.collapse()
                             }
                         }
                     },
@@ -2050,9 +2101,11 @@ private fun Toolbar(
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
-    onCurrentSheetChanged: () -> Unit
+    onCurrentSheetChanged: () -> Unit,
+    onLicenseClicked:() -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
+
     when (state.repo) {
 
         is Resource.Loading -> {
@@ -2257,7 +2310,7 @@ private fun Toolbar(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            IconButton(onClick = { /*TODO*/ }) {
+                            IconButton(onClick = { onLicenseClicked() }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_license),
                                     contentDescription = "License"

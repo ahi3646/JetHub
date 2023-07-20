@@ -8,9 +8,11 @@ import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchMo
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
+import com.hasan.jetfasthub.screens.main.repository.models.repo_model.License
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
@@ -511,9 +513,25 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun changeForkedStatus(status: Boolean){
-        _state.update {
-            it.copy(hasForked = status)
+    fun getLicense(token: String, owner: String, repo: String){
+        viewModelScope.launch {
+            try {
+                repository.getLicense(token, owner, repo).let { licenseResponse ->
+                    if(licenseResponse.isSuccessful){
+                        _state.update {
+                            it.copy(License = Resource.Success(licenseResponse.body()!!))
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(License = Resource.Failure(licenseResponse.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(License = Resource.Failure(e.message.toString()))
+                }
+            }
         }
     }
 
@@ -534,7 +552,8 @@ data class RepositoryScreenState(
     val Stargazers: Resource<StargazersModel> = Resource.Loading(),
     val isStarring: Boolean = false,
     val Forks: Resource<ForksModel> = Resource.Loading(),
-    val hasForked: Boolean = false
+    val hasForked: Boolean = false,
+    val License: Resource<LicenseModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {

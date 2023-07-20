@@ -7,6 +7,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.commits_model.Commits
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -119,6 +120,10 @@ interface Repository {
         owner: String,
         repo: String,
     ): Response<ForkResponseModel>
+
+    suspend fun getLicense(
+        token: String, owner: String, repo: String
+    ): Response<LicenseModel>
 
 }
 
@@ -318,6 +323,18 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String
     ): Response<ForkResponseModel> {
         return RetrofitInstance(context).gitHubService.forkRepo(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+        )
+    }
+
+    override suspend fun getLicense(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<LicenseModel> {
+        return RetrofitInstance(context).gitHubService.getLicense(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
