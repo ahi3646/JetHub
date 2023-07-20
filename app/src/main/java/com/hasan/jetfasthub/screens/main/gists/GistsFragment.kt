@@ -109,7 +109,7 @@ class GistsFragment : Fragment() {
 
 
 @Composable
-fun MainContent(state: GistsScreenState, onNavigate: (Int, String?) -> Unit) {
+private fun MainContent(state: GistsScreenState, onNavigate: (Int, String?) -> Unit) {
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         scaffoldState = scaffoldState,
@@ -163,7 +163,7 @@ private fun TabScreen(
 }
 
 @Composable
-fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
     when (state) {
         is Resource.Loading -> {
             Column(
@@ -230,7 +230,7 @@ fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, String?) -> U
 }
 
 @Composable
-fun GistItemCard(
+private fun GistItemCard(
     gistModelItem: GistModelItem, onGistItemClick: (Int, String?) -> Unit
 ) {
     Card(
@@ -270,7 +270,7 @@ fun GistItemCard(
 }
 
 @Composable
-fun Starred(state: Resource<StarredGistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun Starred(state: Resource<StarredGistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
     when (state) {
         is Resource.Loading -> {
             Column(
@@ -407,7 +407,7 @@ private fun StarredGistsItem(
 }
 
 @Composable
-fun PublicGists(state: Resource<PublicGistsModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun PublicGists(state: Resource<PublicGistsModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
     when (state) {
         is Resource.Loading -> {
             Column(

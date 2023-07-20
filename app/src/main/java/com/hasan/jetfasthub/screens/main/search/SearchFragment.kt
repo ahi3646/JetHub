@@ -42,6 +42,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -120,7 +121,7 @@ class SearchFragment : Fragment() {
 }
 
 @Composable
-fun MainContent(
+private fun MainContent(
     state: SearchScreenState,
     onListItemClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
@@ -146,13 +147,13 @@ fun MainContent(
 }
 
 @Composable
-fun TabScreen(
+private fun TabScreen(
     contentPaddingValues: PaddingValues,
     onListItemClick: (String) -> Unit,
     state: SearchScreenState
 ) {
     val tabs = listOf("REPOSITORIES", "USERS", "ISSUES", "CODE")
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
     Column(
         modifier = Modifier
             .padding(contentPaddingValues)
@@ -231,7 +232,7 @@ fun TabScreen(
 }
 
 @Composable
-fun RepositoriesContent(
+private fun RepositoriesContent(
     contentPaddingValues: PaddingValues,
     repositories: ResourceWithInitial<RepositoryModel>,
     onNavigate: (String) -> Unit
@@ -398,7 +399,7 @@ private fun RepositoryItem(
 }
 
 @Composable
-fun UsersContent(
+private fun UsersContent(
     users: ResourceWithInitial<UserModel>,
     contentPaddingValues: PaddingValues,
     onUsersItemClicked: (String) -> Unit
@@ -458,7 +459,7 @@ fun UsersContent(
 }
 
 @Composable
-fun UsersItem(
+private fun UsersItem(
     userModel: UsersItem, onUsersItemClicked: (String) -> Unit
 ) {
     Card(
@@ -508,7 +509,7 @@ fun UsersItem(
 }
 
 @Composable
-fun IssuesContent(
+private fun IssuesContent(
     issues: ResourceWithInitial<IssuesModel>,
     contentPaddingValues: PaddingValues,
     onIssueItemClicked: (String) -> Unit
@@ -569,7 +570,7 @@ fun IssuesContent(
 
 
 @Composable
-fun IssuesItem(
+private fun IssuesItem(
     issuesItem: IssuesItem, onIssueItemClicked: (String) -> Unit
 ) {
     Card(
@@ -657,7 +658,7 @@ fun IssuesItem(
 }
 
 @Composable
-fun CodeContent(
+private fun CodeContent(
     codes: ResourceWithInitial<CodeModel>,
     contentPaddingValues: PaddingValues,
     onCodeItemClicked: (String) -> Unit
@@ -724,7 +725,7 @@ fun CodeContent(
 }
 
 @Composable
-fun CodesItem(
+private fun CodesItem(
     code: CodeItem, onCodeItemClicked: (String) -> Unit
 ) {
     Card(
@@ -769,7 +770,7 @@ fun CodesItem(
 }
 
 @Composable
-fun TopAppBarContent(
+private fun TopAppBarContent(
     onSearchItemClick: (String) -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -825,5 +826,4 @@ fun TopAppBarContent(
         }
     }
 }
-
 

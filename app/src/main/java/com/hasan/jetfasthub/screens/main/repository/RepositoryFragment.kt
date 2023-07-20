@@ -406,7 +406,9 @@ private fun MainContent(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
-        modifier = Modifier.pointerInput(Unit) {
+
+        modifier = Modifier
+            .pointerInput(Unit) {
             detectTapGestures(onTap = {
                 scope.launch {
                     if (sheetScaffoldState.bottomSheetState.isExpanded) {
@@ -476,7 +478,7 @@ private fun MainContent(
                 }
             }
         },
-        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) { sheetPadding ->
         Scaffold(
             modifier = Modifier.padding(sheetPadding).navigationBarsPadding(),
@@ -1143,10 +1145,10 @@ private fun CommitsItem(commit: CommitsModelItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
+        .clickable(onClick = {
 
-            })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+        })
+        .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
             modifier = Modifier
@@ -1163,7 +1165,7 @@ private fun CommitsItem(commit: CommitsModelItem) {
                     if(commit.author != null){
                         commit.author.avatar_url
                     }else{
-                       R.drawable.baseline_account_circle_24
+                        R.drawable.baseline_account_circle_24
                     }
                 },
                 modifier = Modifier
@@ -2111,7 +2113,7 @@ private fun Toolbar(
         is Resource.Loading -> {
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
 
