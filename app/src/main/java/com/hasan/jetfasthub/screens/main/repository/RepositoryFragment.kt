@@ -137,6 +137,14 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo
         )
 
+        repositoryViewModel.getLabels(
+            token = token, owner = owner, repo = repo, page = 1
+        )
+
+        repositoryViewModel.getTags(
+            token = token, owner = owner, repo = repo, page = 1
+        )
+
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
         ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
@@ -409,14 +417,14 @@ private fun MainContent(
 
         modifier = Modifier
             .pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                scope.launch {
-                    if (sheetScaffoldState.bottomSheetState.isExpanded) {
-                        sheetScaffoldState.bottomSheetState.collapse()
+                detectTapGestures(onTap = {
+                    scope.launch {
+                        if (sheetScaffoldState.bottomSheetState.isExpanded) {
+                            sheetScaffoldState.bottomSheetState.collapse()
+                        }
                     }
-                }
-            })
-        },
+                })
+            },
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
@@ -481,7 +489,9 @@ private fun MainContent(
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) { sheetPadding ->
         Scaffold(
-            modifier = Modifier.padding(sheetPadding).navigationBarsPadding(),
+            modifier = Modifier
+                .padding(sheetPadding)
+                .navigationBarsPadding(),
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
@@ -703,6 +713,155 @@ private fun CodeScreen(
 }
 
 @Composable
+private fun SwitchBranchDialog(branches: List<String>, tags: List<String>, onDialogShown: ()-> Unit) {
+
+    var tabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("BRANCHES", "TAGS")
+
+    Column(
+        modifier = Modifier
+            //.padding(paddingValues)
+            .fillMaxWidth(0.95F)
+            .fillMaxHeight(0.95F)
+            .background(Color.White),
+    ) {
+        Surface {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    IconButton(onClick = { onDialogShown() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_clear),
+                            contentDescription = "Switch branch"
+                        )
+                    }
+                    Text(
+                        text = "Releases",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                TabRow(
+                    selectedTabIndex = tabIndex,
+                    containerColor = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = tabIndex == index, onClick = { tabIndex = index },
+                            text = {
+                                if (tabIndex == index) {
+                                    Text(title, color = Color.Blue)
+                                } else {
+                                    Text(title, color = Color.Black)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        when (tabIndex) {
+            0 -> {
+                Spacer(modifier = Modifier.height(6.dp))
+                LazyColumn {
+                    itemsIndexed(branches) { index, branch ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    //downloader.download(release)
+                                }, elevation = 0.dp
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.padding(start = 16.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_fork),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    text = branch,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 12.dp,
+                                        bottom = 12.dp
+                                    )
+                                )
+                            }
+                        }
+                        if (index < branches.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier
+                                    .height(0.5.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+
+            1 -> {
+                Spacer(modifier = Modifier.height(6.dp))
+
+                LazyColumn {
+                    itemsIndexed(tags) { index, branch ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    //downloader.download(release)
+                                }, elevation = 0.dp
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.padding(start = 16.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_label),
+                                    contentDescription = ""
+                                )
+                                Text(
+                                    text = branch,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 12.dp,
+                                        bottom = 12.dp
+                                    )
+                                )
+                            }
+                        }
+                        if (index < tags.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier
+                                    .height(0.5.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun FilesScreen(
     state: RepositoryScreenState,
     onAction: (String, String?) -> Unit,
@@ -722,19 +881,25 @@ private fun FilesScreen(
         is Resource.Success -> {
             val files = state.RepositoryFiles
             val branches = state.Branches.data!!
+            val tags = state.Tags.data!!
 
-            val branchesList = arrayListOf<String>()
-            branches.forEach {
-                branchesList.add(it.name)
+            val tagList = arrayListOf<String>()
+            tags.forEach {
+                tagList.add(it.name)
             }
 
-            val initialBranch = if (branchesList.isNotEmpty()) {
-                if (branchesList.contains("main")) {
+            val branchList = arrayListOf<String>()
+            branches.forEach {
+                branchList.add(it.name)
+            }
+
+            val initialBranch = if (branchList.isNotEmpty()) {
+                if (branchList.contains("main")) {
                     "main"
-                } else if (branchesList.contains("master")) {
+                } else if (branchList.contains("master")) {
                     "master"
                 } else {
-                    branchesList[0]
+                    branchList[0]
                 }
             } else {
                 "main"
@@ -748,64 +913,18 @@ private fun FilesScreen(
                 Dialog(
                     onDismissRequest = { isDialogShown = false },
                     properties = DialogProperties(
-                        usePlatformDefaultWidth = true,
+                        usePlatformDefaultWidth = false,
                         dismissOnBackPress = true,
                         dismissOnClickOutside = false
-                    )
-                ) {
-                    Card(
-                        elevation = 5.dp,
-                        shape = RoundedCornerShape(15.dp),
-                        modifier = Modifier
-                            .fillMaxWidth(0.90f)
-                            .fillMaxHeight(0.33f)
-                            .border(1.dp, color = Color.Black, shape = RoundedCornerShape(15.dp))
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Releases",
-                                modifier = Modifier.padding(16.dp),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            LazyColumn {
-                                itemsIndexed(branchesList) { index, branch ->
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                //downloader.download(release)
-                                            }, elevation = 0.dp
-                                    ) {
-                                        Text(
-                                            text = branch,
-                                            fontSize = 18.sp,
-                                            modifier = Modifier.padding(
-                                                start = 16.dp,
-                                                end = 16.dp,
-                                                top = 12.dp,
-                                                bottom = 12.dp
-                                            )
-                                        )
-                                    }
-                                    if (index < branchesList.lastIndex) {
-                                        Divider(
-                                            color = Color.Gray,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(0.5.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    ),
+                    content = {
+                        SwitchBranchDialog(
+                            branches = branchList,
+                            tags = tagList,
+                            onDialogShown = {isDialogShown = false}
+                        )
                     }
-                }
+                )
             }
 
             val paths = remember {
@@ -1145,10 +1264,10 @@ private fun CommitsItem(commit: CommitsModelItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-        .clickable(onClick = {
+            .clickable(onClick = {
 
-        })
-        .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            })
+            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
             modifier = Modifier
@@ -1162,9 +1281,9 @@ private fun CommitsItem(commit: CommitsModelItem) {
                     painterResource(id = R.drawable.baseline_account_circle_24)
                 },
                 imageModel = {
-                    if(commit.author != null){
+                    if (commit.author != null) {
                         commit.author.avatar_url
-                    }else{
+                    } else {
                         R.drawable.baseline_account_circle_24
                     }
                 },
@@ -1204,9 +1323,9 @@ private fun CommitsItem(commit: CommitsModelItem) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(text = buildAnnotatedString {
-                    if (commit.author!=null){
+                    if (commit.author != null) {
                         append(commit.author.login)
-                    }else{
+                    } else {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                             append("N/A")
                         }
@@ -2104,7 +2223,7 @@ private fun Toolbar(
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: () -> Unit,
-    onLicenseClicked:() -> Unit
+    onLicenseClicked: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -2213,7 +2332,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked( -1, null, null) }) {
+                IconButton(onClick = { onItemClicked(-1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
@@ -2452,6 +2571,165 @@ private fun Toolbar(
                         DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
                             showMenu = false
                         })
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun DialogContent() {
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false
+        ),
+    ) {
+
+        var tabIndex by remember { mutableIntStateOf(0) }
+        val tabs = listOf("BRANCHES", "TAGS")
+
+        Column(
+            modifier = Modifier
+                //.padding(paddingValues)
+                .fillMaxWidth()
+                .background(Color.White),
+        ) {
+            Surface {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_clear),
+                                contentDescription = "Switch branch"
+                            )
+                        }
+                        Text(
+                            text = "Releases",
+                            modifier = Modifier.padding(16.dp),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    TabRow(
+                        selectedTabIndex = tabIndex,
+                        containerColor = Color.White,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = tabIndex == index, onClick = { tabIndex = index },
+                                text = {
+                                    if (tabIndex == index) {
+                                        Text(title, color = Color.Blue)
+                                    } else {
+                                        Text(title, color = Color.Black)
+                                    }
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            when (tabIndex) {
+                0 -> {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val branchesList = listOf("master", "main", "develop")
+                    LazyColumn {
+                        itemsIndexed(branchesList) { index, branch ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        //downloader.download(release)
+                                    }, elevation = 0.dp
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier.padding(start = 16.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_fork),
+                                        contentDescription = ""
+                                    )
+                                    Text(
+                                        text = branch,
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(
+                                            start = 16.dp,
+                                            end = 16.dp,
+                                            top = 12.dp,
+                                            bottom = 12.dp
+                                        )
+                                    )
+                                }
+                            }
+                            if (index < branchesList.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier
+                                        .height(0.5.dp)
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                1 -> {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val branchesList = listOf("master", "main", "develop")
+                    LazyColumn {
+                        itemsIndexed(branchesList) { index, branch ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        //downloader.download(release)
+                                    }, elevation = 0.dp
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier.padding(start = 16.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_label),
+                                        contentDescription = ""
+                                    )
+                                    Text(
+                                        text = branch,
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(
+                                            start = 16.dp,
+                                            end = 16.dp,
+                                            top = 12.dp,
+                                            bottom = 12.dp
+                                        )
+                                    )
+                                }
+                            }
+                            if (index < branchesList.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier
+                                        .height(0.5.dp)
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
                     }
                 }
             }

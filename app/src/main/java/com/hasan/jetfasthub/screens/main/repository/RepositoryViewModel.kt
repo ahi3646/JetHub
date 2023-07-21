@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchMo
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -17,6 +18,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
+import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -489,20 +491,20 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun forkRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow{
+    fun forkRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.forkRepo(token, owner, repo).let { response ->
-                    if(response.code() == 202){
+                    if (response.code() == 202) {
                         _state.update {
                             it.copy(hasForked = true)
                         }
                         trySend(true)
-                    }else{
+                    } else {
                         trySend(false)
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d("ahi3646", "forkRepo: ${e.message} ")
                 trySend(false)
             }
@@ -513,21 +515,78 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getLicense(token: String, owner: String, repo: String){
+    fun getLabels(token: String, owner: String, repo: String, page: Int) {
         viewModelScope.launch {
             try {
-                repository.getLicense(token, owner, repo).let { licenseResponse ->
-                    if(licenseResponse.isSuccessful){
+                repository.getLabels(token, owner, repo, page).let { labelsResponse ->
+                    if (labelsResponse.isSuccessful) {
                         _state.update {
-                            it.copy(License = Resource.Success(licenseResponse.body()!!))
+                            it.copy(Labels = Resource.Success(labelsResponse.body()!!))
                         }
-                    }else{
+                    } else {
                         _state.update {
-                            it.copy(License = Resource.Failure(licenseResponse.errorBody().toString()))
+                            it.copy(
+                                Labels = Resource.Failure(
+                                    labelsResponse.errorBody().toString()
+                                )
+                            )
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(Labels = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
+    fun getTags(token: String, owner: String, repo: String, page: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getTags(token, owner, repo, page).let { tagsModelResponse ->
+                    if (tagsModelResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(Tags = Resource.Success(tagsModelResponse.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                Tags = Resource.Failure(
+                                    tagsModelResponse.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(Tags = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
+
+    fun getLicense(token: String, owner: String, repo: String) {
+        viewModelScope.launch {
+            try {
+                repository.getLicense(token, owner, repo).let { licenseResponse ->
+                    if (licenseResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(License = Resource.Success(licenseResponse.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                License = Resource.Failure(
+                                    licenseResponse.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(License = Resource.Failure(e.message.toString()))
                 }
@@ -553,7 +612,9 @@ data class RepositoryScreenState(
     val isStarring: Boolean = false,
     val Forks: Resource<ForksModel> = Resource.Loading(),
     val hasForked: Boolean = false,
-    val License: Resource<LicenseModel> = Resource.Loading()
+    val License: Resource<LicenseModel> = Resource.Loading(),
+    val Labels: Resource<LabelsModel> = Resource.Loading(),
+    val Tags: Resource<TagsModel> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {
@@ -562,7 +623,7 @@ sealed interface BottomSheetScreens {
 
     class ReleaseItemSheet(val releaseItem: ReleasesModelItem) : BottomSheetScreens
 
-    object ForkSheet: BottomSheetScreens
+    object ForkSheet : BottomSheetScreens
 
 }
 

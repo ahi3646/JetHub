@@ -7,6 +7,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.commits_model.Commits
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -14,6 +15,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
+import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
@@ -125,9 +127,43 @@ interface Repository {
         token: String, owner: String, repo: String
     ): Response<LicenseModel>
 
+    suspend fun getLabels(
+        token: String, owner: String, repo: String, page: Int
+    ): Response<LabelsModel>
+
+    suspend fun getTags(token: String, owner: String, repo: String, page: Int): Response<TagsModel>
+
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
+
+    override suspend fun getLabels(
+        token: String,
+        owner: String,
+        repo: String,
+        page: Int
+    ): Response<LabelsModel> {
+        return RetrofitInstance(context).gitHubService.getLabels(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            page = page
+        )
+    }
+
+    override suspend fun getTags(
+        token: String,
+        owner: String,
+        repo: String,
+        page: Int
+    ): Response<TagsModel> {
+        return RetrofitInstance(context).gitHubService.getTags(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            page = page
+        )
+    }
 
     override suspend fun getRepo(token: String, owner: String, repo: String): Response<RepoModel> {
         return RetrofitInstance(context).gitHubService.getRepo(
@@ -309,7 +345,11 @@ class RepositoryImpl(private val context: Context) : Repository {
         )
     }
 
-    override suspend fun getForks(token: String, owner: String, repo: String): Response<ForksModel> {
+    override suspend fun getForks(
+        token: String,
+        owner: String,
+        repo: String
+    ): Response<ForksModel> {
         return RetrofitInstance(context).gitHubService.getForks(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
