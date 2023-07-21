@@ -594,6 +594,12 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun updateInitialBranch(branch: String){
+        _state.update {
+            it.copy(initialBranch = branch)
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -614,7 +620,8 @@ data class RepositoryScreenState(
     val hasForked: Boolean = false,
     val License: Resource<LicenseModel> = Resource.Loading(),
     val Labels: Resource<LabelsModel> = Resource.Loading(),
-    val Tags: Resource<TagsModel> = Resource.Loading()
+    val Tags: Resource<TagsModel> = Resource.Loading(),
+    val initialBranch: String = "main"
 )
 
 sealed interface BottomSheetScreens {

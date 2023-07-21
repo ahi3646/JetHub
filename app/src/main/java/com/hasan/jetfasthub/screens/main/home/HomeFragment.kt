@@ -25,8 +25,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
@@ -47,6 +49,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +59,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -123,6 +127,9 @@ class HomeFragment : Fragment() {
 
                 val scaffoldState = rememberScaffoldState()
                 val scope = rememberCoroutineScope()
+                val showDrawerSheet by remember {
+                    mutableStateOf(false)
+                }
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -566,7 +573,6 @@ private fun ItemEventCard(
     }
 }
 
-//things related to drawer content
 @Composable
 private fun DrawerContent(
     user: Resource<GitHubUser>,
@@ -574,7 +580,7 @@ private fun DrawerContent(
     onLogout: () -> Unit,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    ModalDrawerSheet {
+    ModalDrawerSheet() {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
@@ -606,8 +612,8 @@ private fun DrawerContent(
         }
         DrawerTabScreen(
             username = user.data?.login ?: "",
-            closeDrawer,
-            onLogout,
+            closeDrawer = closeDrawer,
+            onLogout = onLogout,
             onNavigate = { dest, username, index ->
                 onNavigate(dest, username, index)
             }
@@ -660,7 +666,9 @@ fun DrawerMenuScreen(
     onNavigate: (Int, String?, String?) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {

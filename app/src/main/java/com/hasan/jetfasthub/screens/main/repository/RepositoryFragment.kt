@@ -100,7 +100,6 @@ import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
-import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
@@ -148,6 +147,7 @@ class RepositoryFragment : Fragment() {
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
         ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
+
             val branchesList = arrayListOf<String>()
             branches.forEach {
                 branchesList.add(it.name)
@@ -164,6 +164,8 @@ class RepositoryFragment : Fragment() {
             } else {
                 "main"
             }
+
+            repositoryViewModel.updateInitialBranch(initialBranch)
 
             repositoryViewModel.getContentFiles(
                 token = token, owner = owner, repo = repo, path = "", ref = initialBranch
@@ -500,11 +502,6 @@ private fun MainContent(
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
                             scope.launch {
-//                                if (sheetState.isCollapsed) {
-//                                    sheetState.expand()
-//                                } else {
-//                                    sheetState.collapse()
-//                                }
                                 if (sheetScaffoldState.bottomSheetState.isCollapsed) {
                                     sheetScaffoldState.bottomSheetState.expand()
                                 } else {
@@ -540,7 +537,6 @@ private fun MainContent(
             if (showBottomSheet) {
                 ModalBottomSheet(
                     modifier = Modifier
-                        .padding(16.dp)
                         .fillMaxHeight(0.5F)
                         .fillMaxWidth()
                         .navigationBarsPadding(),
@@ -705,7 +701,7 @@ private fun CodeScreen(
         when (tabIndex) {
             0 -> ReadMe()
             1 -> FilesScreen(state, onAction)
-            2 -> CommitsScreen(state.Commits)
+            2 -> CommitsScreen(state)
             3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
@@ -893,17 +889,7 @@ private fun FilesScreen(
                 branchList.add(it.name)
             }
 
-            val initialBranch = if (branchList.isNotEmpty()) {
-                if (branchList.contains("main")) {
-                    "main"
-                } else if (branchList.contains("master")) {
-                    "master"
-                } else {
-                    branchList[0]
-                }
-            } else {
-                "main"
-            }
+            val initialBranch = state.initialBranch
 
             var isDialogShown by remember {
                 mutableStateOf(false)
@@ -1171,8 +1157,8 @@ private fun FileDocumentItemCard(
 }
 
 @Composable
-private fun CommitsScreen(commits: Resource<CommitsModel>) {
-    when (commits) {
+private fun CommitsScreen(state: RepositoryScreenState) {
+    when (state.Commits) {
 
         is Resource.Loading -> {
             Column(
@@ -1185,6 +1171,8 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
         }
 
         is Resource.Success -> {
+            val commits = state.Commits
+
             Column(
                 Modifier
                     .background(Color.White)
@@ -1210,7 +1198,7 @@ private fun CommitsScreen(commits: Resource<CommitsModel>) {
 
                             }) {
                         Text(
-                            text = "Here should be branch of repositories",
+                            text = state.initialBranch,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
@@ -2579,162 +2567,4 @@ private fun Toolbar(
     }
 }
 
-@Composable
-private fun DialogContent() {
-    Dialog(
-        onDismissRequest = { },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false
-        ),
-    ) {
-
-        var tabIndex by remember { mutableIntStateOf(0) }
-        val tabs = listOf("BRANCHES", "TAGS")
-
-        Column(
-            modifier = Modifier
-                //.padding(paddingValues)
-                .fillMaxWidth()
-                .background(Color.White),
-        ) {
-            Surface {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_clear),
-                                contentDescription = "Switch branch"
-                            )
-                        }
-                        Text(
-                            text = "Releases",
-                            modifier = Modifier.padding(16.dp),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    TabRow(
-                        selectedTabIndex = tabIndex,
-                        containerColor = Color.White,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = tabIndex == index, onClick = { tabIndex = index },
-                                text = {
-                                    if (tabIndex == index) {
-                                        Text(title, color = Color.Blue)
-                                    } else {
-                                        Text(title, color = Color.Black)
-                                    }
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-
-            when (tabIndex) {
-                0 -> {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    val branchesList = listOf("master", "main", "develop")
-                    LazyColumn {
-                        itemsIndexed(branchesList) { index, branch ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        //downloader.download(release)
-                                    }, elevation = 0.dp
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.padding(start = 16.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_fork),
-                                        contentDescription = ""
-                                    )
-                                    Text(
-                                        text = branch,
-                                        fontSize = 18.sp,
-                                        modifier = Modifier.padding(
-                                            start = 16.dp,
-                                            end = 16.dp,
-                                            top = 12.dp,
-                                            bottom = 12.dp
-                                        )
-                                    )
-                                }
-                            }
-                            if (index < branchesList.lastIndex) {
-                                Divider(
-                                    color = Color.Gray,
-                                    modifier = Modifier
-                                        .height(0.5.dp)
-                                        .fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
-                }
-
-                1 -> {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    val branchesList = listOf("master", "main", "develop")
-                    LazyColumn {
-                        itemsIndexed(branchesList) { index, branch ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        //downloader.download(release)
-                                    }, elevation = 0.dp
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.padding(start = 16.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_label),
-                                        contentDescription = ""
-                                    )
-                                    Text(
-                                        text = branch,
-                                        fontSize = 18.sp,
-                                        modifier = Modifier.padding(
-                                            start = 16.dp,
-                                            end = 16.dp,
-                                            top = 12.dp,
-                                            bottom = 12.dp
-                                        )
-                                    )
-                                }
-                            }
-                            if (index < branchesList.lastIndex) {
-                                Divider(
-                                    color = Color.Gray,
-                                    modifier = Modifier
-                                        .height(0.5.dp)
-                                        .fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-}
 

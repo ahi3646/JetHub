@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.screens.main.home.authenticated_user.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
-import com.hasan.jetfasthub.screens.main.home.received_model.ReceivedEvents
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +50,7 @@ class HomeViewModel(
         }
         awaitClose {
             channel.close()
-            Log.d("callback_ahi", "callback stop : ")
+            Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
         }
     }
 
