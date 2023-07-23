@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.home
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +34,8 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
+import androidx.compose.material.DrawerState
+import androidx.compose.material.DrawerValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
@@ -44,12 +47,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material.rememberDrawerState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,7 +63,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -114,7 +117,6 @@ class HomeFragment : Fragment() {
 
         homeViewModel.getAuthenticatedUser(token)
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { authenticatedUser ->
-                Log.d("ahi3646", "onCreateView onSave: ${authenticatedUser.login} ")
                 PreferenceHelper.saveAuthenticatedUser(requireContext(), authenticatedUser.login)
 
                 homeViewModel.getUser(token, authenticatedUser.login)
@@ -125,11 +127,9 @@ class HomeFragment : Fragment() {
             setContent {
                 val state by homeViewModel.state.collectAsState()
 
-                val scaffoldState = rememberScaffoldState()
+                val showDrawerSheet = rememberDrawerState(initialValue = DrawerValue.Closed)
+                val scaffoldState = rememberScaffoldState(drawerState = showDrawerSheet)
                 val scope = rememberCoroutineScope()
-                val showDrawerSheet by remember {
-                    mutableStateOf(false)
-                }
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -137,7 +137,7 @@ class HomeFragment : Fragment() {
                         override fun handleOnBackPressed() {
                             if (scaffoldState.drawerState.isOpen) {
                                 scope.launch {
-                                    scaffoldState.drawerState.close()
+                                    showDrawerSheet.close()
                                 }
                             } else {
                                 isEnabled = false
@@ -146,6 +146,8 @@ class HomeFragment : Fragment() {
                         }
                     }
                 )
+
+                Log.d("ahi3646", "onCreateView: home ${scaffoldState.drawerState.currentValue} ")
 
                 JetFastHubTheme {
                     MainContent(
@@ -164,9 +166,14 @@ class HomeFragment : Fragment() {
                                 }
                                 findNavController().navigate(dest, bundle)
                             }
+                            Log.d(
+                                "ahi3646",
+                                "onCreateView onNavigate: ${showDrawerSheet.currentValue} "
+                            )
                         },
-                        scaffoldState,
-                        scope
+                        scaffoldState = scaffoldState,
+                        scope = scope,
+                        drawerState = showDrawerSheet
                     )
                 }
             }
@@ -181,10 +188,11 @@ private fun MainContent(
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
     scaffoldState: ScaffoldState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    drawerState: DrawerState
 ) {
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-    val sheetScaffoldState = androidx.compose.material.rememberBottomSheetScaffoldState(
+    val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
 
@@ -225,21 +233,25 @@ private fun MainContent(
                 TopAppBar(
                     backgroundColor = Color.White,
                     content = {
-                        TopAppBarContent(scaffoldState, scope, onNavigate)
+                        TopAppBarContent(drawerState, scope, onNavigate)
                     },
                 )
             },
             drawerContent = {
                 DrawerContent(
-                    user = state.user,
                     closeDrawer = {
                         scope.launch {
-                            scaffoldState.drawerState.close()
+                            drawerState.close()
+                            Log.d(
+                                "ahi3646",
+                                "MainContent: triggered  - ${drawerState.currentValue}"
+                            )
                         }
                     },
+                    user = state.user,
                     onLogout = {
                         scope.launch {
-                            scaffoldState.drawerState.close()
+                            drawerState.close()
                             if (sheetState.isCollapsed) {
                                 sheetState.expand()
                             } else {
@@ -277,7 +289,7 @@ private fun MainContent(
 
 @Composable
 private fun TopAppBarContent(
-    state: ScaffoldState,
+    drawerState: DrawerState,
     scope: CoroutineScope,
     onToolbarItemCLick: (Int, String?, String?) -> Unit
 ) {
@@ -288,11 +300,10 @@ private fun TopAppBarContent(
     ) {
         IconButton(onClick = {
             scope.launch {
-                state.drawerState.apply {
+                drawerState.apply {
                     if (isClosed) open() else close()
                 }
             }
-            Log.d("ahi3646", "TopAppBarContent:${state.drawerState.currentValue} ")
         }) {
             Icon(Icons.Rounded.Menu, contentDescription = "Localized description")
         }
@@ -484,10 +495,6 @@ private fun ItemEventCard(
                         )
                     }
                 }
-                Log.d(
-                    "ahi3646",
-                    "FeedsScreen: $uri  --- ${eventItem.actor.login}  -- ${eventItem.type} - $parentUsername "
-                )
             },
         elevation = 0.dp,
         backgroundColor = Color.White
@@ -508,6 +515,7 @@ private fun ItemEventCard(
                     .size(48.dp, 48.dp)
                     .clip(CircleShape)
                     .clickable {
+
                         onNavigate(
                             R.id.action_homeFragment_to_profileFragment,
                             eventItem.actor.login,
@@ -575,12 +583,12 @@ private fun ItemEventCard(
 
 @Composable
 private fun DrawerContent(
-    user: Resource<GitHubUser>,
     closeDrawer: () -> Unit,
+    user: Resource<GitHubUser>,
     onLogout: () -> Unit,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    ModalDrawerSheet() {
+    ModalDrawerSheet {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
@@ -611,8 +619,8 @@ private fun DrawerContent(
             }
         }
         DrawerTabScreen(
-            username = user.data?.login ?: "",
             closeDrawer = closeDrawer,
+            username = user.data?.login ?: "",
             onLogout = onLogout,
             onNavigate = { dest, username, index ->
                 onNavigate(dest, username, index)
@@ -623,8 +631,8 @@ private fun DrawerContent(
 
 @Composable
 fun DrawerTabScreen(
-    username: String,
     closeDrawer: () -> Unit,
+    username: String,
     onLogout: () -> Unit,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
@@ -653,7 +661,7 @@ fun DrawerTabScreen(
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen(username, closeDrawer, onNavigate)
+            0 -> DrawerMenuScreen(closeDrawer, username, onNavigate)
             1 -> DrawerProfileScreen(username, onNavigate, onLogout)
         }
     }
@@ -661,8 +669,8 @@ fun DrawerTabScreen(
 
 @Composable
 fun DrawerMenuScreen(
-    username: String,
     closeDrawer: () -> Unit,
+    username: String,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
     Column(
@@ -676,7 +684,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
+                .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
                     closeDrawer()
                 }) {
@@ -700,6 +708,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
+                    closeDrawer()
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, null)
                 }) {
             Image(
@@ -718,7 +727,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_people_alt_24),
@@ -735,7 +744,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null)
                 }) {
@@ -756,7 +765,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
+                .padding(top = 2.dp, bottom = 2.dp)
                 .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_24),
@@ -773,7 +782,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_trending_up_24),
@@ -790,7 +799,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 4.dp)
+                .padding(bottom = 4.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_gistsFragment, null, null)
                 }) {
@@ -811,7 +820,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
+                .padding(top = 2.dp, bottom = 2.dp)
                 .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_fasthub_mascot),
@@ -828,7 +837,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
@@ -845,7 +854,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_settingsFragment, null, null)
                 }) {
@@ -864,7 +873,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable { }) {
             Image(
                 painter = painterResource(id = R.drawable.ic_money),
@@ -881,7 +890,7 @@ fun DrawerMenuScreen(
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
+                .padding(bottom = 2.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_aboutFragment, null, null)
                 }) {

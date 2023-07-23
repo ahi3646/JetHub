@@ -54,7 +54,6 @@ class HomeViewModel(
         }
     }
 
-
     fun getUser(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.getUser(token, username).let { gitHubUser ->
