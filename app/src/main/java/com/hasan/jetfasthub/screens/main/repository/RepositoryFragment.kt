@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -284,7 +283,6 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.watchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        //repositoryViewModel.changeSubscriptionStatus(it.subscribed)
                                         if (it.subscribed) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
@@ -297,7 +295,6 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.unwatchRepo(
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        //repositoryViewModel.changeSubscriptionStatus(!it)
                                         if (it) {
                                             repositoryViewModel.getRepo(
                                                 token = token, owner = owner, repo = repo
@@ -335,7 +332,6 @@ class RepositoryFragment : Fragment() {
                                         token, owner, repo
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                         if (it) {
-                                            //repositoryViewModel.changeStarringStatus(false)
                                             Toast.makeText(
                                                 requireContext(),
                                                 "You unstarred repo",
@@ -358,7 +354,6 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.forkRepo(token, owner, repo)
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
-                                            Log.d("ahi3646", "onCreateView: fork repo $it")
                                             if (it) {
                                                 Toast.makeText(
                                                     requireContext(),
@@ -376,7 +371,6 @@ class RepositoryFragment : Fragment() {
                                 "on_branch_change" -> {
 
                                 }
-
                             }
                         },
                     )
@@ -1009,7 +1003,10 @@ private fun FilesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    items(files.data!!) { file ->
+                    files.data!!.sortBy {fileModel ->
+                        fileModel.type
+                    }
+                    items(files.data) { file ->
                         when (file.type) {
                             "dir" -> {
                                 FileFolderItemCard(file = file,

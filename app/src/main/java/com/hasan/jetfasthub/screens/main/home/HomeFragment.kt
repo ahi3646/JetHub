@@ -3,7 +3,6 @@ package com.hasan.jetfasthub.screens.main.home
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,7 +33,6 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
-import androidx.compose.material.DrawerState
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
@@ -45,7 +43,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
@@ -98,7 +95,6 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -127,17 +123,17 @@ class HomeFragment : Fragment() {
             setContent {
                 val state by homeViewModel.state.collectAsState()
 
-                val showDrawerSheet = rememberDrawerState(initialValue = DrawerValue.Closed)
-                val scaffoldState = rememberScaffoldState(drawerState = showDrawerSheet)
-                val scope = rememberCoroutineScope()
+                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                val scaffoldState = rememberScaffoldState(drawerState = drawerState)
+                val drawerScope = rememberCoroutineScope()
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
                     object : OnBackPressedCallback(true) {
                         override fun handleOnBackPressed() {
                             if (scaffoldState.drawerState.isOpen) {
-                                scope.launch {
-                                    showDrawerSheet.close()
+                                drawerScope.launch {
+                                    drawerState.close()
                                 }
                             } else {
                                 isEnabled = false
@@ -147,13 +143,20 @@ class HomeFragment : Fragment() {
                     }
                 )
 
-                Log.d("ahi3646", "onCreateView: home ${scaffoldState.drawerState.currentValue} ")
-
                 JetFastHubTheme {
                     MainContent(
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { dest, data, extra ->
+                            drawerScope.launch {
+                                if (drawerState.isOpen){
+                                    drawerState.close()
+                                }
+                            }
+                            Log.d(
+                                "ahi3646",
+                                "onCreateView onNavigate: ${drawerState.currentValue} "
+                            )
                             if (dest == -1) {
                                 findNavController().popBackStack()
                             } else {
@@ -166,14 +169,19 @@ class HomeFragment : Fragment() {
                                 }
                                 findNavController().navigate(dest, bundle)
                             }
-                            Log.d(
-                                "ahi3646",
-                                "onCreateView onNavigate: ${showDrawerSheet.currentValue} "
-                            )
                         },
                         scaffoldState = scaffoldState,
-                        scope = scope,
-                        drawerState = showDrawerSheet
+                        closeDrawer = {
+                            drawerScope.launch {
+                                Log.d("ahi3646", "onCreateView: clicked ${drawerState.currentValue} ")
+                                if (drawerState.isClosed){
+                                    drawerState.open()
+                                }else{
+                                    drawerState.close()
+                                }
+                                Log.d("ahi3646", "onCreateView: after ${drawerState.currentValue} ")
+                            }
+                        }
                     )
                 }
             }
@@ -188,13 +196,14 @@ private fun MainContent(
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
     scaffoldState: ScaffoldState,
-    scope: CoroutineScope,
-    drawerState: DrawerState
+    closeDrawer: () -> Unit
 ) {
+    val sheetScope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
+
 
     BottomSheetScaffold(
         scaffoldState = sheetScaffoldState,
@@ -212,11 +221,11 @@ private fun MainContent(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(onClick = { scope.launch { sheetState.collapse() } }) {
+                    Button(onClick = { sheetScope.launch { sheetState.collapse() } }) {
                         Text(text = "Ok")
                     }
                     Spacer(modifier = Modifier.width(12.dp))
-                    Button(onClick = { scope.launch { sheetState.collapse() } }) {
+                    Button(onClick = { sheetScope.launch { sheetState.collapse() } }) {
                         Text(text = "No")
                     }
                 }
@@ -233,25 +242,17 @@ private fun MainContent(
                 TopAppBar(
                     backgroundColor = Color.White,
                     content = {
-                        TopAppBarContent(drawerState, scope, onNavigate)
+                        TopAppBarContent(closeDrawer, onNavigate)
                     },
                 )
             },
             drawerContent = {
                 DrawerContent(
-                    closeDrawer = {
-                        scope.launch {
-                            drawerState.close()
-                            Log.d(
-                                "ahi3646",
-                                "MainContent: triggered  - ${drawerState.currentValue}"
-                            )
-                        }
-                    },
+                    closeDrawer = closeDrawer,
                     user = state.user,
                     onLogout = {
-                        scope.launch {
-                            drawerState.close()
+                        closeDrawer()
+                        sheetScope.launch {
                             if (sheetState.isCollapsed) {
                                 sheetState.expand()
                             } else {
@@ -289,8 +290,7 @@ private fun MainContent(
 
 @Composable
 private fun TopAppBarContent(
-    drawerState: DrawerState,
-    scope: CoroutineScope,
+    closeDrawer: () -> Unit,
     onToolbarItemCLick: (Int, String?, String?) -> Unit
 ) {
     Row(
@@ -299,13 +299,9 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            scope.launch {
-                drawerState.apply {
-                    if (isClosed) open() else close()
-                }
-            }
+            closeDrawer()
         }) {
-            Icon(Icons.Rounded.Menu, contentDescription = "Localized description")
+            Icon(painterResource(id = R.drawable.baseline_menu_24), contentDescription = "Localized description")
         }
 
         Text(
