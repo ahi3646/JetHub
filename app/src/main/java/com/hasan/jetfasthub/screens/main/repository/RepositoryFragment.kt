@@ -37,6 +37,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -101,6 +103,7 @@ import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
+import com.hasan.jetfasthub.screens.main.repository.models.path_model.PathModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -167,7 +170,11 @@ class RepositoryFragment : Fragment() {
             repositoryViewModel.updateInitialBranch(initialBranch)
 
             repositoryViewModel.getContentFiles(
-                token = token, owner = owner, repo = repo, path = "", ref = initialBranch
+                token = token,
+                owner = owner,
+                repo = repo,
+                path = "",
+                ref = initialBranch
             )
 
             repositoryViewModel.getCommits(
@@ -187,10 +194,6 @@ class RepositoryFragment : Fragment() {
 
         repositoryViewModel.getReleases(
             token = token, owner = owner, repo = repo, page = 1
-        )
-
-        repositoryViewModel.getContentFiles(
-            token = token, owner = owner, repo = repo, path = "", ref = "main"
         )
 
         repositoryViewModel.isWatchingRepo(
@@ -218,7 +221,6 @@ class RepositoryFragment : Fragment() {
                                 findNavController().popBackStack()
                             } else {
                                 val bundle = Bundle()
-                                //val bundleX = bundleOf("home_date" to data)
                                 if (data != null) {
                                     bundle.putString("home_data", data)
                                 }
@@ -226,6 +228,7 @@ class RepositoryFragment : Fragment() {
                                     bundle.putString("home_extra", extra)
                                 }
                                 findNavController().navigate(dest, bundle)
+
                             }
                         },
                         onAction = { action, data ->
@@ -269,6 +272,7 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_path_change" -> {
+                                    state.Paths.add(PathModel("",""))
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
@@ -369,7 +373,14 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_branch_change" -> {
-
+                                    repositoryViewModel.updateInitialBranch(data!!)
+                                    repositoryViewModel.getContentFiles(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        path = "",
+                                        ref = state.Branch
+                                    )
                                 }
                             }
                         },
@@ -390,18 +401,17 @@ private fun MainContent(
     onCurrentSheetChanged: (BottomSheetScreens) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-//    val sheetState = rememberBottomSheetState(
-//        initialValue = BottomSheetValue.Collapsed,
-//        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
-//    )
+    val sheetState = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Collapsed,
+        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
+    )
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
-        //bottomSheetState = sheetState
+        bottomSheetState = sheetState
     )
 
     val closeSheet: () -> Unit = {
         scope.launch {
-            sheetScaffoldState.bottomSheetState.collapse()
-//            sheetState.collapse()
+            sheetState.collapse()
         }
     }
 
@@ -410,17 +420,15 @@ private fun MainContent(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
-
-        modifier = Modifier
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    scope.launch {
-                        if (sheetScaffoldState.bottomSheetState.isExpanded) {
-                            sheetScaffoldState.bottomSheetState.collapse()
-                        }
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                scope.launch {
+                    if (sheetScaffoldState.bottomSheetState.isExpanded) {
+                        sheetScaffoldState.bottomSheetState.collapse()
                     }
-                })
-            },
+                }
+            })
+        },
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
@@ -454,7 +462,7 @@ private fun MainContent(
                             text = buildAnnotatedString {
                                 append("Fork")
                                 append(" ")
-                                append(state.repo.data?.full_name)
+                                append(state.Repository.data?.full_name)
                             }
                         )
 
@@ -465,7 +473,7 @@ private fun MainContent(
                         ) {
                             Button(onClick = {
                                 closeSheet()
-                                if (state.hasForked) {
+                                if (state.HasForked) {
                                     onAction("fork_repo", null)
                                 }
                             }) {
@@ -491,7 +499,7 @@ private fun MainContent(
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
-                        state = state.repo,
+                        state = state.Repository,
                         onItemClicked = onItemClicked,
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
@@ -525,8 +533,9 @@ private fun MainContent(
                 }
             },
             bottomBar = {
-                BottomNav(onBottomBarClicked, state.repo)
-            }) { paddingValues ->
+                BottomNav(onBottomBarClicked, state.Repository)
+            }
+        ) { paddingValues ->
 
             if (showBottomSheet) {
                 ModalBottomSheet(
@@ -573,7 +582,7 @@ private fun MainContent(
                 RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
                 RepositoryScreens.PullRequest -> PullRequestsScreen(paddingValues = paddingValues)
                 RepositoryScreens.Projects -> {
-                    if ((state.repo.data != null) && state.repo.data.has_projects) {
+                    if ((state.Repository.data != null) && state.Repository.data.has_projects) {
                         ProjectsScreen(paddingValues = paddingValues)
                     }
                 }
@@ -623,7 +632,7 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 
 @Composable
 private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> Unit) {
-    val repository = state.repo
+    val repository = state.Repository
     if (repository.data != null) {
         Column(
             Modifier.padding(16.dp),
@@ -703,7 +712,12 @@ private fun CodeScreen(
 }
 
 @Composable
-private fun SwitchBranchDialog(branches: List<String>, tags: List<String>, onDialogShown: ()-> Unit) {
+private fun SwitchBranchDialog(
+    onAction: (String, String?) -> Unit,
+    branches: List<String>,
+    tags: List<String>,
+    onDialogShown: () -> Unit
+) {
 
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("BRANCHES", "TAGS")
@@ -767,7 +781,7 @@ private fun SwitchBranchDialog(branches: List<String>, tags: List<String>, onDia
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    //downloader.download(release)
+                                    onAction("on_branch_change", branch)
                                 }, elevation = 0.dp
                         ) {
                             Row(
@@ -807,12 +821,12 @@ private fun SwitchBranchDialog(branches: List<String>, tags: List<String>, onDia
                 Spacer(modifier = Modifier.height(6.dp))
 
                 LazyColumn {
-                    itemsIndexed(tags) { index, branch ->
+                    itemsIndexed(tags) { index, tag ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    //downloader.download(release)
+                                    onAction("on_tag_change", tag)
                                 }, elevation = 0.dp
                         ) {
                             Row(
@@ -825,7 +839,7 @@ private fun SwitchBranchDialog(branches: List<String>, tags: List<String>, onDia
                                     contentDescription = ""
                                 )
                                 Text(
-                                    text = branch,
+                                    text = tag,
                                     fontSize = 18.sp,
                                     modifier = Modifier.padding(
                                         start = 16.dp,
@@ -883,7 +897,7 @@ private fun FilesScreen(
                 branchList.add(it.name)
             }
 
-            val initialBranch = state.initialBranch
+            val initialBranch = state.Branch
 
             var isDialogShown by remember {
                 mutableStateOf(false)
@@ -899,16 +913,17 @@ private fun FilesScreen(
                     ),
                     content = {
                         SwitchBranchDialog(
+                            onAction = onAction,
                             branches = branchList,
                             tags = tagList,
-                            onDialogShown = {isDialogShown = false}
+                            onDialogShown = { isDialogShown = false }
                         )
                     }
                 )
             }
 
             val paths = remember {
-                mutableListOf<FileModel>()
+                mutableListOf(PathModel("", ""))
             }
 
             Column(
@@ -933,9 +948,7 @@ private fun FilesScreen(
                             .fillMaxWidth()
                             .padding(start = 4.dp)
                             .clickable {
-                                //onAction("on_branch_change", initialBranch)
                                 isDialogShown = true
-
                             }) {
                         Text(
                             text = initialBranch,
@@ -968,26 +981,26 @@ private fun FilesScreen(
                     }
 
                     LazyRow(Modifier.weight(1F)) {
-                        items(paths) { file ->
-                            FilePathRowItemCard(file, onAction)
+                        items(paths) { pathModel ->
+                            FilePathRowItemCard(pathModel, onAction)
                         }
                     }
 
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_download),
                             contentDescription = "download"
                         )
                     }
 
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "add icon"
                         )
                     }
 
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
                             contentDescription = "direction"
@@ -1003,28 +1016,28 @@ private fun FilesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    files.data!!.sortBy {fileModel ->
+
+                    //sort directions and folders
+                    files.data!!.sortBy { fileModel ->
                         fileModel.type
                     }
+
                     items(files.data) { file ->
                         when (file.type) {
                             "dir" -> {
-                                FileFolderItemCard(file = file,
+                                FileFolderItemCard(
+                                    file = file,
                                     onAction = onAction,
-                                    onPathChanged = { changedFile ->
-                                        if (paths.contains(changedFile)) {
-                                            paths.subList(0, paths.indexOf(changedFile)).clear()
-                                        } else {
-                                            paths.add(changedFile)
-                                        }
+                                    onPathChanged = { changedPathModel ->
+                                        paths.add(changedPathModel)
                                     })
                             }
 
                             "file" -> {
                                 FileDocumentItemCard(file = file,
                                     onAction = onAction,
-                                    onPathChanged = { changedFile ->
-                                        paths.add(changedFile)
+                                    onPathChanged = { changedPath ->
+                                        paths.add(changedPath)
                                     })
                             }
 
@@ -1052,16 +1065,16 @@ private fun FilesScreen(
 
 
 @Composable
-private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> Unit) {
+private fun FilePathRowItemCard(pathModel: PathModel, onAction: (String, String?) -> Unit) {
     Row(
         modifier = Modifier
             .background(Color.White)
             .padding(4.dp)
             .clickable {
-                onAction("on_path_change", file.path)
+                onAction("on_path_change", pathModel.path)
             }, verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = file.name)
+        Text(text = pathModel.pathName)
         Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
     }
 }
@@ -1069,13 +1082,15 @@ private fun FilePathRowItemCard(file: FileModel, onAction: (String, String?) -> 
 
 @Composable
 private fun FileFolderItemCard(
-    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
+    file: FileModel,
+    onAction: (String, String?) -> Unit,
+    onPathChanged: (pathModel: PathModel) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onPathChanged(file)
+                onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
@@ -1101,10 +1116,12 @@ private fun FileFolderItemCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Icon(
-                painter = painterResource(id = R.drawable.ic_overflow),
-                contentDescription = "option menu"
-            )
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_overflow),
+                    contentDescription = "option menu"
+                )
+            }
         }
     }
 
@@ -1112,13 +1129,13 @@ private fun FileFolderItemCard(
 
 @Composable
 private fun FileDocumentItemCard(
-    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (file: FileModel) -> Unit
+    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (path: PathModel) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onPathChanged(file)
+                onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
@@ -1145,10 +1162,12 @@ private fun FileDocumentItemCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Icon(
-                painter = painterResource(id = R.drawable.ic_overflow),
-                contentDescription = "option menu"
-            )
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_overflow),
+                    contentDescription = "option menu"
+                )
+            }
         }
     }
 }
@@ -1195,7 +1214,7 @@ private fun CommitsScreen(state: RepositoryScreenState) {
 
                             }) {
                         Text(
-                            text = state.initialBranch,
+                            text = state.Branch,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
@@ -2212,7 +2231,7 @@ private fun Toolbar(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    when (state.repo) {
+    when (state.Repository) {
 
         is Resource.Loading -> {
             Row(
@@ -2309,7 +2328,7 @@ private fun Toolbar(
         }
 
         is Resource.Success -> {
-            val repository = state.repo.data!!
+            val repository = state.Repository.data!!
 
             Row(
                 verticalAlignment = Alignment.Top,
@@ -2377,7 +2396,7 @@ private fun Toolbar(
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
                                 contentDescription = "Star",
-                                tint = if (state.hasForked) Color.Blue else Color.Black
+                                tint = if (state.HasForked) Color.Blue else Color.Black
                             )
                         }
                         Text(text = repository.forks_count.toString())

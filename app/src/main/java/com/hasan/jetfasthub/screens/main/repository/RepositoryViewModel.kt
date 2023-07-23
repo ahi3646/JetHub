@@ -10,10 +10,10 @@ import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesMode
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
+import com.hasan.jetfasthub.screens.main.repository.models.path_model.PathModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
-import com.hasan.jetfasthub.screens.main.repository.models.repo_model.License
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okio.EOFException
 
 class RepositoryViewModel(private val repository: Repository) : ViewModel() {
 
@@ -55,17 +54,17 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                 repository.getRepo(token, owner, repo).let { repo ->
                     if (repo.isSuccessful) {
                         _state.update {
-                            it.copy(repo = Resource.Success(repo.body()!!))
+                            it.copy(Repository = Resource.Success(repo.body()!!))
                         }
                     } else {
                         _state.update {
-                            it.copy(repo = Resource.Failure(repo.errorBody().toString()))
+                            it.copy(Repository = Resource.Failure(repo.errorBody().toString()))
                         }
                     }
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(repo = Resource.Failure(e.message.toString()))
+                    it.copy(Repository = Resource.Failure(e.message.toString()))
                 }
             }
         }
@@ -497,7 +496,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
                 repository.forkRepo(token, owner, repo).let { response ->
                     if (response.code() == 202) {
                         _state.update {
-                            it.copy(hasForked = true)
+                            it.copy(HasForked = true)
                         }
                         trySend(true)
                     } else {
@@ -596,7 +595,15 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
 
     fun updateInitialBranch(branch: String){
         _state.update {
-            it.copy(initialBranch = branch)
+            it.copy(Branch = branch)
+        }
+    }
+
+    fun updatePaths(path: PathModel){
+        _state.update {
+            it.copy(
+                Paths =
+            )
         }
     }
 
@@ -604,7 +611,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
 
 data class RepositoryScreenState(
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
-    val repo: Resource<RepoModel> = Resource.Loading(),
+    val Repository: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),
     val Releases: Resource<ReleasesModel> = Resource.Loading(),
     val currentSheet: BottomSheetScreens = BottomSheetScreens.RepositoryInfoSheet,
@@ -617,11 +624,12 @@ data class RepositoryScreenState(
     val Stargazers: Resource<StargazersModel> = Resource.Loading(),
     val isStarring: Boolean = false,
     val Forks: Resource<ForksModel> = Resource.Loading(),
-    val hasForked: Boolean = false,
+    val HasForked: Boolean = false,
     val License: Resource<LicenseModel> = Resource.Loading(),
     val Labels: Resource<LabelsModel> = Resource.Loading(),
     val Tags: Resource<TagsModel> = Resource.Loading(),
-    val initialBranch: String = "main"
+    val Branch: String = "main",
+    val Paths: ArrayList<PathModel> = arrayListOf(PathModel("",""))
 )
 
 sealed interface BottomSheetScreens {
