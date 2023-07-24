@@ -254,20 +254,6 @@ class RepositoryFragment : Fragment() {
                                     findNavController().navigate(dest, bundle)
                                 }
                             }
-
-//                            if (dest == -1) {
-//                                findNavController().popBackStack()
-//                            } else {
-//                                val bundle = Bundle()
-//                                if (data != null) {
-//                                    bundle.putString("home_data", data)
-//                                }
-//                                if (extra != null) {
-//                                    bundle.putString("home_extra", extra)
-//                                }
-//                                findNavController().navigate(dest, bundle)
-//
-//                            }
                         },
                         onAction = { action, data ->
                             when (action) {

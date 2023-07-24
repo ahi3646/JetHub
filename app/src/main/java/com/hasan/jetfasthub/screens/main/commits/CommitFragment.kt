@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -67,6 +69,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -257,70 +260,69 @@ private fun MainContent(
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-    ) {
-
-    }
-
-    Scaffold(
-        topBar = {
-            Column(Modifier.fillMaxWidth()) {
-                TitleHeader(
-                    repo = repo,
-                    state = state.Commit,
-                    onNavigate = onNavigate,
-                    onCurrentSheetChanged = {
-                        scope.launch {
-                            if (sheetScaffoldState.bottomSheetState.isCollapsed) {
-                                sheetScaffoldState.bottomSheetState.expand()
-                            } else {
-                                sheetScaffoldState.bottomSheetState.collapse()
+    ) {sheetPadding ->
+        Scaffold(
+            modifier = Modifier.padding(sheetPadding),
+            topBar = {
+                Column(Modifier.fillMaxWidth()) {
+                    TitleHeader(
+                        repo = repo,
+                        state = state.Commit,
+                        onNavigate = onNavigate,
+                        onCurrentSheetChanged = {
+                            scope.launch {
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
+                                } else {
+                                    sheetScaffoldState.bottomSheetState.collapse()
+                                }
                             }
                         }
-                    }
-                )
-                Toolbar(
-                    state = state.Commit,
-                    onNavigate = onNavigate,
-                    onAction = onAction,
-                )
-            }
-        },
-    ) { paddingValues ->
-
-        var tabIndex by remember { mutableIntStateOf(0) }
-        val tabs = listOf("FILES", "COMMENTS")
-
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-        ) {
-            TabRow(
-                selectedTabIndex = tabIndex,
-                containerColor = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = tabIndex == index, onClick = { tabIndex = index },
-                        text = {
-                            if (tabIndex == index) {
-                                Text(title, color = Color.Blue)
-                            } else {
-                                Text(title, color = Color.Black)
-                            }
-                        },
+                    )
+                    Toolbar(
+                        state = state.Commit,
+                        onNavigate = onNavigate,
+                        onAction = onAction,
                     )
                 }
-            }
+            },
+        ) { paddingValues ->
 
-            when (tabIndex) {
-                0 -> {
-                    FilesScreen(state.Commit)
+            var tabIndex by remember { mutableIntStateOf(0) }
+            val tabs = listOf("FILES", "COMMENTS")
+
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxWidth()
+            ) {
+                TabRow(
+                    selectedTabIndex = tabIndex,
+                    containerColor = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = tabIndex == index, onClick = { tabIndex = index },
+                            text = {
+                                if (tabIndex == index) {
+                                    Text(title, color = Color.Blue)
+                                } else {
+                                    Text(title, color = Color.Black)
+                                }
+                            },
+                        )
+                    }
                 }
 
-                1 -> CommentsScreen()
+                when (tabIndex) {
+                    0 -> {
+                        FilesScreen(state.Commit)
+                    }
+
+                    1 -> CommentsScreen()
+                }
             }
         }
     }
@@ -512,8 +514,7 @@ private fun TitleHeader(
                     .padding(start = 12.dp, top = 16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -547,25 +548,15 @@ private fun TitleHeader(
                         )
                     )
 
-//                    Image(
-//                        painter = painterResource(id = R.drawable.baseline_account_circle_24),
-//                        contentDescription = "avatar icon",
-//                        modifier = Modifier
-//                            .size(48.dp, 48.dp)
-//                            .size(48.dp, 48.dp)
-//                            .clip(CircleShape),
-//                        contentScale = ContentScale.Crop,
-//                    )
-
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(
                         horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.weight(1F)
                     ) {
                         Text(
                             text = commit.commit.message,
-                            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                             color = Color.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -589,17 +580,14 @@ private fun TitleHeader(
                         }
                     }
 
-
-                    IconButton(onClick = {
-                        onCurrentSheetChanged()
-                    }) {
+                    IconButton(onClick = { onCurrentSheetChanged() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_info_outline),
                             contentDescription = "info"
                         )
                     }
-                }
 
+                }
             }
         }
 
@@ -657,7 +645,6 @@ private fun Toolbar(
     onNavigate: (Int, String?) -> Unit,
     onAction: (String, String?) -> Unit,
 ) {
-
     when (state) {
         is Resource.Loading -> {
             Row(
