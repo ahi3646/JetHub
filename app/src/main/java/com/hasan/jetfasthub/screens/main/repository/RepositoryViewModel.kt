@@ -15,6 +15,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
@@ -580,14 +581,6 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             it.copy(Branch = branch)
         }
     }
-
-//    fun updatePaths(path: PathModel){
-//        _state.update {
-//            it.copy(
-//                Paths =
-//            )
-//        }
-//    }
 
 }
 

@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.app
 import android.app.Application
 import com.hasan.jetfasthub.di.appModule
 import com.hasan.jetfasthub.di.basicAuthViewModelModule
+import com.hasan.jetfasthub.di.commitModule
 import com.hasan.jetfasthub.di.eventsModule
 import com.hasan.jetfasthub.di.gistsModule
 import com.hasan.jetfasthub.di.homeViewModelModule
@@ -27,6 +28,7 @@ class JetHubApp: Application() {
                 appModule,
                 eventsModule,
                 repositoryModule,
+                commitModule,
                 gistsModule,
                 notificationsModule,
                 searchModule,

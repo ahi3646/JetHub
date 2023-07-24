@@ -187,23 +187,6 @@ class RepositoryFragment : Fragment() {
 
         }.launchIn(lifecycleScope)
 
-//        repositoryViewModel.getContentFiles(
-//            token = token,
-//            owner = owner,
-//            repo = repo,
-//            path = "",
-//            ref = repositoryViewModel.state.value.Branch
-//        )
-//
-//        repositoryViewModel.getCommits(
-//            token = token,
-//            owner = owner,
-//            repo = repo,
-//            branch = repositoryViewModel.state.value.Branch,
-//            page = 1,
-//            path = ""
-//        )
-
         repositoryViewModel.getTags(
             token = token, owner = owner, repo = repo, page = 1
         )
@@ -233,19 +216,58 @@ class RepositoryFragment : Fragment() {
                             repositoryViewModel.onBottomSheetChanged(currentSheet)
                         },
                         onItemClicked = { dest, data, extra ->
-                            if (dest == -1) {
-                                findNavController().popBackStack()
-                            } else {
-                                val bundle = Bundle()
-                                if (data != null) {
-                                    bundle.putString("home_data", data)
+                            when (dest) {
+                                -1 -> {
+                                    findNavController().popBackStack()
                                 }
-                                if (extra != null) {
-                                    bundle.putString("home_extra", extra)
-                                }
-                                findNavController().navigate(dest, bundle)
 
+                                R.id.action_repositoryFragment_to_profileFragment -> {
+                                    val bundle = Bundle()
+                                    if (data != null) {
+                                        bundle.putString("home_data", data)
+                                    }
+                                    if (extra != null) {
+                                        bundle.putString("home_extra", extra)
+                                    }
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                                R.id.action_repositoryFragment_self -> {
+                                    val bundle = Bundle()
+                                    if (data != null) {
+                                        bundle.putString("home_data", data)
+                                    }
+                                    if (extra != null) {
+                                        bundle.putString("home_extra", extra)
+                                    }
+                                    findNavController().navigate(dest, bundle)
+
+                                }
+
+                                R.id.action_repositoryFragment_to_commitFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("owner", owner)
+                                    bundle.putString("repo", repo)
+                                    if (data != null) {
+                                        bundle.putString("sha", data)
+                                    }
+                                    findNavController().navigate(dest, bundle)
+                                }
                             }
+
+//                            if (dest == -1) {
+//                                findNavController().popBackStack()
+//                            } else {
+//                                val bundle = Bundle()
+//                                if (data != null) {
+//                                    bundle.putString("home_data", data)
+//                                }
+//                                if (extra != null) {
+//                                    bundle.putString("home_extra", extra)
+//                                }
+//                                findNavController().navigate(dest, bundle)
+//
+//                            }
                         },
                         onAction = { action, data ->
                             when (action) {
@@ -288,31 +310,47 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_path_change" -> {
+                                    val paths = state.Paths
                                     Log.d(
                                         "ahi3646",
                                         "onCreateView: on path change - ${data.toString()} last item - ${state.Paths.last()}"
                                     )
-                                    Log.d("ahi3646", "onCreateView: lastItem - ${state.Paths[state.Paths.lastIndex]} ")
-                                    if (state.Paths.contains(data) && data != state.Paths[state.Paths.lastIndex]) {
-                                        state.Paths.subList(
-                                            state.Paths.indexOf(data),
-                                            state.Paths.lastIndex
-                                        ).clear()
-                                    } else {
-                                        state.Paths.add(data!!)
-                                    }
-
-                                    state.Paths.forEach {
-                                        Log.d("ahi3646", "onCreateView: $it ")
-                                    }
-
-                                    repositoryViewModel.getContentFiles(
-                                        token = token,
-                                        owner = owner,
-                                        repo = repo,
-                                        path = state.Paths.last(),
-                                        ref = state.Branch
+                                    Log.d(
+                                        "ahi3646",
+                                        "onCreateView: lastItem - ${state.Paths[state.Paths.lastIndex]} "
                                     )
+                                    if (paths.contains(data) && data != paths[paths.lastIndex]) {
+                                        Log.d("ahi3646", "onCreateView: case 1 ")
+                                        paths.subList(
+                                            0,
+                                            state.Paths.indexOf(data)
+                                        ).clear()
+
+                                        repositoryViewModel.getContentFiles(
+                                            token = token,
+                                            owner = owner,
+                                            repo = repo,
+                                            path = state.Paths.last(),
+                                            ref = state.Branch
+                                        )
+
+                                        paths.forEach {
+                                            Log.d("ahi3646", "onCreateView iteration: $it ")
+                                        }
+                                    } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
+                                        Log.d("ahi3646", "onCreateView: case 2 ")
+                                    } else {
+                                        Log.d("ahi3646", "onCreateView: case 3 ")
+                                        state.Paths.add(data!!)
+
+                                        repositoryViewModel.getContentFiles(
+                                            token = token,
+                                            owner = owner,
+                                            repo = repo,
+                                            path = state.Paths.last(),
+                                            ref = state.Branch
+                                        )
+                                    }
 
                                 }
 
@@ -739,7 +777,7 @@ private fun CodeScreen(
         when (tabIndex) {
             0 -> ReadMe()
             1 -> FilesScreen(state, onAction)
-            2 -> CommitsScreen(state)
+            2 -> CommitsScreen(state, onItemClicked)
             3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
@@ -1118,7 +1156,6 @@ private fun FileFolderItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                //onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
@@ -1165,7 +1202,6 @@ private fun FileDocumentItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                //onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
@@ -1203,7 +1239,10 @@ private fun FileDocumentItemCard(
 }
 
 @Composable
-private fun CommitsScreen(state: RepositoryScreenState) {
+private fun CommitsScreen(
+    state: RepositoryScreenState,
+    onItemClicked: (Int, String?, String?) -> Unit
+) {
     when (state.Commits) {
 
         is Resource.Loading -> {
@@ -1264,7 +1303,7 @@ private fun CommitsScreen(state: RepositoryScreenState) {
                     verticalArrangement = Arrangement.Top
                 ) {
                     itemsIndexed(commits.data!!) { index, commit ->
-                        CommitsItem(commit)
+                        CommitsItem(commit, onItemClicked)
                         if (index < commits.data.lastIndex) {
                             Divider(
                                 color = Color.Gray,
@@ -1294,13 +1333,18 @@ private fun CommitsScreen(state: RepositoryScreenState) {
 }
 
 @Composable
-private fun CommitsItem(commit: CommitsModelItem) {
+private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, String?) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-
-            })
+            .clickable(
+                onClick = {
+                    onItemClicked(
+                        R.id.action_repositoryFragment_to_commitFragment,
+                        commit.sha,
+                        null
+                    )
+                })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(

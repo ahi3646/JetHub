@@ -5,6 +5,8 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import com.hasan.jetfasthub.data.AuthRepository
 import com.hasan.jetfasthub.data.AuthRepositoryImpl
+import com.hasan.jetfasthub.data.CommitRepository
+import com.hasan.jetfasthub.data.CommitRepositoryImpl
 import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.data.GistsRepositoryImpl
 import com.hasan.jetfasthub.screens.login.LoginViewModel
@@ -23,6 +25,7 @@ import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
+import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
@@ -108,6 +111,11 @@ val eventsModule = module {
 val repositoryModule = module {
     single <Repository>{ RepositoryImpl(get()) }
     viewModel { RepositoryViewModel(get()) }
+}
+
+val commitModule = module{
+    single  <CommitRepository> {CommitRepositoryImpl(get())}
+    viewModel{ CommitViewModel(get()) }
 }
 
 val notificationsModule = module {

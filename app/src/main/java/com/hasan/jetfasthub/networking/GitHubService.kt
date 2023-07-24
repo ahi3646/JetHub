@@ -29,6 +29,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
+import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
@@ -305,7 +306,7 @@ interface GitHubService {
         @Header("Authorization") authToken: String,
         @Path("owner") owner: String,
         @Path("repo") repo: String,
-        @Query("page") page:Int
+        @Query("page") page: Int
     ): Response<Contributors>
 
     @Headers("Accept: application/vnd.github+json")
@@ -369,6 +370,15 @@ interface GitHubService {
         @Query("path") path: String,
         @Query("page") page: Int
     ): Response<CommitsModel>
+
+    @Headers("Accept: application/vnd.github+json, application/vnd.github.VERSION.full+json, application/vnd.github.squirrel-girl-preview")
+    @GET("repos/{owner}/{repo}/commits/{ref}")
+    suspend fun getCommit(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("ref") branch: String,
+    ): Response<CommitModel>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/subscription")

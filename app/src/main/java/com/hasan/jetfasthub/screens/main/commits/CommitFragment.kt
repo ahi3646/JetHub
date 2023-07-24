@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,15 +48,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
+import com.hasan.jetfasthub.screens.main.commits.models.commit_model.File
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.utility.Resource
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class CommitFragment : Fragment() {
+
+    private val commitViewModel: CommitViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,29 +74,66 @@ class CommitFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
+        val token = PreferenceHelper.getToken(requireContext())
+        val owner = arguments?.getString("owner", "")
+        val repo = arguments?.getString("repo", "")
+        val sha = arguments?.getString("sha", "")
+
+        if(!owner.isNullOrEmpty() && !repo.isNullOrEmpty() && !sha.isNullOrEmpty()){
+            commitViewModel.getCommit(
+                token = token,
+                owner = owner,
+                repo = repo,
+                branch = sha
+            )
+        }else{
+            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+        }
+
         return ComposeView(requireContext()).apply {
             setContent {
+                val state by commitViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent()
+                    MainContent(
+                        repo = repo!!,
+                        state = state,
+                        onNavigate = {dest, data, extra ->
+                            when(dest){
+                                -1 -> {}
+                                R.id.action_commitFragment_to_profileFragment -> {
+
+                                }
+                            }
+                        },
+                        onAction = { action, data ->
+
+                        }
+                    )
                 }
             }
         }
     }
-
 }
 
-@Preview
 @Composable
-private fun MainContent() {
+private fun MainContent(
+    repo: String,
+    state: CommitScreenState,
+    onNavigate: (Int, String?, String?) -> Unit,
+    onAction: (String, String?) -> Unit
+) {
 
     Scaffold(
         topBar = {
             Column(Modifier.fillMaxWidth()) {
                 TitleHeader(
+                    repo = repo,
+                    state = state.Commit,
                     onNavigate = { dest, data, extra -> },
                     onCurrentSheetChanged = { }
                 )
                 Toolbar(
+                    state = state.Commit,
                     onNavigate = { dest, data, extra -> },
                     onAction = { action, data -> },
                     onCurrentSheetChanged = { },
@@ -125,7 +173,7 @@ private fun MainContent() {
 
             when (tabIndex) {
                 0 -> {
-                    FilesScreen()
+                    FilesScreen(state.Commit)
                 }
                 1 -> CommentsScreen()
             }
@@ -134,23 +182,37 @@ private fun MainContent() {
 }
 
 @Composable
-private fun FilesScreen() {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        val comments = listOf("", "")
-        itemsIndexed(comments) { index, comment ->
-            CommentItemCard(comment)
+private fun FilesScreen(
+    state: Resource<CommitModel>
+) {
+    when(state){
+        is Resource.Loading ->  {
+
+        }
+        is Resource.Success ->  {
+            val files = state.data!!.files
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                //val comments = listOf("", "")
+                itemsIndexed(files) { index, file ->
+                    CommentItemCard(file)
+                }
+            }
+        }
+        is Resource.Failure ->  {
+
         }
     }
 }
 
 @Composable
-private fun CommentItemCard(comment: String) {
+private fun CommentItemCard(file: File) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -167,7 +229,7 @@ private fun CommentItemCard(comment: String) {
                 horizontalArrangement = Arrangement.Start
             ) {
 
-                Text(text = "html/kotlin has been used")
+                Text(text = file.filename)
 
                 Spacer(Modifier.weight(1F))
 
@@ -204,7 +266,7 @@ private fun CommentItemCard(comment: String) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = "Changes")
-                    Text(text = "265")
+                    Text(text = file.changes.toString())
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
@@ -212,7 +274,7 @@ private fun CommentItemCard(comment: String) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = "Addition")
-                    Text(text = "265")
+                    Text(text = file.additions.toString())
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
@@ -220,7 +282,7 @@ private fun CommentItemCard(comment: String) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = "Deletion")
-                    Text(text = "5")
+                    Text(text = file.deletions.toString())
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
@@ -228,7 +290,7 @@ private fun CommentItemCard(comment: String) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = "Status")
-                    Text(text = "modified")
+                    Text(text = file.status, fontWeight = FontWeight.Bold)
                 }
             }
             
@@ -243,200 +305,227 @@ private fun CommentsScreen() {
 
 @Composable
 private fun TitleHeader(
+    repo: String,
+    state: Resource<CommitModel>,
     onNavigate: (Int, String?, String?) -> Unit,
     onCurrentSheetChanged: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp, top = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    when(state){
+        is Resource.Loading -> {
 
-//            GlideImage(
-//                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-//                imageModel = {
-//                    //repository.owner.avatar_url
-//                }, // loading a network image using an URL.
-//                modifier = Modifier
-//                    .size(48.dp, 48.dp)
-//                    .size(48.dp, 48.dp)
-//                    .clip(CircleShape)
-//                    .clickable {
-////                        onNavigate(
-////                            R.id.action_commitFragment_to_profileFragment,
-////                            repository.owner.login,
-////                            null
-////                        )
-//                    },
-//                imageOptions = ImageOptions(
-//                    contentScale = ContentScale.Crop,
-//                    alignment = Alignment.CenterStart,
-//                    contentDescription = "Actor Avatar"
-//                )
-//            )
+        }
+        is Resource.Success -> {
+            val commit = state.data!!
 
-            Image(
-                painter = painterResource(id = R.drawable.baseline_account_circle_24),
-                contentDescription = "avatar icon",
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, top = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                             commit.author.avatar_url
+                    //repository.owner.avatar_url
+                }, // loading a network image using an URL.
                 modifier = Modifier
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
+                    .clip(CircleShape)
+                    .clickable {
+//                        onNavigate(
+//                            R.id.action_commitFragment_to_profileFragment,
+//                            repository.owner.login,
+//                            null
+//                        )
+                    },
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+//                    Image(
+//                        painter = painterResource(id = R.drawable.baseline_account_circle_24),
+//                        contentDescription = "avatar icon",
+//                        modifier = Modifier
+//                            .size(48.dp, 48.dp)
+//                            .size(48.dp, 48.dp)
+//                            .clip(CircleShape),
+//                        contentScale = ContentScale.Crop,
+//                    )
 
-            Column(
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "repository.full_name",
-                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    Spacer(modifier = Modifier.width(12.dp))
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = commit.commit.message,
+                            modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                            color = Color.Black,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
-                Row {
-                    Text(
-                        text = "compose-multiplatform",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Time should be",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row {
+                            Text(
+                                text = repo,
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = ParseDateFormat.getTimeAgo(commit.commit.committer.date).toString(),
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+
+
+                    IconButton(onClick = {
+                        onCurrentSheetChanged()
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_info_outline),
+                            contentDescription = "info"
+                        )
+                    }
                 }
-            }
 
-
-            IconButton(onClick = {
-                onCurrentSheetChanged()
-            }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_info_outline),
-                    contentDescription = "info"
-                )
             }
         }
-
+        is Resource.Failure -> {}
     }
+
 }
 
 @Composable
 private fun Toolbar(
+    state: Resource<CommitModel>,
     onNavigate: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: () -> Unit,
     onLicenseClicked: () -> Unit
 ) {
-    var showMenu by remember { mutableStateOf(false) }
 
-    Row(
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp)
-    ) {
-
-        IconButton(onClick = { onNavigate(-1, null, null) }) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_document),
-                    contentDescription = "changes",
-                    tint = Color.Black
-                )
-                Text(text = "42")
-            }
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_add),
-                    contentDescription = "add",
-                )
-                Text(text = "51")
-            }
-
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_clear),
-                    contentDescription = "clear"
-                )
-                Text(text = "17")
-            }
-
+    when(state){
+        is Resource.Loading -> {
 
         }
+        is Resource.Success -> {
+            var showMenu by remember { mutableStateOf(false) }
 
-        Box {
-            IconButton(
-                onClick = {
-                    showMenu = !showMenu
-                },
+            val commit = state.data!!
+
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
             ) {
-                Icon(Icons.Filled.MoreVert, contentDescription = "more option")
-            }
 
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-            ) {
-                DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
-                    onAction("share", "repository.html_url")
-                    showMenu = false
-                })
-                DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
-                    onAction("browser", "repository.html_url")
-                    showMenu = false
-                })
-                DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
-                    onAction("copy", "repository.html_url")
-                    showMenu = false
-                })
+                IconButton(onClick = { onNavigate(-1, null, null) }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                }
 
-                DropdownMenuItem(text = { Text(text = "Copy SHA-1") },
-                    onClick = {
-                        onAction("copy", "copy sha-1 ")
-                        showMenu = false
-                    })
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_document),
+                            contentDescription = "changes",
+                            tint = Color.Black
+                        )
+                        Text(text = commit.files.size.toString() )
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "add",
+                        )
+                        Text(text = commit.stats.additions.toString())
+                    }
+
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_clear),
+                            contentDescription = "clear"
+                        )
+                        Text(text = commit.stats.deletions.toString())
+                    }
+
+                }
+
+                Box {
+                    IconButton(
+                        onClick = {
+                            showMenu = !showMenu
+                        },
+                    ) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                    ) {
+                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                            onAction("share", "repository.html_url")
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                            onAction("browser", "repository.html_url")
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                            onAction("copy", "repository.html_url")
+                            showMenu = false
+                        })
+
+                        DropdownMenuItem(text = { Text(text = "Copy SHA-1") },
+                            onClick = {
+                                onAction("copy", "copy sha-1 ")
+                                showMenu = false
+                            })
+
+                    }
+                }
 
             }
         }
+        is Resource.Failure -> {
 
+        }
     }
 }
