@@ -666,7 +666,6 @@ private fun MainContent(
 
 @Composable
 private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> Unit) {
-
     Column(
         Modifier.padding(16.dp),
         horizontalAlignment = Alignment.Start,
