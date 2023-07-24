@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -103,7 +104,6 @@ import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
-import com.hasan.jetfasthub.screens.main.repository.models.path_model.PathModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -124,7 +124,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class RepositoryFragment : Fragment() {
 
     private val repositoryViewModel: RepositoryViewModel by viewModel()
-    private lateinit var initialBranch: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -138,12 +137,12 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo
         )
 
-        repositoryViewModel.getLabels(
-            token = token, owner = owner, repo = repo, page = 1
+        repositoryViewModel.isWatchingRepo(
+            token = token, owner = owner, repo = repo
         )
 
-        repositoryViewModel.getTags(
-            token = token, owner = owner, repo = repo, page = 1
+        repositoryViewModel.isStarringRepo(
+            token = token, owner = owner, repo = repo
         )
 
         repositoryViewModel.getBranches(
@@ -155,7 +154,7 @@ class RepositoryFragment : Fragment() {
                 branchesList.add(it.name)
             }
 
-            initialBranch = if (branchesList.isNotEmpty()) {
+            val initialBranch = if (branchesList.isNotEmpty()) {
                 if (branchesList.contains("main")) {
                     "main"
                 } else if (branchesList.contains("master")) {
@@ -167,7 +166,7 @@ class RepositoryFragment : Fragment() {
                 "main"
             }
 
-            repositoryViewModel.updateInitialBranch(initialBranch)
+            repositoryViewModel.updateBranch(initialBranch)
 
             repositoryViewModel.getContentFiles(
                 token = token,
@@ -188,7 +187,28 @@ class RepositoryFragment : Fragment() {
 
         }.launchIn(lifecycleScope)
 
-        repositoryViewModel.getContributors(
+//        repositoryViewModel.getContentFiles(
+//            token = token,
+//            owner = owner,
+//            repo = repo,
+//            path = "",
+//            ref = repositoryViewModel.state.value.Branch
+//        )
+//
+//        repositoryViewModel.getCommits(
+//            token = token,
+//            owner = owner,
+//            repo = repo,
+//            branch = repositoryViewModel.state.value.Branch,
+//            page = 1,
+//            path = ""
+//        )
+
+        repositoryViewModel.getTags(
+            token = token, owner = owner, repo = repo, page = 1
+        )
+
+        repositoryViewModel.getLabels(
             token = token, owner = owner, repo = repo, page = 1
         )
 
@@ -196,12 +216,8 @@ class RepositoryFragment : Fragment() {
             token = token, owner = owner, repo = repo, page = 1
         )
 
-        repositoryViewModel.isWatchingRepo(
-            token = token, owner = owner, repo = repo
-        )
-
-        repositoryViewModel.isStarringRepo(
-            token = token, owner = owner, repo = repo
+        repositoryViewModel.getContributors(
+            token = token, owner = owner, repo = repo, page = 1
         )
 
         return ComposeView(requireContext()).apply {
@@ -272,13 +288,30 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_path_change" -> {
-                                    state.Paths.add(PathModel("",""))
+                                    Log.d(
+                                        "ahi3646",
+                                        "onCreateView: on path change - ${data.toString()} last item - ${state.Paths.last()}"
+                                    )
+                                    Log.d("ahi3646", "onCreateView: lastItem - ${state.Paths[state.Paths.lastIndex]} ")
+                                    if (state.Paths.contains(data) && data != state.Paths[state.Paths.lastIndex]) {
+                                        state.Paths.subList(
+                                            state.Paths.indexOf(data),
+                                            state.Paths.lastIndex
+                                        ).clear()
+                                    } else {
+                                        state.Paths.add(data!!)
+                                    }
+
+                                    state.Paths.forEach {
+                                        Log.d("ahi3646", "onCreateView: $it ")
+                                    }
+
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
-                                        path = data ?: "",
-                                        ref = initialBranch
+                                        path = state.Paths.last(),
+                                        ref = state.Branch
                                     )
 
                                 }
@@ -373,7 +406,9 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_branch_change" -> {
-                                    repositoryViewModel.updateInitialBranch(data!!)
+                                    repositoryViewModel.updateBranch(data ?: "main")
+                                    repositoryViewModel.state.value.Paths.clear()
+                                    repositoryViewModel.state.value.Paths.add("")
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
@@ -922,10 +957,6 @@ private fun FilesScreen(
                 )
             }
 
-            val paths = remember {
-                mutableListOf(PathModel("", ""))
-            }
-
             Column(
                 Modifier
                     .background(Color.White)
@@ -972,7 +1003,7 @@ private fun FilesScreen(
                 ) {
 
                     IconButton(onClick = {
-
+                        onAction("on_path_change", "")
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_home),
@@ -981,8 +1012,8 @@ private fun FilesScreen(
                     }
 
                     LazyRow(Modifier.weight(1F)) {
-                        items(paths) { pathModel ->
-                            FilePathRowItemCard(pathModel, onAction)
+                        items(state.Paths) { path ->
+                            FilePathRowItemCard(path, onAction)
                         }
                     }
 
@@ -1028,17 +1059,14 @@ private fun FilesScreen(
                                 FileFolderItemCard(
                                     file = file,
                                     onAction = onAction,
-                                    onPathChanged = { changedPathModel ->
-                                        paths.add(changedPathModel)
-                                    })
+                                )
                             }
 
                             "file" -> {
-                                FileDocumentItemCard(file = file,
+                                FileDocumentItemCard(
+                                    file = file,
                                     onAction = onAction,
-                                    onPathChanged = { changedPath ->
-                                        paths.add(changedPath)
-                                    })
+                                )
                             }
 
                             else -> {}
@@ -1065,16 +1093,16 @@ private fun FilesScreen(
 
 
 @Composable
-private fun FilePathRowItemCard(pathModel: PathModel, onAction: (String, String?) -> Unit) {
+private fun FilePathRowItemCard(path: String, onAction: (String, String?) -> Unit) {
     Row(
         modifier = Modifier
             .background(Color.White)
             .padding(4.dp)
             .clickable {
-                onAction("on_path_change", pathModel.path)
+                onAction("on_path_change", path)
             }, verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = pathModel.pathName)
+        Text(text = path.substring(path.lastIndexOf("/") + 1))
         Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
     }
 }
@@ -1084,13 +1112,13 @@ private fun FilePathRowItemCard(pathModel: PathModel, onAction: (String, String?
 private fun FileFolderItemCard(
     file: FileModel,
     onAction: (String, String?) -> Unit,
-    onPathChanged: (pathModel: PathModel) -> Unit
+    //onPathChanged: (pathModel: PathModel) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onPathChanged(PathModel(file.path, file.name))
+                //onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
@@ -1129,13 +1157,15 @@ private fun FileFolderItemCard(
 
 @Composable
 private fun FileDocumentItemCard(
-    file: FileModel, onAction: (String, String?) -> Unit, onPathChanged: (path: PathModel) -> Unit
+    file: FileModel,
+    onAction: (String, String?) -> Unit,
+    //onPathChanged: (path: PathModel) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onPathChanged(PathModel(file.path, file.name))
+                //onPathChanged(PathModel(file.path, file.name))
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,

@@ -10,7 +10,6 @@ import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesMode
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
-import com.hasan.jetfasthub.screens.main.repository.models.path_model.PathModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -260,23 +259,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             }
         }
     }
-
-//    fun changeSubscriptionStatus(status: Boolean) {
-//        _state.update {
-//            it.copy(
-//                isWatching = status
-//            )
-//        }
-//    }
-//
-//    fun changeStarringStatus(status: Boolean) {
-//        _state.update {
-//            it.copy(
-//                isStarring = status
-//            )
-//        }
-//    }
-
+    
     fun watchRepo(token: String, owner: String, repo: String): Flow<RepoSubscriptionModel> =
         callbackFlow {
             viewModelScope.launch {
@@ -566,7 +549,6 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-
     fun getLicense(token: String, owner: String, repo: String) {
         viewModelScope.launch {
             try {
@@ -593,19 +575,19 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun updateInitialBranch(branch: String){
+    fun updateBranch(branch: String){
         _state.update {
             it.copy(Branch = branch)
         }
     }
 
-    fun updatePaths(path: PathModel){
-        _state.update {
-            it.copy(
-                Paths =
-            )
-        }
-    }
+//    fun updatePaths(path: PathModel){
+//        _state.update {
+//            it.copy(
+//                Paths =
+//            )
+//        }
+//    }
 
 }
 
@@ -629,7 +611,7 @@ data class RepositoryScreenState(
     val Labels: Resource<LabelsModel> = Resource.Loading(),
     val Tags: Resource<TagsModel> = Resource.Loading(),
     val Branch: String = "main",
-    val Paths: ArrayList<PathModel> = arrayListOf(PathModel("",""))
+    val Paths: ArrayList<String> = arrayListOf("")
 )
 
 sealed interface BottomSheetScreens {
