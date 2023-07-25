@@ -443,6 +443,20 @@ class RepositoryFragment : Fragment() {
                                         ref = state.Branch
                                     )
                                 }
+
+                                "on_tag_change" -> {
+                                    repositoryViewModel.updateBranch(data ?: "main")
+                                    repositoryViewModel.state.value.Paths.clear()
+                                    repositoryViewModel.state.value.Paths.add("")
+                                    repositoryViewModel.getContentFiles(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        path = "",
+                                        ref = state.Branch
+                                    )
+                                }
+
                             }
                         },
                     )
@@ -889,48 +903,57 @@ private fun SwitchBranchDialog(
             }
 
             1 -> {
-                Spacer(modifier = Modifier.height(6.dp))
-
-                LazyColumn {
-                    itemsIndexed(tags) { index, tag ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onAction("on_tag_change", tag)
-                                    closeDialog()
-                                },
-                            elevation = 0.dp
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.padding(start = 16.dp)
+                if (tags.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LazyColumn {
+                        itemsIndexed(tags) { index, tag ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onAction("on_tag_change", tag)
+                                        closeDialog()
+                                    },
+                                elevation = 0.dp
                             ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_label),
-                                    contentDescription = ""
-                                )
-                                Text(
-                                    text = tag,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier.padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        top = 12.dp,
-                                        bottom = 12.dp
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier.padding(start = 16.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_label),
+                                        contentDescription = ""
                                     )
+                                    Text(
+                                        text = tag,
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(
+                                            start = 16.dp,
+                                            end = 16.dp,
+                                            top = 12.dp,
+                                            bottom = 12.dp
+                                        )
+                                    )
+                                }
+                            }
+                            if (index < tags.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier
+                                        .height(0.5.dp)
+                                        .fillMaxWidth()
                                 )
                             }
                         }
-                        if (index < tags.lastIndex) {
-                            Divider(
-                                color = Color.Gray,
-                                modifier = Modifier
-                                    .height(0.5.dp)
-                                    .fillMaxWidth()
-                            )
-                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = "Tags not found !")
                     }
                 }
             }

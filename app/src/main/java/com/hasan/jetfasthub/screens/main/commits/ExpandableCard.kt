@@ -4,17 +4,16 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -23,7 +22,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,11 +34,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.File
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
     var expandableState by remember {
@@ -58,12 +56,10 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                     durationMillis = 300,
                     easing = LinearOutSlowInEasing
                 )
-            ),
-        shape = ShapeDefaults.Small,
+            )
+            .clickable { expandableState = !expandableState },
         elevation = 12.dp,
-        onClick = {
-            expandableState = !expandableState
-        }
+        backgroundColor = Color.White,
     ) {
         Column {
 
@@ -73,9 +69,12 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                 horizontalArrangement = Arrangement.Start
             ) {
 
-                Text(text = file.filename)
-
-                Spacer(Modifier.weight(1F))
+                Text(
+                    text = file.filename,
+                    modifier = Modifier.weight(1F),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 IconButton(
                     modifier = Modifier
@@ -187,6 +186,5 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
 
         }
     }
-
 
 }
