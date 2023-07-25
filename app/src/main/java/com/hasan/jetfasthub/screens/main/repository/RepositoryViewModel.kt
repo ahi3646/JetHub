@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
-import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.branches_model.BranchesModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
@@ -42,7 +42,13 @@ class RepositoryViewModel(
 
     fun downloadRelease(releaseDownloadModel: ReleaseDownloadModel) {
         viewModelScope.launch {
-            downloader.download(releaseDownloadModel)
+            downloader.downloadRelease(releaseDownloadModel)
+        }
+    }
+
+    fun downloadRepo(url: String, message: String){
+        viewModelScope.launch {
+            downloader.downloadRepo(url, message)
         }
     }
 
@@ -189,7 +195,7 @@ class RepositoryViewModel(
         }
     }
 
-    fun getBranches(token: String, owner: String, repo: String): Flow<BranchModel> = callbackFlow {
+    fun getBranches(token: String, owner: String, repo: String): Flow<BranchesModel> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.getBranches(token, owner, repo).let { branches ->
@@ -213,6 +219,28 @@ class RepositoryViewModel(
         awaitClose {
             channel.close()
             Log.d("callback_ahi", "callback stop : ")
+        }
+    }
+
+    fun getBranch(token: String, repo: String, owner: String, branch: String){
+        viewModelScope.launch {
+            try {
+                repository.getBranch(token, owner, repo, branch).let { branch ->
+                    if (branch.isSuccessful) {
+                        _state.update {
+                            it.copy(Branch = Resource.Success(branch.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(Branch = Resource.Failure(branch.errorBody().toString()))
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(Branch = Resource.Failure(e.message.toString()))
+                }
+            }
         }
     }
 
@@ -587,12 +615,6 @@ class RepositoryViewModel(
         }
     }
 
-    fun updateBranch(branch: String) {
-        _state.update {
-            it.copy(Branch = branch)
-        }
-    }
-
 }
 
 data class RepositoryScreenState(
@@ -603,7 +625,7 @@ data class RepositoryScreenState(
     val currentSheet: BottomSheetScreens = BottomSheetScreens.RepositoryInfoSheet,
     val ReadmeHtml: Resource<String> = Resource.Loading(),
     val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
-    val Branches: Resource<BranchModel> = Resource.Loading(),
+    val Branches: Resource<BranchesModel> = Resource.Loading(),
     val Commits: Resource<CommitsModel> = Resource.Loading(),
     val isWatching: Boolean = false,
     val Watchers: Resource<SubscriptionsModel> = Resource.Loading(),
@@ -614,7 +636,7 @@ data class RepositoryScreenState(
     val License: Resource<LicenseModel> = Resource.Loading(),
     val Labels: Resource<LabelsModel> = Resource.Loading(),
     val Tags: Resource<TagsModel> = Resource.Loading(),
-    val Branch: String = "main",
+    val Branch: Resource<BranchModel> = Resource.Loading(),
     val Paths: ArrayList<String> = arrayListOf("")
 )
 

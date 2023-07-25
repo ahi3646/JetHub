@@ -165,7 +165,12 @@ class RepositoryFragment : Fragment() {
                 "main"
             }
 
-            repositoryViewModel.updateBranch(initialBranch)
+            repositoryViewModel.getBranch(
+                token = token,
+                owner = owner,
+                repo = repo,
+                branch = initialBranch
+            )
 
             repositoryViewModel.getContentFiles(
                 token = token,
@@ -319,7 +324,7 @@ class RepositoryFragment : Fragment() {
                                             owner = owner,
                                             repo = repo,
                                             path = state.Paths.last(),
-                                            ref = state.Branch
+                                            ref = state.Branch.data!!.name
                                         )
 
                                         paths.forEach {
@@ -336,7 +341,7 @@ class RepositoryFragment : Fragment() {
                                             owner = owner,
                                             repo = repo,
                                             path = state.Paths.last(),
-                                            ref = state.Branch
+                                            ref = state.Branch.data!!.name
                                         )
                                     }
 
@@ -431,8 +436,23 @@ class RepositoryFragment : Fragment() {
                                         .launchIn(lifecycleScope)
                                 }
 
+                                "download" -> {
+                                    val message = Uri.parse(
+                                        data!!
+                                    ).lastPathSegment
+                                    repositoryViewModel.downloadRepo(
+                                        data,
+                                        message ?: "jethub_download"
+                                    )
+                                }
+
                                 "on_branch_change" -> {
-                                    repositoryViewModel.updateBranch(data ?: "main")
+                                    repositoryViewModel.getBranch(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = data ?: "main"
+                                    )
                                     repositoryViewModel.state.value.Paths.clear()
                                     repositoryViewModel.state.value.Paths.add("")
                                     repositoryViewModel.getContentFiles(
@@ -440,12 +460,17 @@ class RepositoryFragment : Fragment() {
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = state.Branch
+                                        ref = state.Branch.data!!.name
                                     )
                                 }
 
                                 "on_tag_change" -> {
-                                    repositoryViewModel.updateBranch(data ?: "main")
+                                    repositoryViewModel.getBranch(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = data ?: "main"
+                                    )
                                     repositoryViewModel.state.value.Paths.clear()
                                     repositoryViewModel.state.value.Paths.add("")
                                     repositoryViewModel.getContentFiles(
@@ -453,7 +478,7 @@ class RepositoryFragment : Fragment() {
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = state.Branch
+                                        ref = state.Branch.data!!.name
                                     )
                                 }
 
@@ -993,7 +1018,7 @@ private fun FilesScreen(
                 branchList.add(it.name)
             }
 
-            val initialBranch = state.Branch
+            val initialBranch = state.Branch.data!!.name
 
             var isDialogShown by remember {
                 mutableStateOf(false)
@@ -1080,7 +1105,7 @@ private fun FilesScreen(
                         }
                     }
 
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onAction("download", state.Branch.data._links.html) }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_download),
                             contentDescription = "download"
@@ -1308,7 +1333,7 @@ private fun CommitsScreen(
 
                             }) {
                         Text(
-                            text = state.Branch,
+                            text = state.Branch.data!!.name,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )

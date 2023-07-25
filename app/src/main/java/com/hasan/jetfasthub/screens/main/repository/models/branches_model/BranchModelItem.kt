@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.repository.models.branch_model
+package com.hasan.jetfasthub.screens.main.repository.models.branches_model
 
 data class BranchModelItem(
     val commit: Commit,

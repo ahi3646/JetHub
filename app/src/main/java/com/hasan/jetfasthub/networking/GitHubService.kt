@@ -18,7 +18,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
-import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.branches_model.BranchesModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
@@ -30,6 +30,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_mode
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
+import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
@@ -340,7 +341,18 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Path("owner") owner: String,
         @Path("repo") repo: String,
+    ): Response<BranchesModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{owner}/{repo}/branches/{branch}")
+    suspend fun getBranch(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("branch") branch: String
     ): Response<BranchModel>
+
+
 
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/labels")

@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
+import com.hasan.jetfasthub.screens.main.repository.models.branches_model.BranchesModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
@@ -13,7 +14,6 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
-import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
@@ -52,6 +52,13 @@ interface Repository {
         token: String,
         owner: String,
         repo: String
+    ): Response<BranchesModel>
+
+    suspend fun getBranch(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String
     ): Response<BranchModel>
 
     suspend fun getCommits(
@@ -230,11 +237,25 @@ class RepositoryImpl(private val context: Context) : Repository {
         token: String,
         owner: String,
         repo: String
-    ): Response<BranchModel> {
+    ): Response<BranchesModel> {
         return RetrofitInstance(context).gitHubService.getBranches(
             token = token,
             owner = owner,
             repo = repo,
+        )
+    }
+
+    override suspend fun getBranch(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String
+    ): Response<BranchModel> {
+        return RetrofitInstance(context).gitHubService.getBranch(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            branch = branch,
         )
     }
 
