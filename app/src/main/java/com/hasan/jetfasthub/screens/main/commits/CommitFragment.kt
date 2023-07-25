@@ -72,6 +72,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -167,7 +168,11 @@ class CommitFragment : Fragment() {
                                 }
 
                                 "download" -> {
-
+                                    val message  = Uri.parse(
+                                        data!!
+                                    ).lastPathSegment
+                                    val downloader = AndroidDownloader(requireContext())
+                                    downloader.downloadCommit(data, message ?: "jethub.download")
                                 }
 
                             }

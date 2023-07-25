@@ -771,6 +771,7 @@ private fun CodeScreen(
 
 @Composable
 private fun SwitchBranchDialog(
+    closeDialog: () -> Unit,
     onAction: (String, String?) -> Unit,
     branches: List<String>,
     tags: List<String>,
@@ -840,7 +841,9 @@ private fun SwitchBranchDialog(
                                 .fillMaxWidth()
                                 .clickable {
                                     onAction("on_branch_change", branch)
-                                }, elevation = 0.dp
+                                    closeDialog()
+                                },
+                            elevation = 0.dp
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -885,7 +888,9 @@ private fun SwitchBranchDialog(
                                 .fillMaxWidth()
                                 .clickable {
                                     onAction("on_tag_change", tag)
-                                }, elevation = 0.dp
+                                    closeDialog()
+                                },
+                            elevation = 0.dp
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -971,11 +976,13 @@ private fun FilesScreen(
                     ),
                     content = {
                         SwitchBranchDialog(
+                            closeDialog = { isDialogShown = false },
                             onAction = onAction,
                             branches = branchList,
                             tags = tagList,
-                            onDialogShown = { isDialogShown = false }
-                        )
+                            onDialogShown = { isDialogShown = false },
+
+                            )
                     }
                 )
             }

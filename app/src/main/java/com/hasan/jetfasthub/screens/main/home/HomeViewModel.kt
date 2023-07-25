@@ -30,19 +30,23 @@ class HomeViewModel(
         }
     }
 
-    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow{
+    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.getAuthenticatedUser(token).let { authenticatedUser ->
-                    if(authenticatedUser.isSuccessful){
+                    if (authenticatedUser.isSuccessful) {
                         trySend(authenticatedUser.body()!!)
-                    }else{
+                    } else {
                         _state.update {
-                            it.copy(user = Resource.Failure(authenticatedUser.errorBody().toString()))
+                            it.copy(
+                                user = Resource.Failure(
+                                    authenticatedUser.errorBody().toString()
+                                )
+                            )
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(user = Resource.Failure(e.message.toString()))
                 }
@@ -70,22 +74,35 @@ class HomeViewModel(
         }
     }
 
-
     fun getReceivedEvents(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getReceivedUserEvents(token, username).let { receivedEvents ->
-                if (receivedEvents.isSuccessful) {
-                    _state.update {
-                        it.copy(receivedEventsState = ReceivedEventsState.Success(receivedEvents.body()!!))
-                    }
-                } else {
-                    _state.update {
-                        it.copy(
-                            receivedEventsState = ReceivedEventsState.Error(
-                                receivedEvents.errorBody().toString()
+            try {
+                repository.getReceivedUserEvents(token, username).let { receivedEvents ->
+                    if (receivedEvents.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                receivedEventsState = ReceivedEventsState.Success(
+                                    receivedEvents.body()!!
+                                )
                             )
-                        )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                receivedEventsState = ReceivedEventsState.Error(
+                                    receivedEvents.errorBody().toString()
+                                )
+                            )
+                        }
                     }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        receivedEventsState = ReceivedEventsState.Error(
+                            e.message.toString()
+                        )
+                    )
                 }
             }
         }

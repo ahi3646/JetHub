@@ -8,12 +8,29 @@ import com.hasan.jetfasthub.screens.main.repository.models.release_download_mode
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 
 interface Downloader {
+
+    fun downloadCommit(url:String, message: String): Long
+
     fun download(release: ReleaseDownloadModel): Long
 }
 
 class AndroidDownloader(context: Context) : Downloader {
 
     private val downloadManager = context.getSystemService(DownloadManager::class.java)
+    override fun downloadCommit(url: String, message: String): Long {
+        val request = DownloadManager.Request(url.toUri())
+            .setMimeType("application/octet-stream")
+            .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setTitle(message)
+            .addRequestHeader("Authorization", "Bearer $PERSONAL_ACCESS_TOKEN")
+            .setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                message
+            )
+
+        return downloadManager.enqueue(request)
+    }
 
     override fun download(release: ReleaseDownloadModel): Long {
         val request = DownloadManager.Request(release.url.toUri())

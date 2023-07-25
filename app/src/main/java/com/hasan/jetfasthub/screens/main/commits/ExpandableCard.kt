@@ -19,10 +19,12 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +60,8 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                     easing = LinearOutSlowInEasing
                 )
             ),
-        elevation = 16.dp,
+        shape = ShapeDefaults.Small,
+        elevation = 12.dp,
         onClick = {
             expandableState = !expandableState
         }
