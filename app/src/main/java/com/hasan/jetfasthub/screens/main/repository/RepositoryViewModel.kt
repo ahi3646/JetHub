@@ -646,6 +646,8 @@ sealed interface BottomSheetScreens {
 
     class ReleaseItemSheet(val releaseItem: ReleasesModelItem) : BottomSheetScreens
 
+    class RepoDownloadSheet(val url: String) : BottomSheetScreens
+
     object ForkSheet : BottomSheetScreens
 
 }

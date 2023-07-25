@@ -548,6 +548,14 @@ private fun MainContent(
                     )
                 }
 
+                is BottomSheetScreens.RepoDownloadSheet -> {
+                    RepoDownloadSheet(
+                        url = state.currentSheet.url,
+                        closeSheet = closeSheet,
+                        onAction = onAction
+                    )
+                }
+
                 BottomSheetScreens.ForkSheet -> {
                     Column(
                         Modifier.padding(16.dp),
@@ -589,6 +597,7 @@ private fun MainContent(
                         }
                     }
                 }
+
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -668,8 +677,8 @@ private fun MainContent(
                     paddingValues = paddingValues,
                     state = state,
                     onItemClicked = onItemClicked,
-                    onCurrentSheetChanged = { release ->
-                        onCurrentSheetChanged(BottomSheetScreens.ReleaseItemSheet(release))
+                    onCurrentSheetChanged = { bottomSheet ->
+                        onCurrentSheetChanged(bottomSheet)
                         scope.launch {
                             if (sheetScaffoldState.bottomSheetState.isCollapsed) {
                                 sheetScaffoldState.bottomSheetState.expand()
@@ -732,6 +741,49 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 }
 
 @Composable
+private fun RepoDownloadSheet(
+    url: String,
+    closeSheet: () -> Unit,
+    onAction: (String, String?) -> Unit
+) {
+    Column(
+        Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Text(
+            text = "Download", style = MaterialTheme.typography.titleLarge
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Are you sure ?"
+        )
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = {
+                closeSheet()
+            }) {
+                Text(text = "No", color = Color.Red)
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Button(onClick = {
+                onAction("download", url)
+                closeSheet()
+            }) {
+                Text(text = "Yes", color = Color.Blue)
+            }
+        }
+    }
+}
+
+@Composable
 private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> Unit) {
     val repository = state.Repository
     if (repository.data != null) {
@@ -773,7 +825,7 @@ private fun CodeScreen(
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
-    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit,
+    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
@@ -805,7 +857,7 @@ private fun CodeScreen(
         }
         when (tabIndex) {
             0 -> ReadMe()
-            1 -> FilesScreen(state, onAction)
+            1 -> FilesScreen(state, onAction, onCurrentSheetChanged)
             2 -> CommitsScreen(state, onItemClicked)
             3 -> ReleasesScreen(
                 onDownload = onDownload,
@@ -990,6 +1042,7 @@ private fun SwitchBranchDialog(
 private fun FilesScreen(
     state: RepositoryScreenState,
     onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit
 ) {
 
     when (state.RepositoryFiles) {
@@ -1105,7 +1158,15 @@ private fun FilesScreen(
                         }
                     }
 
-                    IconButton(onClick = { onAction("download", state.Branch.data._links.html) }) {
+                    IconButton(
+                        onClick = {
+                            onCurrentSheetChanged(
+                                BottomSheetScreens.RepoDownloadSheet(
+                                    state.Branch.data._links.html
+                                )
+                            )
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_download),
                             contentDescription = "download"
@@ -1471,7 +1532,7 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
 private fun ReleasesScreen(
     onDownload: (release: ReleaseDownloadModel) -> Unit,
     releases: Resource<ReleasesModel>,
-    onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit
+    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit
 ) {
     when (releases) {
         is Resource.Loading -> {
@@ -1534,7 +1595,7 @@ private fun ReleasesScreen(
 private fun ReleaseItemCard(
     onDownload: (release: ReleaseDownloadModel) -> Unit,
     releasesModelItem: ReleasesModelItem,
-    onCurrentSheetChanged: (release: ReleasesModelItem) -> Unit,
+    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit,
 ) {
 
     var isDialogShown by remember {
@@ -1642,7 +1703,7 @@ private fun ReleaseItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onCurrentSheetChanged(releasesModelItem)
+                onCurrentSheetChanged(BottomSheetScreens.ReleaseItemSheet(releasesModelItem))
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
