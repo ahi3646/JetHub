@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.commits
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.CommitRepository
+import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,10 +11,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class CommitViewModel(private val repository: CommitRepository): ViewModel() {
+class CommitViewModel(
+    private val repository: CommitRepository,
+    private val downloader: Downloader
+) : ViewModel() {
 
-    private var _state : MutableStateFlow<CommitScreenState> = MutableStateFlow(CommitScreenState())
-    val state =  _state.asStateFlow()
+    private var _state: MutableStateFlow<CommitScreenState> = MutableStateFlow(CommitScreenState())
+    val state = _state.asStateFlow()
+
+    fun downloadCommit(url: String, message: String){
+        viewModelScope.launch {
+            downloader.downloadCommit(url, message)
+        }
+    }
 
     fun getCommit(
         token: String,

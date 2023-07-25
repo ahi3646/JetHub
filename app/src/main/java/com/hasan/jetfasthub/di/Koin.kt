@@ -23,6 +23,8 @@ import com.hasan.jetfasthub.data.Repository
 import com.hasan.jetfasthub.data.RepositoryImpl
 import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
+import com.hasan.jetfasthub.data.download.AndroidDownloader
+import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
@@ -109,13 +111,15 @@ val eventsModule = module {
 }
 
 val repositoryModule = module {
+    single <Downloader>{ AndroidDownloader(get()) }
     single <Repository>{ RepositoryImpl(get()) }
-    viewModel { RepositoryViewModel(get()) }
+    viewModel { RepositoryViewModel(get(), get()) }
 }
 
 val commitModule = module{
+    single <Downloader>{ AndroidDownloader(get()) }
     single  <CommitRepository> {CommitRepositoryImpl(get())}
-    viewModel{ CommitViewModel(get()) }
+    viewModel{ CommitViewModel(get(), get()) }
 }
 
 val notificationsModule = module {

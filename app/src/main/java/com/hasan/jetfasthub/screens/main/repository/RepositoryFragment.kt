@@ -101,7 +101,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
@@ -254,6 +253,9 @@ class RepositoryFragment : Fragment() {
                                     findNavController().navigate(dest, bundle)
                                 }
                             }
+                        },
+                        onDownload = {
+                            repositoryViewModel.downloadRelease(it)
                         },
                         onAction = { action, data ->
                             when (action) {
@@ -453,11 +455,12 @@ class RepositoryFragment : Fragment() {
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun MainContent(
+    onDownload: (release: ReleaseDownloadModel) -> Unit,
     state: RepositoryScreenState,
     onBottomBarClicked: (RepositoryScreens) -> Unit,
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
-    onCurrentSheetChanged: (BottomSheetScreens) -> Unit
+    onCurrentSheetChanged: (BottomSheetScreens) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
@@ -622,6 +625,7 @@ private fun MainContent(
 
             when (state.selectedBottomBarItem) {
                 RepositoryScreens.Code -> CodeScreen(
+                    onDownload = onDownload,
                     paddingValues = paddingValues,
                     state = state,
                     onItemClicked = onItemClicked,
@@ -726,6 +730,7 @@ private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> 
 
 @Composable
 private fun CodeScreen(
+    onDownload: (release: ReleaseDownloadModel) -> Unit,
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
     onItemClicked: (Int, String?, String?) -> Unit,
@@ -763,7 +768,12 @@ private fun CodeScreen(
             0 -> ReadMe()
             1 -> FilesScreen(state, onAction)
             2 -> CommitsScreen(state, onItemClicked)
-            3 -> ReleasesScreen(state.Releases, onCurrentSheetChanged)
+            3 -> ReleasesScreen(
+                onDownload = onDownload,
+                releases = state.Releases,
+                onCurrentSheetChanged = onCurrentSheetChanged
+            )
+
             4 -> ContributorsScreen(state.Contributors, onItemClicked)
         }
     }
@@ -1411,6 +1421,7 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
 
 @Composable
 private fun ReleasesScreen(
+    onDownload: (release: ReleaseDownloadModel) -> Unit,
     releases: Resource<ReleasesModel>,
     onCurrentSheetChanged: (releaseItem: ReleasesModelItem) -> Unit
 ) {
@@ -1435,7 +1446,11 @@ private fun ReleasesScreen(
                     verticalArrangement = Arrangement.Top
                 ) {
                     itemsIndexed(releases.data) { index, release ->
-                        ReleaseItemCard(releasesModelItem = release, onCurrentSheetChanged)
+                        ReleaseItemCard(
+                            onDownload = onDownload,
+                            releasesModelItem = release,
+                            onCurrentSheetChanged = onCurrentSheetChanged
+                        )
                         if (index < releases.data.lastIndex) {
                             Divider(
                                 color = Color.Gray,
@@ -1469,6 +1484,7 @@ private fun ReleasesScreen(
 
 @Composable
 private fun ReleaseItemCard(
+    onDownload: (release: ReleaseDownloadModel) -> Unit,
     releasesModelItem: ReleasesModelItem,
     onCurrentSheetChanged: (release: ReleasesModelItem) -> Unit,
 ) {
@@ -1477,9 +1493,6 @@ private fun ReleaseItemCard(
         mutableStateOf(false)
     }
     val releases = arrayListOf<ReleaseDownloadModel>()
-
-    //delegate this feature to viewModel
-    val downloader = AndroidDownloader(LocalContext.current)
 
     if (releasesModelItem.zipball_url.isNotEmpty()) {
         releases.add(
@@ -1552,7 +1565,8 @@ private fun ReleaseItemCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        downloader.download(release)
+                                        isDialogShown = false
+                                        onDownload(release)
                                     }, elevation = 0.dp
                             ) {
                                 val title = if (release.downloadCount != 0) {

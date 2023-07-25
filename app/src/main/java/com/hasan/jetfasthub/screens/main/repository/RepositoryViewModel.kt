@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
+import com.hasan.jetfasthub.data.download.AndroidDownloader
+import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
@@ -15,7 +17,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
-import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
+import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
@@ -28,12 +30,21 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class RepositoryViewModel(private val repository: Repository) : ViewModel() {
+class RepositoryViewModel(
+    private val repository: Repository,
+    private val downloader: Downloader
+) : ViewModel() {
 
     private var _state: MutableStateFlow<RepositoryScreenState> = MutableStateFlow(
         RepositoryScreenState()
     )
     val state = _state.asStateFlow()
+
+    fun downloadRelease(releaseDownloadModel: ReleaseDownloadModel) {
+        viewModelScope.launch {
+            downloader.download(releaseDownloadModel)
+        }
+    }
 
 
     fun onBottomBarItemClicked(repositoryScreen: RepositoryScreens) {
@@ -260,7 +271,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
             }
         }
     }
-    
+
     fun watchRepo(token: String, owner: String, repo: String): Flow<RepoSubscriptionModel> =
         callbackFlow {
             viewModelScope.launch {
@@ -576,7 +587,7 @@ class RepositoryViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun updateBranch(branch: String){
+    fun updateBranch(branch: String) {
         _state.update {
             it.copy(Branch = branch)
         }
