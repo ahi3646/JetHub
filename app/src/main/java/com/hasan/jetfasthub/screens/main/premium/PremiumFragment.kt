@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.add_account
+package com.hasan.jetfasthub.screens.main.premium
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -36,7 +36,7 @@ import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 
-class AddAccountFragment : Fragment() {
+class PremiumFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -185,7 +185,7 @@ private fun TopAppBarContent(
                 modifier = Modifier
                     .weight(1F)
                     .padding(start = 10.dp, end = 10.dp),
-                text = "About",
+                text = "Jet Hub Premium Features",
                 style = MaterialTheme.typography.titleLarge,
             )
         }

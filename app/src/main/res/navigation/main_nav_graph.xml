@@ -96,7 +96,7 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
             app:popUpTo="@id/homeFragment"
-            app:destination="@id/addAccountFragment" />
+            app:destination="@id/premiumFragment" />
         <action
             android:id="@+id/action_homeFragment_to_pinnedFragment"
             app:launchSingleTop="true"
@@ -237,8 +237,8 @@
     </fragment>
 
     <fragment
-        android:id="@+id/addAccountFragment"
-        android:name="com.hasan.jetfasthub.screens.main.add_account.AddAccountFragment"
+        android:id="@+id/premiumFragment"
+        android:name="com.hasan.jetfasthub.screens.main.premium.PremiumFragment"
         android:label="AddAccountFragment" >
 
         <action
@@ -312,6 +312,16 @@
             app:popExitAnim="@anim/fade_out"
             app:popUpToInclusive="false"
             app:destination="@id/commitFragment" />
+
+        <action
+            android:id="@+id/action_repositoryFragment_to_premiumFragment"
+            app:popUpTo="@id/repositoryFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"
+            app:destination="@id/premiumFragment" />
 
     </fragment>
 

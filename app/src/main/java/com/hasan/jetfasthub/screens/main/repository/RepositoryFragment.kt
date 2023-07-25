@@ -225,6 +225,10 @@ class RepositoryFragment : Fragment() {
                                     findNavController().popBackStack()
                                 }
 
+                                R.id.action_repositoryFragment_to_premiumFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
                                 R.id.action_repositoryFragment_to_profileFragment -> {
                                     val bundle = Bundle()
                                     if (data != null) {
@@ -857,7 +861,7 @@ private fun CodeScreen(
         }
         when (tabIndex) {
             0 -> ReadMe()
-            1 -> FilesScreen(state, onAction, onCurrentSheetChanged)
+            1 -> FilesScreen(state, onAction, onCurrentSheetChanged, onItemClicked)
             2 -> CommitsScreen(state, onItemClicked)
             3 -> ReleasesScreen(
                 onDownload = onDownload,
@@ -1042,7 +1046,8 @@ private fun SwitchBranchDialog(
 private fun FilesScreen(
     state: RepositoryScreenState,
     onAction: (String, String?) -> Unit,
-    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit
+    onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit,
+    onItemClicked: (Int, String?, String?) -> Unit
 ) {
 
     when (state.RepositoryFiles) {
@@ -1173,11 +1178,19 @@ private fun FilesScreen(
                         )
                     }
 
-                    IconButton(onClick = { }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "add icon"
-                        )
+                    if (state.Repository.data!!.permissions.admin) {
+                        IconButton(onClick = {
+                            onItemClicked(
+                                R.id.action_repositoryFragment_to_premiumFragment,
+                                null,
+                                null
+                            )
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = "add icon"
+                            )
+                        }
                     }
 
                     IconButton(onClick = { }) {
