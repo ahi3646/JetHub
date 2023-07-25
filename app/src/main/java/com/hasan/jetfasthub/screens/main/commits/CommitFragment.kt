@@ -25,15 +25,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
-import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.Tab
@@ -44,7 +41,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -67,9 +63,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -79,7 +73,6 @@ import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
-import com.hasan.jetfasthub.screens.main.commits.models.commit_model.File
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
@@ -172,6 +165,11 @@ class CommitFragment : Fragment() {
                                     Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
                                         .show()
                                 }
+
+                                "download" -> {
+
+                                }
+
                             }
                         }
                     )
@@ -318,7 +316,7 @@ private fun MainContent(
 
                 when (tabIndex) {
                     0 -> {
-                        FilesScreen(state.Commit)
+                        FilesScreen(state.Commit, onAction)
                     }
 
                     1 -> CommentsScreen()
@@ -330,11 +328,18 @@ private fun MainContent(
 
 @Composable
 private fun FilesScreen(
-    state: Resource<CommitModel>
+    state: Resource<CommitModel>,
+    onAction: (String, String?) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
-
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
         }
 
         is Resource.Success -> {
@@ -348,100 +353,19 @@ private fun FilesScreen(
                 verticalArrangement = Arrangement.Top
             ) {
                 items(files) { file ->
-                    CommentItemCard(file)
+                    ExpandableCard(file = file, onAction = onAction)
                 }
             }
         }
 
         is Resource.Failure -> {
-
-        }
-    }
-}
-
-@Composable
-private fun CommentItemCard(file: File) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable(onClick = { }),
-        elevation = 10.dp,
-        backgroundColor = Color.White
-    ) {
-        Column {
-
-            Row(
-                modifier = Modifier.padding(start = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-
-                Text(text = file.filename)
-
-                Spacer(Modifier.weight(1F))
-
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                        contentDescription = "dropdown icon"
-                    )
-                }
-
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "options menu")
-                }
+                Text(text = "Something went wrong !")
             }
-
-            Divider(
-                color = Color.Gray,
-                modifier = Modifier
-                    .height(0.5.dp)
-                    .padding(start = 16.dp, end = 16.dp)
-                    .fillMaxWidth()
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Changes")
-                    Text(text = file.changes.toString())
-                }
-                Column(
-                    modifier = Modifier.padding(6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Addition")
-                    Text(text = file.additions.toString())
-                }
-                Column(
-                    modifier = Modifier.padding(6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Deletion")
-                    Text(text = file.deletions.toString())
-                }
-                Column(
-                    modifier = Modifier.padding(6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Status")
-                    Text(text = file.status, fontWeight = FontWeight.Bold)
-                }
-            }
-
         }
     }
 }
@@ -757,7 +681,6 @@ private fun Toolbar(
                         Text(text = commit.stats.additions.toString())
                     }
 
-
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -785,22 +708,28 @@ private fun Toolbar(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
-                            onAction("share", "repository.html_url")
+                        DropdownMenuItem(
+                            text = { Text(text = "Share") },
+                            onClick = {
+                            onAction("share", commit.html_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
-                            onAction("browser", "repository.html_url")
+                        DropdownMenuItem(
+                            text = { Text(text = "Open in browser") },
+                            onClick = {
+                            onAction("browser", commit.html_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
-                            onAction("copy", "repository.html_url")
+                        DropdownMenuItem(
+                            text = { Text(text = "Copy URL") },
+                            onClick = {
+                            onAction("copy", commit.html_url)
                             showMenu = false
                         })
 
                         DropdownMenuItem(text = { Text(text = "Copy SHA-1") },
                             onClick = {
-                                onAction("copy", "copy sha-1 ")
+                                onAction("copy", commit.sha)
                                 showMenu = false
                             })
 

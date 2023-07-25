@@ -41,7 +41,7 @@ import com.hasan.jetfasthub.screens.main.commits.models.commit_model.File
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ExpandableCard(file: File, onAction: (String, String) -> Unit) {
+fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
     var expandableState by remember {
         mutableStateOf(false)
     }
@@ -51,12 +51,14 @@ fun ExpandableCard(file: File, onAction: (String, String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(8.dp)
             .animateContentSize(
                 animationSpec = tween(
                     durationMillis = 300,
                     easing = LinearOutSlowInEasing
                 )
             ),
+        elevation = 16.dp,
         onClick = {
             expandableState = !expandableState
         }
@@ -77,12 +79,14 @@ fun ExpandableCard(file: File, onAction: (String, String) -> Unit) {
                     modifier = Modifier
                         .alpha(ContentAlpha.medium)
                         .rotate(rotationState),
-                    onClick = { expandableState = !expandableState }) {
+                    onClick = { expandableState = !expandableState }
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_dropdown_icon),
                         contentDescription = "dropdown icon"
                     )
                 }
+
                 Box {
                     IconButton(
                         onClick = {
@@ -97,7 +101,7 @@ fun ExpandableCard(file: File, onAction: (String, String) -> Unit) {
                         onDismissRequest = { showMenu = false },
                     ) {
                         DropdownMenuItem(text = { Text(text = "Open") }, onClick = {
-                            onAction("open_in_browser", file.blob_url)
+                            onAction("browser", file.blob_url)
                             showMenu = false
                         })
                         DropdownMenuItem(text = { Text(text = "Download") }, onClick = {
@@ -111,12 +115,13 @@ fun ExpandableCard(file: File, onAction: (String, String) -> Unit) {
 
                         DropdownMenuItem(text = { Text(text = "Copy URL") },
                             onClick = {
-                                onAction("copy_url", file.blob_url)
+                                onAction("copy", file.blob_url)
                                 showMenu = false
                             })
 
                     }
                 }
+
             }
 
             if (expandableState) {
