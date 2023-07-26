@@ -166,6 +166,7 @@ class RepositoryFragment : Fragment() {
             }
 
             repositoryViewModel.updateFilesRef(initialBranch)
+            repositoryViewModel.updateCommitsRef(initialBranch)
 
             repositoryViewModel.getBranch(
                 token = token,
@@ -456,38 +457,73 @@ class RepositoryFragment : Fragment() {
                                     )
                                 }
 
-                                "on_branch_change" -> {
-
+                                "files_branch_change" -> {
+                                    Log.d("ahi3646", "onCreateView  branch 1: ${data.toString()} ")
                                     repositoryViewModel.updateFilesRef(data ?: "main")
-
+                                    Log.d("ahi3646", "onCreateView  branch 2: ${state.FilesRef} ")
                                     repositoryViewModel.getBranch(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
                                         branch = data ?: "main"
                                     )
+
                                     repositoryViewModel.state.value.Paths.clear()
                                     repositoryViewModel.state.value.Paths.add("")
+
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = state.FilesRef
+                                        ref = data ?: "main"
                                     )
                                 }
 
-                                "on_tag_change" -> {
+                                "files_tag_change" -> {
+
                                     repositoryViewModel.updateFilesRef(data ?: "main")
+
                                     repositoryViewModel.state.value.Paths.clear()
                                     repositoryViewModel.state.value.Paths.add("")
+
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = data!!
+                                        ref = data ?: "main"
                                     )
+                                }
+
+                                "commit_branch_change" -> {
+
+                                    repositoryViewModel.updateCommitsRef(data ?: "main")
+
+                                    repositoryViewModel.getCommits(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = data ?: "main",
+                                        page = 1,
+                                        path = ""
+                                    )
+
+                                }
+
+                                "commit_tag_change" -> {
+
+                                    repositoryViewModel.updateCommitsRef(data ?: "main")
+
+                                    repositoryViewModel.getCommits(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = data ?: "main",
+                                        page = 1,
+                                        path = ""
+                                    )
+
                                 }
 
                             }

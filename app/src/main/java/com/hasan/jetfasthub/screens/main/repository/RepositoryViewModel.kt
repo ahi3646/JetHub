@@ -626,7 +626,7 @@ class RepositoryViewModel(
         }
     }
 
-    fun updateCommitRef(ref: String){
+    fun updateCommitsRef(ref: String){
         _state.update {
             it.copy(CommitsRef = ref)
         }
