@@ -46,7 +46,7 @@ class RepositoryViewModel(
         }
     }
 
-    fun downloadRepo(url: String, message: String){
+    fun downloadRepo(url: String, message: String) {
         viewModelScope.launch {
             downloader.downloadRepo(url, message)
         }
@@ -195,34 +195,39 @@ class RepositoryViewModel(
         }
     }
 
-    fun getBranches(token: String, owner: String, repo: String): Flow<BranchesModel> = callbackFlow {
-        viewModelScope.launch {
-            try {
-                repository.getBranches(token, owner, repo).let { branches ->
-                    if (branches.isSuccessful) {
-                        trySend(branches.body()!!)
-                        _state.update {
-                            it.copy(Branches = Resource.Success(branches.body()!!))
-                        }
-                    } else {
-                        _state.update {
-                            it.copy(Branches = Resource.Failure(branches.errorBody().toString()))
+    fun getBranches(token: String, owner: String, repo: String): Flow<BranchesModel> =
+        callbackFlow {
+            viewModelScope.launch {
+                try {
+                    repository.getBranches(token, owner, repo).let { branches ->
+                        if (branches.isSuccessful) {
+                            trySend(branches.body()!!)
+                            _state.update {
+                                it.copy(Branches = Resource.Success(branches.body()!!))
+                            }
+                        } else {
+                            _state.update {
+                                it.copy(
+                                    Branches = Resource.Failure(
+                                        branches.errorBody().toString()
+                                    )
+                                )
+                            }
                         }
                     }
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(Branches = Resource.Failure(e.message.toString()))
+                } catch (e: Exception) {
+                    _state.update {
+                        it.copy(Branches = Resource.Failure(e.message.toString()))
+                    }
                 }
             }
+            awaitClose {
+                channel.close()
+                Log.d("callback_ahi", "callback stop : ")
+            }
         }
-        awaitClose {
-            channel.close()
-            Log.d("callback_ahi", "callback stop : ")
-        }
-    }
 
-    fun getBranch(token: String, repo: String, owner: String, branch: String){
+    fun getBranch(token: String, repo: String, owner: String, branch: String) {
         viewModelScope.launch {
             try {
                 repository.getBranch(token, owner, repo, branch).let { branch ->
@@ -236,7 +241,7 @@ class RepositoryViewModel(
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(Branch = Resource.Failure(e.message.toString()))
                 }
@@ -615,6 +620,18 @@ class RepositoryViewModel(
         }
     }
 
+    fun updateFilesRef(ref: String) {
+        _state.update {
+            it.copy(FilesRef = ref)
+        }
+    }
+
+    fun updateCommitRef(ref: String){
+        _state.update {
+            it.copy(CommitsRef = ref)
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -637,6 +654,8 @@ data class RepositoryScreenState(
     val Labels: Resource<LabelsModel> = Resource.Loading(),
     val Tags: Resource<TagsModel> = Resource.Loading(),
     val Branch: Resource<BranchModel> = Resource.Loading(),
+    val FilesRef: String = "main",
+    val CommitsRef: String = "main",
     val Paths: ArrayList<String> = arrayListOf("")
 )
 

@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,7 +47,7 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
     val rotationState by animateFloatAsState(targetValue = if (expandableState) 180f else 0f)
     var showMenu by remember { mutableStateOf(false) }
 
-    Card(
+    androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -58,8 +58,7 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                 )
             )
             .clickable { expandableState = !expandableState },
-        elevation = 12.dp,
-        backgroundColor = Color.White,
+        elevation = CardDefaults.cardElevation(),
     ) {
         Column {
 

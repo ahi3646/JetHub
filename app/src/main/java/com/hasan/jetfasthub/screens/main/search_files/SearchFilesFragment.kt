@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,12 +17,11 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -36,10 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 
@@ -53,7 +52,14 @@ class SearchFilesFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 JetFastHubTheme {
-                    MainContent()
+                    MainContent(
+                        onSearchClick = {
+
+                        },
+                        onBackPressed = {
+                            findNavController().popBackStack()
+                        }
+                    )
                 }
             }
         }
@@ -61,42 +67,43 @@ class SearchFilesFragment : Fragment() {
 
 }
 
-@Preview
 @Composable
-private fun MainContent() {
+private fun MainContent(
+    onSearchClick: (String) -> Unit,
+    onBackPressed: () -> Unit
+) {
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
                 backgroundColor = Color.White,
-                elevation = 0.dp,
+                elevation = 10.dp,
                 content = {
                     TopAppBarContent(
-                        //onBackPressed = onBackPressed, onSearchItemClick = onSearchClick
+                        onBackPressed = onBackPressed, onSearchItemClick = onSearchClick
                     )
                 },
             )
         },
     ) { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)){
+        LazyColumn(modifier = Modifier.padding(paddingValues)) {
 
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopAppBarContent(
-    //onSearchItemClick: (String) -> Unit,
-    //onBackPressed: () -> Unit
+    onSearchItemClick: (String) -> Unit,
+    onBackPressed: () -> Unit
 ) {
 
     var isExpanded by remember {
         mutableStateOf(false)
     }
     var path by remember {
-        mutableStateOf("")
+        mutableStateOf("In Paths")
     }
     var text by remember {
         mutableStateOf("")
@@ -108,9 +115,9 @@ private fun TopAppBarContent(
             .background(Color.White),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        
+
         IconButton(onClick = {
-            //onBackPressed()
+            onBackPressed()
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
@@ -148,7 +155,7 @@ private fun TopAppBarContent(
 
         IconButton(
             onClick = {
-                //onSearchItemClick(text)
+                onSearchItemClick(text)
             }
         ) {
             Icon(
@@ -157,29 +164,21 @@ private fun TopAppBarContent(
             )
         }
 
-        ExposedDropdownMenuBox(
-            expanded = isExpanded,
-            onExpandedChange = { isExpanded = it },
-            modifier = Modifier.background(Color.White)
+        Row(
+            Modifier
+                .fillMaxHeight()
+                .padding(2.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextField(
-                value = "In Paths",
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = isExpanded
-                    )
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier.menuAnchor()
-            )
-
-            ExposedDropdownMenu(
-                expanded = isExpanded,
-                onDismissRequest = { isExpanded = false },
-            ) {
-
+            Text(text = path, style = MaterialTheme.typography.titleSmall, fontSize = 16.sp)
+            IconButton(onClick = { isExpanded = !isExpanded }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_dropdown_icon),
+                    contentDescription = null
+                )
+            }
+            DropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text(text = "In Paths") },
                     onClick = {
@@ -187,7 +186,6 @@ private fun TopAppBarContent(
                         isExpanded = false
                     }
                 )
-
                 DropdownMenuItem(
                     text = { Text(text = "In Files") },
                     onClick = {
@@ -195,7 +193,6 @@ private fun TopAppBarContent(
                         isExpanded = false
                     }
                 )
-
                 DropdownMenuItem(
                     text = { Text(text = "All") },
                     onClick = {
@@ -203,9 +200,8 @@ private fun TopAppBarContent(
                         isExpanded = false
                     }
                 )
-
             }
         }
-
     }
 }
+

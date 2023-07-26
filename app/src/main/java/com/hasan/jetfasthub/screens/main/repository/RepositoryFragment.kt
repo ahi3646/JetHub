@@ -165,6 +165,8 @@ class RepositoryFragment : Fragment() {
                 "main"
             }
 
+            repositoryViewModel.updateFilesRef(initialBranch)
+
             repositoryViewModel.getBranch(
                 token = token,
                 owner = owner,
@@ -332,7 +334,7 @@ class RepositoryFragment : Fragment() {
                                             owner = owner,
                                             repo = repo,
                                             path = state.Paths.last(),
-                                            ref = state.Branch.data!!.name
+                                            ref = state.FilesRef
                                         )
 
                                         paths.forEach {
@@ -349,7 +351,7 @@ class RepositoryFragment : Fragment() {
                                             owner = owner,
                                             repo = repo,
                                             path = state.Paths.last(),
-                                            ref = state.Branch.data!!.name
+                                            ref = state.FilesRef
                                         )
                                     }
 
@@ -455,6 +457,9 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "on_branch_change" -> {
+
+                                    repositoryViewModel.updateFilesRef(data ?: "main")
+
                                     repositoryViewModel.getBranch(
                                         token = token,
                                         owner = owner,
@@ -468,17 +473,12 @@ class RepositoryFragment : Fragment() {
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = state.Branch.data!!.name
+                                        ref = state.FilesRef
                                     )
                                 }
 
                                 "on_tag_change" -> {
-                                    repositoryViewModel.getBranch(
-                                        token = token,
-                                        owner = owner,
-                                        repo = repo,
-                                        branch = data ?: "main"
-                                    )
+                                    repositoryViewModel.updateFilesRef(data ?: "main")
                                     repositoryViewModel.state.value.Paths.clear()
                                     repositoryViewModel.state.value.Paths.add("")
                                     repositoryViewModel.getContentFiles(
@@ -486,7 +486,7 @@ class RepositoryFragment : Fragment() {
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = state.Branch.data!!.name
+                                        ref = data!!
                                     )
                                 }
 
@@ -866,7 +866,7 @@ private fun CodeScreen(
         when (tabIndex) {
             0 -> ReadMe()
             1 -> FilesScreen(state, onAction, onCurrentSheetChanged, onItemClicked)
-            2 -> CommitsScreen(state, onItemClicked)
+            2 -> CommitsScreen(state, onAction, onItemClicked)
             3 -> ReleasesScreen(
                 onDownload = onDownload,
                 releases = state.Releases,
@@ -880,6 +880,8 @@ private fun CodeScreen(
 
 @Composable
 private fun SwitchBranchDialog(
+    branchActionName: String,
+    tagActionName: String,
     closeDialog: () -> Unit,
     onAction: (String, String?) -> Unit,
     branches: List<String>,
@@ -892,7 +894,6 @@ private fun SwitchBranchDialog(
 
     Column(
         modifier = Modifier
-            //.padding(paddingValues)
             .fillMaxWidth(0.95F)
             .fillMaxHeight(0.95F)
             .background(Color.White),
@@ -949,7 +950,7 @@ private fun SwitchBranchDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onAction("on_branch_change", branch)
+                                    onAction(branchActionName, branch)
                                     closeDialog()
                                 },
                             elevation = 0.dp
@@ -996,7 +997,7 @@ private fun SwitchBranchDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        onAction("on_tag_change", tag)
+                                        onAction(tagActionName, tag)
                                         closeDialog()
                                     },
                                 elevation = 0.dp
@@ -1066,6 +1067,7 @@ private fun FilesScreen(
         }
 
         is Resource.Success -> {
+
             val files = state.RepositoryFiles
             val branches = state.Branches.data!!
             val tags = state.Tags.data!!
@@ -1079,8 +1081,6 @@ private fun FilesScreen(
             branches.forEach {
                 branchList.add(it.name)
             }
-
-            val initialBranch = state.Branch.data!!.name
 
             var isDialogShown by remember {
                 mutableStateOf(false)
@@ -1096,13 +1096,14 @@ private fun FilesScreen(
                     ),
                     content = {
                         SwitchBranchDialog(
+                            branchActionName = "files_branch_change",
+                            tagActionName = "files_tag_change",
                             closeDialog = { isDialogShown = false },
                             onAction = onAction,
                             branches = branchList,
                             tags = tagList,
                             onDialogShown = { isDialogShown = false },
-
-                            )
+                        )
                     }
                 )
             }
@@ -1130,9 +1131,10 @@ private fun FilesScreen(
                             .padding(start = 4.dp)
                             .clickable {
                                 isDialogShown = true
-                            }) {
+                            }
+                    ) {
                         Text(
-                            text = initialBranch,
+                            text = state.FilesRef,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
@@ -1171,7 +1173,7 @@ private fun FilesScreen(
                         onClick = {
                             onCurrentSheetChanged(
                                 BottomSheetScreens.RepoDownloadSheet(
-                                    state.Branch.data._links.html
+                                    state.Branch.data!!._links.html
                                 )
                             )
                         }
@@ -1375,6 +1377,7 @@ private fun FileDocumentItemCard(
 @Composable
 private fun CommitsScreen(
     state: RepositoryScreenState,
+    onAction: (String, String?) -> Unit,
     onItemClicked: (Int, String?, String?) -> Unit
 ) {
     when (state.Commits) {
@@ -1391,6 +1394,45 @@ private fun CommitsScreen(
 
         is Resource.Success -> {
             val commits = state.Commits
+
+            val branches = state.Branches.data!!
+            val tags = state.Tags.data!!
+
+            val tagList = arrayListOf<String>()
+            tags.forEach {
+                tagList.add(it.name)
+            }
+
+            val branchList = arrayListOf<String>()
+            branches.forEach {
+                branchList.add(it.name)
+            }
+
+            var isDialogShown by remember {
+                mutableStateOf(false)
+            }
+
+            if (isDialogShown) {
+                Dialog(
+                    onDismissRequest = { isDialogShown = false },
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = false,
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = false
+                    ),
+                    content = {
+                        SwitchBranchDialog(
+                            branchActionName = "commit_branch_change",
+                            tagActionName = "commit_tag_change",
+                            closeDialog = { isDialogShown = false },
+                            onAction = onAction,
+                            branches = branchList,
+                            tags = tagList,
+                            onDialogShown = { isDialogShown = false },
+                        )
+                    }
+                )
+            }
 
             Column(
                 Modifier
@@ -1414,10 +1456,11 @@ private fun CommitsScreen(
                             .fillMaxWidth()
                             .padding(start = 4.dp)
                             .clickable {
-
-                            }) {
+                                isDialogShown = true
+                            }
+                    ) {
                         Text(
-                            text = state.Branch.data!!.name,
+                            text = state.CommitsRef,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
                         )
