@@ -86,7 +86,6 @@ class SearchFragment : Fragment() {
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
-        Log.d("ahi3646", "onCreateView: token - $token")
 
         return ComposeView(requireContext()).apply {
             setContent {

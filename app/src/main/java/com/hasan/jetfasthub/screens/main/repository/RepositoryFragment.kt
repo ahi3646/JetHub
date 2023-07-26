@@ -225,6 +225,10 @@ class RepositoryFragment : Fragment() {
                                     findNavController().popBackStack()
                                 }
 
+                                R.id.action_repositoryFragment_to_searchFilesFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
                                 R.id.action_repositoryFragment_to_premiumFragment -> {
                                     findNavController().navigate(dest)
                                 }
@@ -1193,7 +1197,13 @@ private fun FilesScreen(
                         }
                     }
 
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        onItemClicked(
+                            R.id.action_repositoryFragment_to_searchFilesFragment,
+                            null,
+                            null
+                        )
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
                             contentDescription = "direction"

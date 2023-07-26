@@ -323,6 +323,16 @@
             app:popUpToInclusive="false"
             app:destination="@id/premiumFragment" />
 
+        <action
+            android:id="@+id/action_repositoryFragment_to_searchFilesFragment"
+            app:popUpTo="@id/repositoryFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"
+            app:destination="@id/searchFilesFragment" />
+
     </fragment>
 
     <fragment
@@ -341,5 +351,9 @@
             app:popUpToInclusive="false"/>
 
     </fragment>
+    <fragment
+        android:id="@+id/searchFilesFragment"
+        android:name="com.hasan.jetfasthub.screens.main.search_files.SearchFilesFragment"
+        android:label="SearchFilesFragment" />
 
 </navigation>
