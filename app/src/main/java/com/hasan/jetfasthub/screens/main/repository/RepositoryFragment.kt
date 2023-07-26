@@ -319,39 +319,40 @@ class RepositoryFragment : Fragment() {
                                         "ahi3646",
                                         "onCreateView: on path change - ${data.toString()} last item - ${state.Paths.last()}"
                                     )
-                                    Log.d(
-                                        "ahi3646",
-                                        "onCreateView: lastItem - ${state.Paths[state.Paths.lastIndex]} "
-                                    )
+
                                     if (paths.contains(data) && data != paths[paths.lastIndex]) {
                                         Log.d("ahi3646", "onCreateView: case 1 ")
-                                        paths.subList(
+                                        val newPaths = paths.subList(
                                             0,
-                                            state.Paths.indexOf(data)
-                                        ).clear()
+                                            state.Paths.indexOf(data)+1
+                                        )
+                                        repositoryViewModel.updatePaths(newPaths)
 
                                         repositoryViewModel.getContentFiles(
                                             token = token,
                                             owner = owner,
                                             repo = repo,
-                                            path = state.Paths.last(),
+                                            path = data!!,
                                             ref = state.FilesRef
                                         )
 
-                                        paths.forEach {
-                                            Log.d("ahi3646", "onCreateView iteration: $it ")
+                                        Log.d("ahi3646", "onCreateView: path - ${newPaths.last()} ")
+                                        newPaths.forEach {
+                                            Log.d("ahi3646", "onCreateView newPaths: $it ")
                                         }
                                     } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
                                         Log.d("ahi3646", "onCreateView: case 2 ")
                                     } else {
                                         Log.d("ahi3646", "onCreateView: case 3 ")
-                                        state.Paths.add(data!!)
+                                        val newPaths = paths.toMutableList()
+                                        newPaths.add(data ?: "")
+                                        repositoryViewModel.updatePaths(newPaths)
 
                                         repositoryViewModel.getContentFiles(
                                             token = token,
                                             owner = owner,
                                             repo = repo,
-                                            path = state.Paths.last(),
+                                            path = data!!,
                                             ref = state.FilesRef
                                         )
                                     }
@@ -468,8 +469,10 @@ class RepositoryFragment : Fragment() {
                                         branch = data ?: "main"
                                     )
 
-                                    repositoryViewModel.state.value.Paths.clear()
-                                    repositoryViewModel.state.value.Paths.add("")
+                                    val newPaths = state.Paths.subList(0,1)
+                                    repositoryViewModel.updatePaths(newPaths)
+//                                    repositoryViewModel.state.value.Paths.clear()
+//                                    repositoryViewModel.state.value.Paths.add("")
 
                                     repositoryViewModel.getContentFiles(
                                         token = token,
@@ -484,8 +487,10 @@ class RepositoryFragment : Fragment() {
 
                                     repositoryViewModel.updateFilesRef(data ?: "main")
 
-                                    repositoryViewModel.state.value.Paths.clear()
-                                    repositoryViewModel.state.value.Paths.add("")
+                                    val newPaths = state.Paths.subList(0,1)
+                                    repositoryViewModel.updatePaths(newPaths)
+//                                    repositoryViewModel.state.value.Paths.clear()
+//                                    repositoryViewModel.state.value.Paths.add("")
 
                                     repositoryViewModel.getContentFiles(
                                         token = token,

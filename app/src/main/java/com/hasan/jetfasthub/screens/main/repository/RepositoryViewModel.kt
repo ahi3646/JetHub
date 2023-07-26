@@ -632,6 +632,14 @@ class RepositoryViewModel(
         }
     }
 
+    fun updatePaths(paths: List<String>){
+        _state.update {
+            it.copy(
+                Paths = paths
+            )
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -656,7 +664,7 @@ data class RepositoryScreenState(
     val Branch: Resource<BranchModel> = Resource.Loading(),
     val FilesRef: String = "main",
     val CommitsRef: String = "main",
-    val Paths: ArrayList<String> = arrayListOf("")
+    val Paths: List<String> = listOf("")
 )
 
 sealed interface BottomSheetScreens {
