@@ -57,6 +57,10 @@ dependencies {
 //    implementation 'com.fasterxml.jackson.core:jackson-core:2.11.1'
 //    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.11.1'
 
+    //pagination
+    implementation("androidx.paging:paging-runtime:3.2.0")
+    implementation("androidx.paging:paging-compose:3.2.0")
+
     //tablayout
     implementation 'com.google.accompanist:accompanist-pager:0.13.0'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.13.0'

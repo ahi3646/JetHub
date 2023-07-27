@@ -1,6 +1,6 @@
 package com.hasan.jetfasthub.screens.main.gists.model
 
-data class HelloWorldRb(
+data class File(
     val filename: String,
     val language: String,
     val raw_url: String,

@@ -27,21 +27,21 @@ class RetrofitInstance(context: Context) {
             //.addInterceptor(AuthenticationInterceptor())
             .addInterceptor(logging).build()
 
-        val deserializer: JsonDeserializer<Files> =
-            JsonDeserializer<Files> { json, typeOfT, context ->
-                val jsonObject = json.asJsonObject
-                val file = File(
-                    jsonObject["filename"].asString,
-                    jsonObject["language"].asString,
-                    jsonObject["raw_url"].asString,
-                    jsonObject["size"].asInt,
-                    jsonObject["type"].asString,
-
-                    )
-                Files(
-                    file
-                )
-            }
+//        val deserializer: JsonDeserializer<Files> =
+//            JsonDeserializer<Files> { json, typeOfT, context ->
+//                val jsonObject = json.asJsonObject
+//                val file = File(
+//                    jsonObject["filename"].asString,
+//                    jsonObject["language"].asString,
+//                    jsonObject["raw_url"].asString,
+//                    jsonObject["size"].asInt,
+//                    jsonObject["type"].asString,
+//
+//                    )
+//                Files(
+//                    file
+//                )
+//            }
 
         val gson = GsonBuilder()
 //            .registerTypeAdapter(Files::class.java, deserializer)

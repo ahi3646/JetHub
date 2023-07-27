@@ -6,7 +6,7 @@ data class StarredGistModelItem(
     val commits_url: String,
     val created_at: String,
     val description: String,
-    val files: Files,
+    val files: Map<String, File>,
     val forks_url: String,
     val git_pull_url: String,
     val git_push_url: String,

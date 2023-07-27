@@ -1320,7 +1320,8 @@ fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Un
                 ) {
                     itemsIndexed(gists.data) { index, gist ->
                         GistItemCard(
-                            gist, onGistItemClick = onGistItemClick
+                            gistModelItem = gist,
+                            onGistItemClick = onGistItemClick
                         )
                         if (index < gists.data.lastIndex) {
                             Divider(
@@ -1362,6 +1363,16 @@ fun GistItemCard(
     gistModelItem: GistModelItem,
     onGistItemClick: (Int, String) -> Unit
 ) {
+
+//    val fileKeys = gistModelItem.files.keys
+    val fileValues = gistModelItem.files.values
+
+    val fileName = if(gistModelItem.description == "" || gistModelItem.description == null){
+        fileValues.elementAt(0).filename
+    }else{
+        gistModelItem.description
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1377,7 +1388,7 @@ fun GistItemCard(
 
         ) {
             Text(
-                text = "gistModelItem.files.hello_world_rb.filename ?: ",
+                text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
                 fontSize = 18.sp,
@@ -1388,7 +1399,7 @@ fun GistItemCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
+                text = ParseDateFormat.getTimeAgo(gistModelItem.created_at).toString(),
                 color = Color.Black,
                 modifier = Modifier.padding(start = 2.dp)
             )

@@ -97,7 +97,6 @@ class GistsFragment : Fragment() {
                             if (dest == -1) {
                                 findNavController().popBackStack()
                             }
-                            Log.d("ahi3646", "onCreateView: $dest , $data ")
                         }
                     )
                 }
@@ -233,6 +232,15 @@ private fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, Strin
 private fun GistItemCard(
     gistModelItem: GistModelItem, onGistItemClick: (Int, String?) -> Unit
 ) {
+
+    val fileValues = gistModelItem.files.values
+
+    val fileName = if(gistModelItem.description == "" || gistModelItem.description == null){
+        fileValues.elementAt(0).filename
+    }else{
+        gistModelItem.description
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,7 +257,7 @@ private fun GistItemCard(
         ) {
 
             Text(
-                text = "gistModelItem.files.hello_world_rb.filename",
+                text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
                 fontSize = 18.sp,
