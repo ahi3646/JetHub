@@ -169,14 +169,24 @@
         android:label="SearchFragment" >
 
         <action
-            android:id="@+id/action_searchFragment_to_homeFragment"
-            app:destination="@id/homeFragment"
+            android:id="@+id/action_searchFragment_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:popUpTo="@id/searchFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"/>
+
+        <action
+            android:id="@+id/action_searchFragment_to_repositoryFragment"
+            app:destination="@id/repositoryFragment"
             app:popUpTo="@id/homeFragment"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="false"/>
 
     </fragment>
 
@@ -225,15 +235,27 @@
         android:id="@+id/organisationsFragment"
         android:name="com.hasan.jetfasthub.screens.main.organisations.OrganisationsFragment"
         android:label="OrganisationsFragment" >
+
         <action
             android:id="@+id/action_organisationsFragment_to_profileFragment"
             app:destination="@id/profileFragment"
-            app:popUpTo="@id/profileFragment"
+            app:popUpTo="@id/organisationsFragment"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="false"/>
+
+        <action
+            android:id="@+id/action_organisationsFragment_to_repositoryFragment"
+            app:destination="@id/repositoryFragment"
+            app:popUpTo="@id/homeFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"/>
+
     </fragment>
 
     <fragment

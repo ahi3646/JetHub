@@ -58,8 +58,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeItem
@@ -89,7 +90,7 @@ class SearchFragment : Fragment() {
         val query = arguments?.getString("repo_topic")
         var initialQuery = ""
 
-        if(!query.isNullOrEmpty()){
+        if (!query.isNullOrEmpty()) {
             initialQuery = "topic:\"$query\""
             viewModel.searchRepositories(token, initialQuery, 1L)
             viewModel.searchUsers(token, initialQuery, 1L)
@@ -104,9 +105,25 @@ class SearchFragment : Fragment() {
                     MainContent(
                         initialQuery = initialQuery,
                         state = state,
-                        onListItemClick = { stringResource ->
-                            Toast.makeText(requireContext(), stringResource, Toast.LENGTH_SHORT)
-                                .show()
+                        onListItemClick = { dest, data, extra ->
+                            when (dest) {
+                                -1 -> {
+                                    findNavController().popBackStack()
+                                }
+
+                                R.id.action_searchFragment_to_profileFragment -> {
+                                    val bundle = bundleOf("home_data" to data)
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                                R.id.action_searchFragment_to_repositoryFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("home_data", data)
+                                    bundle.putString("home_extra", extra)
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                            }
                         },
                         onSearchClick = { query ->
                             if (query.isEmpty() || query.length < 2)
@@ -134,7 +151,7 @@ class SearchFragment : Fragment() {
 private fun MainContent(
     initialQuery: String,
     state: SearchScreenState,
-    onListItemClick: (String) -> Unit,
+    onListItemClick: (Int, String, String?) -> Unit,
     onSearchClick: (String) -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -162,7 +179,7 @@ private fun MainContent(
 @Composable
 private fun TabScreen(
     contentPaddingValues: PaddingValues,
-    onListItemClick: (String) -> Unit,
+    onListItemClick: (Int, String, String?) -> Unit,
     state: SearchScreenState
 ) {
     val tabs = listOf("REPOSITORIES", "USERS", "ISSUES", "CODE")
@@ -248,7 +265,7 @@ private fun TabScreen(
 private fun RepositoriesContent(
     contentPaddingValues: PaddingValues,
     repositories: ResourceWithInitial<RepositoryModel>,
-    onNavigate: (String) -> Unit
+    onNavigate: (Int, String, String?) -> Unit
 ) {
     when (repositories) {
         is ResourceWithInitial.Initial -> {
@@ -262,6 +279,7 @@ private fun RepositoriesContent(
                 Text(text = "No search results")
             }
         }
+
         is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
@@ -306,13 +324,17 @@ private fun RepositoriesContent(
 
 @Composable
 private fun RepositoryItem(
-    repository: Item, onItemClicked: (String) -> Unit
+    repository: Item, onItemClicked: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(repository.full_name)
+                onItemClicked(
+                    R.id.action_searchFragment_to_repositoryFragment,
+                    repository.owner.login,
+                    repository.name
+                )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -329,7 +351,14 @@ private fun RepositoryItem(
                 modifier = Modifier
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .clickable {
+                        onItemClicked(
+                            R.id.action_searchFragment_to_profileFragment,
+                            repository.owner.login,
+                            null
+                        )
+                    },
                 imageOptions = ImageOptions(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.CenterStart,
@@ -415,7 +444,7 @@ private fun RepositoryItem(
 private fun UsersContent(
     users: ResourceWithInitial<UserModel>,
     contentPaddingValues: PaddingValues,
-    onUsersItemClicked: (String) -> Unit
+    onUsersItemClicked: (Int, String, String?) -> Unit
 ) {
     when (users) {
         is ResourceWithInitial.Initial -> {
@@ -429,6 +458,7 @@ private fun UsersContent(
                 Text(text = "No search results")
             }
         }
+
         is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
@@ -473,14 +503,20 @@ private fun UsersContent(
 
 @Composable
 private fun UsersItem(
-    userModel: UsersItem, onUsersItemClicked: (String) -> Unit
+    userModel: UsersItem, onUsersItemClicked: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onUsersItemClicked(userModel.login)
-            })
+            .clickable(
+                onClick = {
+                    onUsersItemClicked(
+                        R.id.action_searchFragment_to_profileFragment,
+                        userModel.login,
+                        null
+                    )
+                }
+            )
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
@@ -525,7 +561,7 @@ private fun UsersItem(
 private fun IssuesContent(
     issues: ResourceWithInitial<IssuesModel>,
     contentPaddingValues: PaddingValues,
-    onIssueItemClicked: (String) -> Unit
+    onIssueItemClicked: (Int, String, String?) -> Unit
 ) {
     when (issues) {
         is ResourceWithInitial.Initial -> {
@@ -539,6 +575,7 @@ private fun IssuesContent(
                 Text(text = "No search results")
             }
         }
+
         is ResourceWithInitial.Loading -> {
             Column(
                 modifier = Modifier
@@ -584,13 +621,17 @@ private fun IssuesContent(
 
 @Composable
 private fun IssuesItem(
-    issuesItem: IssuesItem, onIssueItemClicked: (String) -> Unit
+    issuesItem: IssuesItem, onIssueItemClicked: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onIssueItemClicked(issuesItem.title)
+                onIssueItemClicked(
+                    0,
+                    issuesItem.title,
+                    null
+                )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -674,7 +715,7 @@ private fun IssuesItem(
 private fun CodeContent(
     codes: ResourceWithInitial<CodeModel>,
     contentPaddingValues: PaddingValues,
-    onCodeItemClicked: (String) -> Unit
+    onCodeItemClicked: (Int, String, String?) -> Unit
 ) {
     when (codes) {
         is ResourceWithInitial.Initial -> {
@@ -739,13 +780,17 @@ private fun CodeContent(
 
 @Composable
 private fun CodesItem(
-    code: CodeItem, onCodeItemClicked: (String) -> Unit
+    code: CodeItem, onCodeItemClicked: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .wrapContentHeight()
             .clickable(onClick = {
-                onCodeItemClicked(code.name)
+                onCodeItemClicked(
+                    0,
+                    code.name,
+                    null
+                )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {

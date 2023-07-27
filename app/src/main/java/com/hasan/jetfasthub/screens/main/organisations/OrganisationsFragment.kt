@@ -43,7 +43,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,8 +61,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
@@ -104,18 +105,25 @@ class OrganisationsFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(state = state,
                         organisation = organisation,
-                        onRecyclerItemClick = { dest, data ->
-                            if (data != null) {
-                                val bundle = Bundle()
-                                bundle.putString("home_data", data)
-                                findNavController().navigate(dest, bundle)
-                            } else if (dest == -1) {
-                                findNavController().popBackStack()
-                            } else {
-                                findNavController().navigate(dest)
+                        onRecyclerItemClick = { dest, data, extra ->
+
+                            when(dest){
+                                -1 -> {
+                                    findNavController().popBackStack()
+                                }
+                                R.id.action_organisationsFragment_to_profileFragment -> {
+                                    val bundle = bundleOf("home_data" to data)
+                                    findNavController().navigate(dest, bundle)
+                                }
+                                R.id.action_organisationsFragment_to_repositoryFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("home_data", data)
+                                    bundle.putString("home_extra", extra)
+                                    findNavController().navigate(dest, bundle)
+                                }
                             }
                         },
-                        onAction = {action, data ->
+                        onAction = { action, data ->
                             when (action) {
                                 "share" -> {
                                     val context = requireContext()
@@ -161,7 +169,7 @@ class OrganisationsFragment : Fragment() {
 private fun MainContent(
     state: OrganisationScreenState,
     organisation: String,
-    onRecyclerItemClick: (Int, String?) -> Unit,
+    onRecyclerItemClick: (Int, String?, String?) -> Unit,
     onAction: (String, String) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
@@ -174,7 +182,7 @@ private fun MainContent(
             },
         )
     }) { paddingValues ->
-        TabScreen(paddingValues, state, onRecyclerItemClick, onAction )
+        TabScreen(paddingValues, state, onRecyclerItemClick, onAction)
     }
 }
 
@@ -182,11 +190,11 @@ private fun MainContent(
 private fun TabScreen(
     paddingValues: PaddingValues,
     state: OrganisationScreenState,
-    onRecyclerItemClick: (Int, String?) -> Unit,
+    onRecyclerItemClick: (Int, String?, String?) -> Unit,
     onAction: (String, String) -> Unit
 ) {
 
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("OVERVIEW", "REPOSITORIES", "PEOPLE")
 
     Column(
@@ -213,7 +221,7 @@ private fun TabScreen(
 
         when (tabIndex) {
             0 -> {
-                Overview(state.Organisation, onAction, onRecyclerItemClick)
+                Overview(state.Organisation, onAction)
             }
 
             1 -> {
@@ -233,7 +241,6 @@ private fun TabScreen(
 private fun Overview(
     org: Resource<OrganisationModel>,
     onAction: (String, String) -> Unit,
-    onRecyclerItemClick: (Int, String?) -> Unit
 ) {
 
     when (org) {
@@ -354,12 +361,14 @@ private fun Overview(
                             )
                             Text(
                                 text = org.data.email,
-                                modifier = Modifier.padding(start = 16.dp).clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {
-                                    onAction("share", org.data.email )
-                                },
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        onAction("share", org.data.email)
+                                    },
                                 color = Color.Blue
                             )
                         }
@@ -393,7 +402,7 @@ private fun Overview(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                      onAction("browser", org.data.blog )
+                                        onAction("browser", org.data.blog)
                                     },
                                 color = Color.Blue
                             )
@@ -478,7 +487,7 @@ private fun Overview(
 @Composable
 private fun Repositories(
     orgRepos: Resource<OrganisationsRepositoryModel>,
-    onRecyclerItemClick: (Int, String?) -> Unit
+    onRecyclerItemClick: (Int, String, String) -> Unit
 ) {
     when (orgRepos) {
         is Resource.Loading -> {
@@ -531,14 +540,21 @@ private fun Repositories(
 
 @Composable
 fun OrganisationRepoItem(
-    repository: OrganisationsRepositoryModelItem, onRepositoryItemClicked: (Int, String) -> Unit
+    repository: OrganisationsRepositoryModelItem,
+    onRepositoryItemClicked: (Int, String, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onRepositoryItemClicked(0, repository.full_name)
-            })
+            .clickable(
+                onClick = {
+                    onRepositoryItemClicked(
+                        R.id.action_organisationsFragment_to_repositoryFragment,
+                        repository.owner.login,
+                        repository.name
+                    )
+                }
+            )
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
@@ -632,7 +648,7 @@ fun OrganisationRepoItem(
 
 @Composable
 private fun People(
-    state: Resource<OrganisationMemberModel>, onRecyclerItemClick: (Int, String?) -> Unit
+    state: Resource<OrganisationMemberModel>, onRecyclerItemClick: (Int, String?, String?) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
@@ -685,7 +701,7 @@ private fun People(
 
 @Composable
 fun OrganisationMemberItemCard(
-    memberModel: OrganisationMemberModelItem, onItemClicked: (Int, String?) -> Unit
+    memberModel: OrganisationMemberModelItem, onItemClicked: (Int, String?, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -693,7 +709,8 @@ fun OrganisationMemberItemCard(
             .clickable(onClick = {
                 onItemClicked(
                     R.id.action_organisationsFragment_to_profileFragment,
-                    memberModel.login
+                    memberModel.login,
+                    null
                 )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
@@ -738,10 +755,9 @@ fun OrganisationMemberItemCard(
     }
 }
 
-
 @Composable
 private fun TopAppBarContent(
-    onBackPressed: (Int, String?) -> Unit,
+    onBackPressed: (Int, String?, String?) -> Unit,
     organisation: String,
     onAction: (String, String) -> Unit
 ) {
@@ -753,7 +769,7 @@ private fun TopAppBarContent(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = {
-            onBackPressed(-1, null)
+            onBackPressed(-1, null, null)
         }) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
