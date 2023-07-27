@@ -333,6 +333,16 @@
             app:popUpToInclusive="false"
             app:destination="@id/searchFilesFragment" />
 
+        <action
+            android:id="@+id/action_repositoryFragment_to_searchFragment"
+            app:popUpTo="@id/repositoryFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"
+            app:destination="@id/searchFragment" />
+
     </fragment>
 
     <fragment

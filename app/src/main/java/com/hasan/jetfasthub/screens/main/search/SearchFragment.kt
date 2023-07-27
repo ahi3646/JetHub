@@ -86,12 +86,23 @@ class SearchFragment : Fragment() {
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
+        val query = arguments?.getString("repo_topic")
+        var initialQuery = ""
+
+        if(!query.isNullOrEmpty()){
+            initialQuery = "topic:\"$query\""
+            viewModel.searchRepositories(token, initialQuery, 1L)
+            viewModel.searchUsers(token, initialQuery, 1L)
+            viewModel.searchIssues(token, initialQuery, 1L)
+            viewModel.searchCodes(token, initialQuery, 1L)
+        }
 
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by viewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
+                        initialQuery = initialQuery,
                         state = state,
                         onListItemClick = { stringResource ->
                             Toast.makeText(requireContext(), stringResource, Toast.LENGTH_SHORT)
@@ -121,6 +132,7 @@ class SearchFragment : Fragment() {
 
 @Composable
 private fun MainContent(
+    initialQuery: String,
     state: SearchScreenState,
     onListItemClick: (String) -> Unit,
     onSearchClick: (String) -> Unit,
@@ -135,7 +147,9 @@ private fun MainContent(
                 elevation = 0.dp,
                 content = {
                     TopAppBarContent(
-                        onBackPressed = onBackPressed, onSearchItemClick = onSearchClick
+                        initialQuery = initialQuery,
+                        onBackPressed = onBackPressed,
+                        onSearchItemClick = onSearchClick
                     )
                 },
             )
@@ -770,6 +784,7 @@ private fun CodesItem(
 
 @Composable
 private fun TopAppBarContent(
+    initialQuery: String,
     onSearchItemClick: (String) -> Unit,
     onBackPressed: () -> Unit
 ) {
@@ -786,7 +801,7 @@ private fun TopAppBarContent(
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
         }
 
-        var text by remember { mutableStateOf("") }
+        var text by remember { mutableStateOf(initialQuery) }
 
         TextField(
             value = text,

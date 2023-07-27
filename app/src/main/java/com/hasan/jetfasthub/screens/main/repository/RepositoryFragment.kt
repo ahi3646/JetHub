@@ -95,6 +95,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -231,6 +232,11 @@ class RepositoryFragment : Fragment() {
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
+                                }
+
+                                R.id.action_repositoryFragment_to_searchFragment -> {
+                                    val bundle = bundleOf("repo_topic" to data!!)
+                                    findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_repositoryFragment_to_searchFilesFragment -> {
@@ -2477,7 +2483,13 @@ private fun TitleHeader(
                             Surface(
                                 modifier = Modifier
                                     .padding(6.dp)
-                                    .clickable { },
+                                    .clickable {
+                                        onItemClicked(
+                                            R.id.action_repositoryFragment_to_searchFragment,
+                                            topic,
+                                            null
+                                        )
+                                    },
                                 contentColor = colorResource(id = R.color.milt_black),
                                 color = Color.Gray
                             ) {
