@@ -225,7 +225,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         ref: String
     ): Response<FilesModel> {
         return RetrofitInstance(context).gitHubService.getContentFiles(
-            token = token,
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
             path = path,

@@ -1,6 +1,7 @@
 package com.hasan.jetfasthub.screens.main.repository
 
 import android.util.Log
+import androidx.compose.animation.core.updateTransition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
@@ -228,6 +229,11 @@ class RepositoryViewModel(
         }
 
     fun getBranch(token: String, repo: String, owner: String, branch: String) {
+        _state.update { 
+            it.copy(
+                RepoDownloadLink = Resource.Loading()
+            )
+        }
         viewModelScope.launch {
             try {
                 repository.getBranch(token, owner, repo, branch).let { branch ->
@@ -235,6 +241,7 @@ class RepositoryViewModel(
                         _state.update {
                             it.copy(Branch = Resource.Success(branch.body()!!))
                         }
+                        updateDownloadLink(Resource.Success(branch.body()!!._links.html))
                     } else {
                         _state.update {
                             it.copy(Branch = Resource.Failure(branch.errorBody().toString()))
@@ -640,6 +647,14 @@ class RepositoryViewModel(
         }
     }
 
+    fun updateDownloadLink(link: Resource<String>){
+        _state.update {
+            it.copy(
+                RepoDownloadLink = link
+            )
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
@@ -664,7 +679,8 @@ data class RepositoryScreenState(
     val Branch: Resource<BranchModel> = Resource.Loading(),
     val FilesRef: String = "main",
     val CommitsRef: String = "main",
-    val Paths: List<String> = listOf("")
+    val Paths: List<String> = listOf(""),
+    val RepoDownloadLink: Resource<String> = Resource.Loading()
 )
 
 sealed interface BottomSheetScreens {
@@ -673,7 +689,7 @@ sealed interface BottomSheetScreens {
 
     class ReleaseItemSheet(val releaseItem: ReleasesModelItem) : BottomSheetScreens
 
-    class RepoDownloadSheet(val url: String) : BottomSheetScreens
+    class RepoDownloadSheet( val url: Resource<String>) : BottomSheetScreens
 
     object ForkSheet : BottomSheetScreens
 

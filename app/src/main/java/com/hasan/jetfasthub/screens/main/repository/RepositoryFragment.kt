@@ -53,6 +53,7 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -109,6 +110,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.releases_model.Releas
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.ContributorsItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
+import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -315,16 +317,11 @@ class RepositoryFragment : Fragment() {
 
                                 "on_path_change" -> {
                                     val paths = state.Paths
-                                    Log.d(
-                                        "ahi3646",
-                                        "onCreateView: on path change - ${data.toString()} last item - ${state.Paths.last()}"
-                                    )
 
                                     if (paths.contains(data) && data != paths[paths.lastIndex]) {
-                                        Log.d("ahi3646", "onCreateView: case 1 ")
                                         val newPaths = paths.subList(
                                             0,
-                                            state.Paths.indexOf(data)+1
+                                            state.Paths.indexOf(data) + 1
                                         )
                                         repositoryViewModel.updatePaths(newPaths)
 
@@ -336,14 +333,9 @@ class RepositoryFragment : Fragment() {
                                             ref = state.FilesRef
                                         )
 
-                                        Log.d("ahi3646", "onCreateView: path - ${newPaths.last()} ")
-                                        newPaths.forEach {
-                                            Log.d("ahi3646", "onCreateView newPaths: $it ")
-                                        }
                                     } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
-                                        Log.d("ahi3646", "onCreateView: case 2 ")
+                                        //just repeatable action
                                     } else {
-                                        Log.d("ahi3646", "onCreateView: case 3 ")
                                         val newPaths = paths.toMutableList()
                                         newPaths.add(data ?: "")
                                         repositoryViewModel.updatePaths(newPaths)
@@ -458,22 +450,22 @@ class RepositoryFragment : Fragment() {
                                     )
                                 }
 
+                                "repo_download_link_change" -> {
+                                    repositoryViewModel.updateDownloadLink(Resource.Success(data!!))
+                                }
+
                                 "files_branch_change" -> {
-                                    Log.d("ahi3646", "onCreateView  branch 1: ${data.toString()} ")
+
                                     repositoryViewModel.updateFilesRef(data ?: "main")
-                                    Log.d("ahi3646", "onCreateView  branch 2: ${state.FilesRef} ")
+
                                     repositoryViewModel.getBranch(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
                                         branch = data ?: "main"
                                     )
-
-                                    val newPaths = state.Paths.subList(0,1)
+                                    val newPaths = state.Paths.subList(0, 1)
                                     repositoryViewModel.updatePaths(newPaths)
-//                                    repositoryViewModel.state.value.Paths.clear()
-//                                    repositoryViewModel.state.value.Paths.add("")
-
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
@@ -484,27 +476,20 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "files_tag_change" -> {
-
-                                    repositoryViewModel.updateFilesRef(data ?: "main")
-
-                                    val newPaths = state.Paths.subList(0,1)
+                                    repositoryViewModel.updateFilesRef(data!!)
+                                    val newPaths = state.Paths.subList(0, 1)
                                     repositoryViewModel.updatePaths(newPaths)
-//                                    repositoryViewModel.state.value.Paths.clear()
-//                                    repositoryViewModel.state.value.Paths.add("")
-
                                     repositoryViewModel.getContentFiles(
                                         token = token,
                                         owner = owner,
                                         repo = repo,
                                         path = "",
-                                        ref = data ?: "main"
+                                        ref = data
                                     )
                                 }
 
                                 "commit_branch_change" -> {
-
                                     repositoryViewModel.updateCommitsRef(data ?: "main")
-
                                     repositoryViewModel.getCommits(
                                         token = token,
                                         owner = owner,
@@ -513,13 +498,10 @@ class RepositoryFragment : Fragment() {
                                         page = 1,
                                         path = ""
                                     )
-
                                 }
 
                                 "commit_tag_change" -> {
-
                                     repositoryViewModel.updateCommitsRef(data ?: "main")
-
                                     repositoryViewModel.getCommits(
                                         token = token,
                                         owner = owner,
@@ -528,9 +510,7 @@ class RepositoryFragment : Fragment() {
                                         page = 1,
                                         path = ""
                                     )
-
                                 }
-
                             }
                         },
                     )
@@ -598,6 +578,7 @@ private fun MainContent(
                 }
 
                 is BottomSheetScreens.RepoDownloadSheet -> {
+
                     RepoDownloadSheet(
                         url = state.currentSheet.url,
                         closeSheet = closeSheet,
@@ -791,7 +772,7 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 
 @Composable
 private fun RepoDownloadSheet(
-    url: String,
+    url: Resource<String>,
     closeSheet: () -> Unit,
     onAction: (String, String?) -> Unit
 ) {
@@ -823,7 +804,7 @@ private fun RepoDownloadSheet(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Button(onClick = {
-                onAction("download", url)
+                onAction("download", url.data)
                 closeSheet()
             }) {
                 Text(text = "Yes", color = Color.Blue)
@@ -926,7 +907,7 @@ private fun SwitchBranchDialog(
     closeDialog: () -> Unit,
     onAction: (String, String?) -> Unit,
     branches: List<String>,
-    tags: List<String>,
+    tags: TagsModel,
     onDialogShown: () -> Unit
 ) {
 
@@ -1038,7 +1019,10 @@ private fun SwitchBranchDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        onAction(tagActionName, tag)
+                                        if (tagActionName == "files_tag_change") {
+                                            onAction("repo_download_link_change", tag.zipball_url)
+                                        }
+                                        onAction(tagActionName, tag.name)
                                         closeDialog()
                                     },
                                 elevation = 0.dp
@@ -1053,7 +1037,7 @@ private fun SwitchBranchDialog(
                                         contentDescription = ""
                                     )
                                     Text(
-                                        text = tag,
+                                        text = tag.name,
                                         fontSize = 18.sp,
                                         modifier = Modifier.padding(
                                             start = 16.dp,
@@ -1108,15 +1092,9 @@ private fun FilesScreen(
         }
 
         is Resource.Success -> {
-
             val files = state.RepositoryFiles
             val branches = state.Branches.data!!
             val tags = state.Tags.data!!
-
-            val tagList = arrayListOf<String>()
-            tags.forEach {
-                tagList.add(it.name)
-            }
 
             val branchList = arrayListOf<String>()
             branches.forEach {
@@ -1142,7 +1120,7 @@ private fun FilesScreen(
                             closeDialog = { isDialogShown = false },
                             onAction = onAction,
                             branches = branchList,
-                            tags = tagList,
+                            tags = tags,
                             onDialogShown = { isDialogShown = false },
                         )
                     }
@@ -1210,19 +1188,41 @@ private fun FilesScreen(
                         }
                     }
 
-                    IconButton(
-                        onClick = {
-                            onCurrentSheetChanged(
-                                BottomSheetScreens.RepoDownloadSheet(
-                                    state.Branch.data!!._links.html
-                                )
+                    when (state.RepoDownloadLink) {
+                        is Resource.Loading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.Black,
+                                strokeWidth = 4.dp
                             )
                         }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_download),
-                            contentDescription = "download"
-                        )
+
+                        is Resource.Success -> {
+                            IconButton(
+                                onClick = {
+                                    onCurrentSheetChanged(
+                                        BottomSheetScreens.RepoDownloadSheet(
+                                            state.RepoDownloadLink
+                                        )
+                                    )
+                                    Log.d(
+                                        "ahi3646",
+                                        "FilesScreen: download link - ${state.RepoDownloadLink.data.toString()} "
+                                    )
+                                    Log.d(
+                                        "ahi3646",
+                                        "FilesScreen: download link branch - ${state.Branch.data!!._links.html} "
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_download),
+                                    contentDescription = "download"
+                                )
+                            }
+                        }
+
+                        is Resource.Failure -> {}
                     }
 
                     if (state.Repository.data!!.permissions.admin) {
@@ -1439,11 +1439,6 @@ private fun CommitsScreen(
             val branches = state.Branches.data!!
             val tags = state.Tags.data!!
 
-            val tagList = arrayListOf<String>()
-            tags.forEach {
-                tagList.add(it.name)
-            }
-
             val branchList = arrayListOf<String>()
             branches.forEach {
                 branchList.add(it.name)
@@ -1468,7 +1463,7 @@ private fun CommitsScreen(
                             closeDialog = { isDialogShown = false },
                             onAction = onAction,
                             branches = branchList,
-                            tags = tagList,
+                            tags = tags,
                             onDialogShown = { isDialogShown = false },
                         )
                     }
