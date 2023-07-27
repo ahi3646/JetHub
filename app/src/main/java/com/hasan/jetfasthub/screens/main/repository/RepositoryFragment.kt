@@ -148,53 +148,56 @@ class RepositoryFragment : Fragment() {
 
         repositoryViewModel.getBranches(
             token = token, owner = owner, repo = repo
-        ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { branches ->
+        )
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { branches ->
 
-            val branchesList = arrayListOf<String>()
-            branches.forEach {
-                branchesList.add(it.name)
-            }
-
-            val initialBranch = if (branchesList.isNotEmpty()) {
-                if (branchesList.contains("main")) {
-                    "main"
-                } else if (branchesList.contains("master")) {
-                    "master"
-                } else {
-                    branchesList[0]
+                val branchesList = arrayListOf<String>()
+                branches.forEach {
+                    branchesList.add(it.name)
                 }
-            } else {
-                "main"
+
+                val initialBranch = if (branchesList.isNotEmpty()) {
+                    if (branchesList.contains("main")) {
+                        "main"
+                    } else if (branchesList.contains("master")) {
+                        "master"
+                    } else {
+                        branchesList[0]
+                    }
+                } else {
+                    "main"
+                }
+
+                repositoryViewModel.updateFilesRef(initialBranch)
+                repositoryViewModel.updateCommitsRef(initialBranch)
+
+                repositoryViewModel.getBranch(
+                    token = token,
+                    owner = owner,
+                    repo = repo,
+                    branch = initialBranch
+                )
+
+                repositoryViewModel.getContentFiles(
+                    token = token,
+                    owner = owner,
+                    repo = repo,
+                    path = "",
+                    ref = initialBranch
+                )
+
+                repositoryViewModel.getCommits(
+                    token = token,
+                    owner = owner,
+                    repo = repo,
+                    branch = initialBranch,
+                    page = 1,
+                    path = ""
+                )
+
             }
-
-            repositoryViewModel.updateFilesRef(initialBranch)
-            repositoryViewModel.updateCommitsRef(initialBranch)
-
-            repositoryViewModel.getBranch(
-                token = token,
-                owner = owner,
-                repo = repo,
-                branch = initialBranch
-            )
-
-            repositoryViewModel.getContentFiles(
-                token = token,
-                owner = owner,
-                repo = repo,
-                path = "",
-                ref = initialBranch
-            )
-
-            repositoryViewModel.getCommits(
-                token = token,
-                owner = owner,
-                repo = repo,
-                branch = initialBranch,
-                page = 1,
-                path = ""
-            )
-
-        }.launchIn(lifecycleScope)
+            .launchIn(lifecycleScope)
 
         repositoryViewModel.getTags(
             token = token, owner = owner, repo = repo, page = 1
@@ -689,13 +692,15 @@ private fun MainContent(
                     sheetState = sheetStateX
                 ) {
                     // Sheet content
-                    Button(onClick = {
-                        scopeX.launch { sheetStateX.hide() }.invokeOnCompletion {
-                            if (!sheetStateX.isVisible) {
-                                showBottomSheet = false
+                    Button(
+                        onClick = {
+                            scopeX.launch { sheetStateX.hide() }.invokeOnCompletion {
+                                if (!sheetStateX.isVisible) {
+                                    showBottomSheet = false
+                                }
                             }
                         }
-                    }) {
+                    ) {
                         Text("Hide bottom sheet")
                     }
                 }
@@ -1191,7 +1196,9 @@ private fun FilesScreen(
                     when (state.RepoDownloadLink) {
                         is Resource.Loading -> {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(end = 8.dp),
                                 color = Color.Black,
                                 strokeWidth = 4.dp
                             )
