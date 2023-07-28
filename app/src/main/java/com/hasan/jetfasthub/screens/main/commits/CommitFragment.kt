@@ -715,7 +715,7 @@ private fun CommentItem(
 
         Text(
             text = comment.body,
-            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, top = 8.dp, end = 8.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp)
         )
     }
 }

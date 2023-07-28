@@ -404,6 +404,25 @@ interface GitHubService {
         @Path("commit_sha") ref: String,
     ): Response<CommitCommentsModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @PATCH("repos/{owner}/{repo}/comments/{comment_id}")
+    suspend fun editComment(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("comment_id") commentId: Int,
+        @Body body: CommentRequestModel
+    ): Response<CommentPostResponse>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("repos/{owner}/{repo}/comments/{comment_id}")
+    suspend fun deleteComment(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("comment_id") commentId: Int,
+    ): Response<Boolean>
+
     @Headers("Accept: application/vnd.github+json, application/vnd.github.VERSION.full+json, application/vnd.github.squirrel-girl-preview")
     @POST("repos/{owner}/{repo}/commits/{commit_sha}/comments")
     suspend fun postCommitComment(
@@ -413,9 +432,6 @@ interface GitHubService {
         @Path("commit_sha") ref: String,
         @Body body: CommentRequestModel
     ): Response<CommentPostResponse>
-
-
-
 
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/subscription")

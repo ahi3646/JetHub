@@ -64,19 +64,67 @@ class CommitViewModel(
         branch: String,
         body: String
     ): Flow<Boolean> = callbackFlow {
-        Log.d("ahi3646", "postCommitComment: ${token +  owner  + repo + branch + body }")
         viewModelScope.launch {
             try {
                 repository.postCommit(token, owner, repo, branch, body).let { response ->
                     if (response.code() == 201) {
                         trySend(true)
                     } else {
-                        Log.d("ahi3646", "postCommitComment: ${response.errorBody().toString()}")
                         trySend(false)
                     }
                 }
             } catch (e: Exception) {
-                Log.d("ahi3646", "postCommitComment: ${e.message.toString()}")
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "postCommitComment: channel closed ")
+        }
+    }
+
+    fun deleteComment(
+        token: String,
+        owner: String,
+        repo: String,
+        commentId: Int
+    ): Flow<Boolean> = callbackFlow {
+        viewModelScope.launch {
+            try {
+                repository.deleteComment(token, owner, repo, commentId).let { response ->
+                    if (response.code() == 204) {
+                        trySend(true)
+                    } else {
+                        trySend(false)
+                    }
+                }
+            } catch (e: Exception) {
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "postCommitComment: channel closed ")
+        }
+    }
+
+    fun editComment(
+        token: String,
+        owner: String,
+        repo: String,
+        commentId: Int,
+        body: String
+    ): Flow<Boolean> = callbackFlow {
+        viewModelScope.launch {
+            try {
+                repository.editComment(token, owner, repo, commentId, body).let { response ->
+                    if (response.code() == 200) {
+                        trySend(true)
+                    } else {
+                        trySend(false)
+                    }
+                }
+            } catch (e: Exception) {
                 trySend(false)
             }
         }
