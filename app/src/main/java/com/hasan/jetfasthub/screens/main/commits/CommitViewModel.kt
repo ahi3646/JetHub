@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.download.Downloader
+import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,8 +53,36 @@ class CommitViewModel(
         }
     }
 
+    fun getCommitComments(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String,
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.getCommitComments(token, owner, repo, branch).let { comments ->
+                    if (comments.isSuccessful) {
+                        _state.update {
+                            it.copy(CommitComments = Resource.Success(comments.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(CommitComments = Resource.Failure(comments.errorBody().toString()))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(CommitComments = Resource.Failure(e.message.toString()))
+                }
+            }
+        }
+    }
+
 }
 
 data class CommitScreenState(
-    val Commit: Resource<CommitModel> = Resource.Loading()
+    val Commit: Resource<CommitModel> = Resource.Loading(),
+    val CommitComments: Resource<CommitCommentsModel> = Resource.Loading()
 )

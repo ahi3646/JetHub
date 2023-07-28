@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
@@ -41,12 +42,14 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +57,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +67,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +77,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
+import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModelItem
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -80,6 +87,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.Locale
 
 class CommitFragment : Fragment() {
 
@@ -97,12 +105,21 @@ class CommitFragment : Fragment() {
         val sha = arguments?.getString("sha", "")
 
         if (!owner.isNullOrEmpty() && !repo.isNullOrEmpty() && !sha.isNullOrEmpty()) {
+
             commitViewModel.getCommit(
                 token = token,
                 owner = owner,
                 repo = repo,
                 branch = sha
             )
+
+            commitViewModel.getCommitComments(
+                token = token,
+                owner = owner,
+                repo = repo,
+                branch = sha
+            )
+
         } else {
             Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
         }
@@ -167,10 +184,13 @@ class CommitFragment : Fragment() {
                                 }
 
                                 "download" -> {
-                                    val message  = Uri.parse(
+                                    val message = Uri.parse(
                                         data!!
                                     ).lastPathSegment
-                                    commitViewModel.downloadCommit(data, message ?: "jethub_download")
+                                    commitViewModel.downloadCommit(
+                                        data,
+                                        message ?: "jethub_download"
+                                    )
                                 }
                             }
                         }
@@ -219,7 +239,7 @@ private fun MainContent(
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            when(state.Commit){
+            when (state.Commit) {
                 is Resource.Loading -> {}
                 is Resource.Success -> {
                     val commit = state.Commit.data!!
@@ -229,7 +249,8 @@ private fun MainContent(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = commit.commit.message, style = MaterialTheme.typography.titleLarge
+                            text = commit.commit.message,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -256,11 +277,12 @@ private fun MainContent(
                         }
                     }
                 }
+
                 is Resource.Failure -> {}
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-    ) {sheetPadding ->
+    ) { sheetPadding ->
         Scaffold(
             modifier = Modifier.padding(sheetPadding),
             topBar = {
@@ -321,7 +343,7 @@ private fun MainContent(
                         FilesScreen(state.Commit, onAction)
                     }
 
-                    1 -> CommentsScreen()
+                    1 -> CommentsScreen(state.CommitComments, onAction)
                 }
             }
         }
@@ -373,8 +395,243 @@ private fun FilesScreen(
 }
 
 @Composable
-private fun CommentsScreen() {
+private fun CommentsScreen(
+    state: Resource<CommitCommentsModel>,
+    onAction: (String, String?) -> Unit
+) {
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
+        is Resource.Success -> {
+            val comments = state.data!!
+            var text by rememberSaveable {
+                mutableStateOf("")
+            }
+
+            if (!comments.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                ) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1F)
+                    ) {
+                        itemsIndexed(comments) { index, comment ->
+                            CommentItem(comment, onAction)
+                            if (index < comments.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier
+                                        .height(0.5.dp)
+                                        .padding(start = 6.dp, end = 6.dp)
+                                        .fillMaxWidth()
+                                        .align(Alignment.End)
+                                )
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.LightGray),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        androidx.compose.material3.TextField(
+                            value = text,
+                            onValueChange = {
+                                text = it
+                            },
+                            textStyle = TextStyle(fontSize = 16.sp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            maxLines = 1,
+                            modifier = Modifier.weight(1F)
+                        )
+
+                        androidx.compose.material3.IconButton(onClick = {  }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_send),
+                                tint = Color.Blue,
+                                contentDescription = "search icon"
+                            )
+                        }
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No comments")
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+    }
+}
+
+@Composable
+private fun CommentItem(
+    comment: CommitCommentsModelItem,
+    onAction: (String, String?) -> Unit
+) {
+
+    var showMenu by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    if (comment.user != null) {
+                        comment.user.avatar_url
+                    } else {
+                        R.drawable.baseline_account_circle_24
+                    }
+                    //repository.owner.avatar_url
+                }, // loading a network image using an URL.
+                modifier = Modifier
+                    .size(32.dp, 32.dp)
+                    .clip(CircleShape)
+                    .clickable { },
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1F)
+            ) {
+                Row {
+                    Text(
+                        text = comment.user?.login ?: "N/A",
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.weight(1F))
+                    Text(
+                        text = ParseDateFormat.getTimeAgo(comment.created_at).toString(),
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = comment.author_association.lowercase(Locale.ROOT),
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            IconButton(onClick = { }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_add_emoji),
+                    contentDescription = "info"
+                )
+            }
+
+            Box {
+                IconButton(
+                    onClick = {
+                        showMenu = !showMenu
+                    },
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_overflow),
+                        contentDescription = "more option"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Edit") },
+                        onClick = {
+                            onAction("edit", "")
+                            showMenu = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Delete") },
+                        onClick = {
+                            //onCurrentSheetChanged()
+                            onAction("delete", "")
+                            showMenu = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Reply") },
+                        onClick = {
+                            onAction("reply", "")
+                            showMenu = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Share") },
+                        onClick = {
+                            onAction("share", comment.html_url)
+                            showMenu = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = comment.body,
+            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, top = 8.dp, end = 8.dp)
+        )
+    }
 }
 
 @Composable
@@ -713,21 +970,21 @@ private fun Toolbar(
                         DropdownMenuItem(
                             text = { Text(text = "Share") },
                             onClick = {
-                            onAction("share", commit.html_url)
-                            showMenu = false
-                        })
+                                onAction("share", commit.html_url)
+                                showMenu = false
+                            })
                         DropdownMenuItem(
                             text = { Text(text = "Open in browser") },
                             onClick = {
-                            onAction("browser", commit.html_url)
-                            showMenu = false
-                        })
+                                onAction("browser", commit.html_url)
+                                showMenu = false
+                            })
                         DropdownMenuItem(
                             text = { Text(text = "Copy URL") },
                             onClick = {
-                            onAction("copy", commit.html_url)
-                            showMenu = false
-                        })
+                                onAction("copy", commit.html_url)
+                                showMenu = false
+                            })
 
                         DropdownMenuItem(text = { Text(text = "Copy SHA-1") },
                             onClick = {
