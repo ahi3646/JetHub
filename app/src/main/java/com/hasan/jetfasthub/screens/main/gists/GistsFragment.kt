@@ -81,7 +81,7 @@ class GistsFragment : Fragment() {
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
-        val username = "HasanAnorov"
+        val username = arguments?.getString("gist_data") ?: ""
 
         gistsViewModel.getUserGists(token = token, username = username, 1)
         gistsViewModel.getStarredGists(token = token, 1)

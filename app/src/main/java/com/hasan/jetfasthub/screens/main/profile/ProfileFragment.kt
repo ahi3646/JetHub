@@ -80,6 +80,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -226,23 +227,18 @@ class ProfileFragment : Fragment() {
                             }
                         },
                         onNavigate = { dest, data ->
-                            if (dest == -1) {
-                                findNavController().popBackStack()
-                            } else if (dest == 0) {
-                                val bundle = Bundle()
-                                if (data != null) {
-                                    bundle.putString("home_data", data)
+                            when(dest){
+                                -1 -> { findNavController().popBackStack() }
+
+                                R.id.action_profileFragment_self -> {
+                                    val bundle = bundleOf("home_data" to data)
+                                    findNavController().navigate(dest, bundle)
                                 }
-                                findNavController().navigate(
-                                    R.id.action_profileFragment_self,
-                                    bundle
-                                )
-                            } else {
-                                val bundle = Bundle()
-                                if (data != null) {
-                                    bundle.putString("profile_data", data)
+
+                                R.id.action_profileFragment_to_organisationsFragment -> {
+                                    val bundle = bundleOf("profile_data" to data)
+                                    findNavController().navigate(dest, bundle)
                                 }
-                                findNavController().navigate(dest, bundle)
                             }
                         },
                         onFollowClicked = {

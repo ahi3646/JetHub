@@ -80,16 +80,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.utility.Constants
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
@@ -112,12 +114,14 @@ class HomeFragment : Fragment() {
         val token = PreferenceHelper.getToken(requireContext())
 
         homeViewModel.getAuthenticatedUser(token)
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach { authenticatedUser ->
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { authenticatedUser ->
                 PreferenceHelper.saveAuthenticatedUser(requireContext(), authenticatedUser.login)
 
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
-            }.launchIn(lifecycleScope)
+            }
+            .launchIn(lifecycleScope)
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -148,35 +152,68 @@ class HomeFragment : Fragment() {
                         state = state,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { dest, data, extra ->
-                            drawerScope.launch {
-                                if (drawerState.isOpen){
-                                    drawerState.close()
+                            when (dest) {
+
+                                -1 -> {
+                                    findNavController().popBackStack()
                                 }
-                            }
-                            Log.d(
-                                "ahi3646",
-                                "onCreateView onNavigate: ${drawerState.currentValue} "
-                            )
-                            if (dest == -1) {
-                                findNavController().popBackStack()
-                            } else {
-                                val bundle = Bundle()
-                                if (data != null) {
+
+                                R.id.action_homeFragment_to_notificationsFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_searchFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_repositoryFragment -> {
+                                    val bundle = Bundle()
                                     bundle.putString("home_data", data)
-                                }
-                                if (extra != null) {
                                     bundle.putString("home_extra", extra)
+                                    findNavController().navigate(dest, bundle)
                                 }
-                                findNavController().navigate(dest, bundle)
+
+                                R.id.action_homeFragment_to_profileFragment -> {
+                                    val bundle = bundleOf("home_date" to data)
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                                R.id.action_homeFragment_to_pinnedFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_gistsFragment -> {
+                                    val bundle = bundleOf("gist_data" to data)
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                                R.id.action_homeFragment_to_faqFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_settingsFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_aboutFragment -> {
+                                    findNavController().navigate(dest)
+                                }
+
+                                R.id.action_homeFragment_to_addAccountFragment -> {
+                                    findNavController().navigate(dest)
+                                }
                             }
                         },
                         scaffoldState = scaffoldState,
                         closeDrawer = {
                             drawerScope.launch {
-                                Log.d("ahi3646", "onCreateView: clicked ${drawerState.currentValue} ")
-                                if (drawerState.isClosed){
+                                Log.d(
+                                    "ahi3646",
+                                    "onCreateView: clicked ${drawerState.currentValue} "
+                                )
+                                if (drawerState.isClosed) {
                                     drawerState.open()
-                                }else{
+                                } else {
                                     drawerState.close()
                                 }
                                 Log.d("ahi3646", "onCreateView: after ${drawerState.currentValue} ")
@@ -203,7 +240,6 @@ private fun MainContent(
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
-
 
     BottomSheetScaffold(
         scaffoldState = sheetScaffoldState,
@@ -234,7 +270,6 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) { paddingValues ->
-
         Scaffold(
             modifier = Modifier.padding(paddingValues),
             scaffoldState = scaffoldState,
@@ -301,7 +336,10 @@ private fun TopAppBarContent(
         IconButton(onClick = {
             closeDrawer()
         }) {
-            Icon(painterResource(id = R.drawable.baseline_menu_24), contentDescription = "Localized description")
+            Icon(
+                painterResource(id = R.drawable.baseline_menu_24),
+                contentDescription = "Localized description"
+            )
         }
 
         Text(
@@ -328,7 +366,6 @@ private fun TopAppBarContent(
     }
 }
 
-//Bottom Nav stuffs
 @Composable
 fun BottomNav(
     modifier: Modifier,
@@ -797,7 +834,7 @@ fun DrawerMenuScreen(
                 .fillMaxWidth(1F)
                 .padding(bottom = 4.dp)
                 .clickable {
-                    onNavigate(R.id.action_homeFragment_to_gistsFragment, null, null)
+                    onNavigate(R.id.action_homeFragment_to_gistsFragment, username, null)
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_code_24),
@@ -812,12 +849,20 @@ fun DrawerMenuScreen(
 
         Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { }) {
+                .clickable {
+                    onNavigate(
+                        R.id.action_homeFragment_to_repositoryFragment,
+                        Constants.JetHubOwner,
+                        Constants.JetHubRepoName
+                    )
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_fasthub_mascot),
                 contentDescription = "JetHub icon",
