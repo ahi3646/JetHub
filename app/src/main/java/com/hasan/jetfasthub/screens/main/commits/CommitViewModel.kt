@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.commits
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.CommitRepository
@@ -7,8 +8,11 @@ import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.utility.Resource
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -20,7 +24,7 @@ class CommitViewModel(
     private var _state: MutableStateFlow<CommitScreenState> = MutableStateFlow(CommitScreenState())
     val state = _state.asStateFlow()
 
-    fun downloadCommit(url: String, message: String){
+    fun downloadCommit(url: String, message: String) {
         viewModelScope.launch {
             downloader.downloadCommit(url, message)
         }
@@ -53,6 +57,35 @@ class CommitViewModel(
         }
     }
 
+    fun postCommitComment(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String,
+        body: String
+    ): Flow<Boolean> = callbackFlow {
+        Log.d("ahi3646", "postCommitComment: ${token +  owner  + repo + branch + body }")
+        viewModelScope.launch {
+            try {
+                repository.postCommit(token, owner, repo, branch, body).let { response ->
+                    if (response.code() == 201) {
+                        trySend(true)
+                    } else {
+                        Log.d("ahi3646", "postCommitComment: ${response.errorBody().toString()}")
+                        trySend(false)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("ahi3646", "postCommitComment: ${e.message.toString()}")
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "postCommitComment: channel closed ")
+        }
+    }
+
     fun getCommitComments(
         token: String,
         owner: String,
@@ -68,7 +101,11 @@ class CommitViewModel(
                         }
                     } else {
                         _state.update {
-                            it.copy(CommitComments = Resource.Failure(comments.errorBody().toString()))
+                            it.copy(
+                                CommitComments = Resource.Failure(
+                                    comments.errorBody().toString()
+                                )
+                            )
                         }
                     }
                 }

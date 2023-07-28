@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.networking
 import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.login.model.AuthModel
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentPostResponse
+import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
@@ -403,15 +404,17 @@ interface GitHubService {
         @Path("commit_sha") ref: String,
     ): Response<CommitCommentsModel>
 
-    @Headers("Accept: application/vnd.github+json")
+    @Headers("Accept: application/vnd.github+json, application/vnd.github.VERSION.full+json, application/vnd.github.squirrel-girl-preview")
     @POST("repos/{owner}/{repo}/commits/{commit_sha}/comments")
     suspend fun postCommitComment(
         @Header("Authorization") token: String,
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("commit_sha") ref: String,
-        @Body body: String
+        @Body body: CommentRequestModel
     ): Response<CommentPostResponse>
+
+
 
 
     @Headers("Accept: application/vnd.github+json")

@@ -30,6 +30,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
@@ -57,23 +59,33 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -85,6 +97,8 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
@@ -146,6 +160,35 @@ class CommitFragment : Fragment() {
                         },
                         onAction = { action, data ->
                             when (action) {
+
+                                "post_comment" -> {
+                                    commitViewModel.postCommitComment(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = sha!!,
+                                        body = data!!
+                                    )
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach { response ->
+                                            if (response) {
+                                                commitViewModel.getCommitComments(
+                                                    token = token,
+                                                    owner = owner,
+                                                    repo = repo,
+                                                    branch = sha
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't post comment",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -394,6 +437,7 @@ private fun FilesScreen(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun CommentsScreen(
     state: Resource<CommitCommentsModel>,
@@ -412,9 +456,20 @@ private fun CommentsScreen(
 
         is Resource.Success -> {
             val comments = state.data!!
-            var text by rememberSaveable {
-                mutableStateOf("")
+
+//            var text by rememberSaveable {
+//                mutableStateOf("")
+//            }
+            var textFieldValueState by remember {
+                mutableStateOf(
+                    TextFieldValue(
+                        text = ""
+                    )
+                )
             }
+            val keyboardController = LocalSoftwareKeyboardController.current
+            val focusRequester = remember { FocusRequester() }
+            val context = LocalContext.current
 
             if (!comments.isEmpty()) {
                 Column(
@@ -428,7 +483,28 @@ private fun CommentsScreen(
                             .weight(1F)
                     ) {
                         itemsIndexed(comments) { index, comment ->
-                            CommentItem(comment, onAction)
+                            CommentItem(
+                                comment = comment,
+                                onAction = onAction,
+                                onReply = { userLogin ->
+                                    if (userLogin != "N/A") {
+                                        //text = "@$userLogin"
+                                        val newValue = textFieldValueState.text.plus("@$userLogin")
+                                        textFieldValueState = TextFieldValue(
+                                            text = newValue,
+                                            selection = TextRange(newValue.length)
+                                        )
+                                        focusRequester.requestFocus()
+                                        keyboardController?.show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Can't identify user !",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            )
                             if (index < comments.lastIndex) {
                                 Divider(
                                     color = Color.Gray,
@@ -450,9 +526,9 @@ private fun CommentsScreen(
                     ) {
 
                         androidx.compose.material3.TextField(
-                            value = text,
+                            value = textFieldValueState,
                             onValueChange = {
-                                text = it
+                                textFieldValueState = it
                             },
                             textStyle = TextStyle(fontSize = 16.sp),
                             colors = TextFieldDefaults.colors(
@@ -463,10 +539,19 @@ private fun CommentsScreen(
                                 unfocusedIndicatorColor = Color.Transparent,
                             ),
                             maxLines = 1,
-                            modifier = Modifier.weight(1F)
+                            modifier = Modifier.weight(1F).focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        androidx.compose.material3.IconButton(onClick = {  }) {
+                        androidx.compose.material3.IconButton(onClick = {
+                            onAction(
+                                "post_comment",
+                                textFieldValueState.text
+                            )
+                            textFieldValueState = TextFieldValue("")
+                            keyboardController?.hide()
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_send),
                                 tint = Color.Blue,
@@ -501,7 +586,8 @@ private fun CommentsScreen(
 @Composable
 private fun CommentItem(
     comment: CommitCommentsModelItem,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
+    onReply: (String) -> Unit
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -612,7 +698,7 @@ private fun CommentItem(
                     DropdownMenuItem(
                         text = { Text(text = "Reply") },
                         onClick = {
-                            onAction("reply", "")
+                            onReply(comment.user?.login ?: "N/A")
                             showMenu = false
                         }
                     )
