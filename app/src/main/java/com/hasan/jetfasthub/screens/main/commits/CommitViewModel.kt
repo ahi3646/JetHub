@@ -7,6 +7,8 @@ import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
+import com.hasan.jetfasthub.screens.main.repository.BottomSheetScreens
+import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -165,9 +167,24 @@ class CommitViewModel(
         }
     }
 
+    fun onBottomSheetChanged(bottomSheet: CommitScreenSheets) {
+        _state.update {
+            it.copy(CurrentSheet = bottomSheet)
+        }
+    }
+
 }
 
 data class CommitScreenState(
     val Commit: Resource<CommitModel> = Resource.Loading(),
-    val CommitComments: Resource<CommitCommentsModel> = Resource.Loading()
+    val CommitComments: Resource<CommitCommentsModel> = Resource.Loading(),
+    val CurrentSheet: CommitScreenSheets = CommitScreenSheets.CommitInfoSheet
 )
+
+sealed interface CommitScreenSheets {
+
+    object CommitInfoSheet : CommitScreenSheets
+
+    class CommitDeleteRequestSheet( val commentId: Int) : CommitScreenSheets
+
+}

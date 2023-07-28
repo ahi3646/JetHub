@@ -235,7 +235,38 @@ class CommitFragment : Fragment() {
                                         message ?: "jethub_download"
                                     )
                                 }
+
+                                "delete_comment" -> {
+                                    commitViewModel.deleteComment(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        commentId = data!!.toInt()
+                                    )
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach { response ->
+                                            if (response) {
+                                                commitViewModel.getCommitComments(
+                                                    token = token,
+                                                    owner = owner,
+                                                    repo = repo,
+                                                    branch = sha!!
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't delete comment now !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
                             }
+                        },
+                        onCurrentSheetChanged = { currentSheet ->
+                            commitViewModel.onBottomSheetChanged(currentSheet)
                         }
                     )
                 }
@@ -251,13 +282,13 @@ private fun MainContent(
     repo: String,
     state: CommitScreenState,
     onNavigate: (Int, String?) -> Unit,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (currentSheet: CommitScreenSheets) -> Unit,
 ) {
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed,
-        //animationSpec = spring(dampingRatio = Spring.DefaultDisplacementThreshold)
     )
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
@@ -282,23 +313,67 @@ private fun MainContent(
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            when (state.Commit) {
-                is Resource.Loading -> {}
-                is Resource.Success -> {
-                    val commit = state.Commit.data!!
+            when (state.CurrentSheet) {
+                is CommitScreenSheets.CommitInfoSheet -> {
+                    when (state.Commit) {
+                        is Resource.Loading -> {}
+                        is Resource.Success -> {
+                            val commit = state.Commit.data!!
+                            Column(
+                                Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = commit.commit.message,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Text(
+                                    text = "$owner / $repo"
+                                )
+
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Button(onClick = {
+                                        closeSheet()
+                                    }) {
+                                        Text(text = "Cancel", color = Color.Red)
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Button(onClick = {
+                                        closeSheet()
+                                    }) {
+                                        Text(text = "OK", color = Color.Blue)
+                                    }
+                                }
+                            }
+                        }
+                        is Resource.Failure -> {}
+                    }
+                }
+
+                is CommitScreenSheets.CommitDeleteRequestSheet -> {
+                    val commentId = state.CurrentSheet.commentId
+
                     Column(
                         Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center
                     ) {
+
                         Text(
-                            text = commit.commit.message,
-                            style = MaterialTheme.typography.titleLarge
+                            text = "Delete", style = MaterialTheme.typography.titleLarge
                         )
+
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "$owner / $repo"
+                            text = "Are you sure ?"
                         )
 
                         Row(
@@ -306,22 +381,22 @@ private fun MainContent(
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Button(onClick = {
-                                closeSheet()
-                            }) {
-                                Text(text = "Cancel", color = Color.Red)
+
+                            Button(onClick = { closeSheet() }) {
+                                Text(text = "No", color = Color.Red)
                             }
+
                             Spacer(modifier = Modifier.width(12.dp))
+
                             Button(onClick = {
+                                onAction("delete_comment", commentId.toString())
                                 closeSheet()
                             }) {
-                                Text(text = "OK", color = Color.Blue)
+                                Text(text = "Yes", color = Color.Blue)
                             }
                         }
                     }
                 }
-
-                is Resource.Failure -> {}
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -335,6 +410,7 @@ private fun MainContent(
                         state = state.Commit,
                         onNavigate = onNavigate,
                         onCurrentSheetChanged = {
+                            onCurrentSheetChanged(it)
                             scope.launch {
                                 if (sheetScaffoldState.bottomSheetState.isCollapsed) {
                                     sheetScaffoldState.bottomSheetState.expand()
@@ -343,6 +419,16 @@ private fun MainContent(
                                 }
                             }
                         }
+//                        {
+////                            scope.launch {
+////                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+////                                    sheetScaffoldState.bottomSheetState.expand()
+////                                } else {
+////                                    sheetScaffoldState.bottomSheetState.collapse()
+////                                }
+////                            }
+//
+//                        }
                     )
                     Toolbar(
                         state = state.Commit,
@@ -383,15 +469,32 @@ private fun MainContent(
 
                 when (tabIndex) {
                     0 -> {
-                        FilesScreen(state.Commit, onAction)
+                        FilesScreen(
+                            state = state.Commit,
+                            onAction = onAction
+                        )
                     }
 
-                    1 -> CommentsScreen(state.CommitComments, onAction)
+                    1 -> CommentsScreen(
+                        state = state.CommitComments,
+                        onAction = onAction,
+                        onCurrentSheetChanged = {
+                            onCurrentSheetChanged(it)
+                            scope.launch {
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
+                                } else {
+                                    sheetScaffoldState.bottomSheetState.collapse()
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun FilesScreen(
@@ -441,7 +544,8 @@ private fun FilesScreen(
 @Composable
 private fun CommentsScreen(
     state: Resource<CommitCommentsModel>,
-    onAction: (String, String?) -> Unit
+    onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (CommitScreenSheets) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
@@ -457,9 +561,6 @@ private fun CommentsScreen(
         is Resource.Success -> {
             val comments = state.data!!
 
-//            var text by rememberSaveable {
-//                mutableStateOf("")
-//            }
             var textFieldValueState by remember {
                 mutableStateOf(
                     TextFieldValue(
@@ -503,7 +604,8 @@ private fun CommentsScreen(
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
-                                }
+                                },
+                                onCurrentSheetChanged = onCurrentSheetChanged
                             )
                             if (index < comments.lastIndex) {
                                 Divider(
@@ -539,7 +641,9 @@ private fun CommentsScreen(
                                 unfocusedIndicatorColor = Color.Transparent,
                             ),
                             maxLines = 1,
-                            modifier = Modifier.weight(1F).focusRequester(focusRequester),
+                            modifier = Modifier
+                                .weight(1F)
+                                .focusRequester(focusRequester),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
@@ -587,7 +691,8 @@ private fun CommentsScreen(
 private fun CommentItem(
     comment: CommitCommentsModelItem,
     onAction: (String, String?) -> Unit,
-    onReply: (String) -> Unit
+    onReply: (String) -> Unit,
+    onCurrentSheetChanged: (CommitScreenSheets) -> Unit
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -660,7 +765,7 @@ private fun CommentItem(
             IconButton(onClick = { }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add_emoji),
-                    contentDescription = "info"
+                    contentDescription = "emoji"
                 )
             }
 
@@ -690,7 +795,11 @@ private fun CommentItem(
                     DropdownMenuItem(
                         text = { Text(text = "Delete") },
                         onClick = {
-                            //onCurrentSheetChanged()
+                            onCurrentSheetChanged(
+                                CommitScreenSheets.CommitDeleteRequestSheet(
+                                    comment.id
+                                )
+                            )
                             onAction("delete", "")
                             showMenu = false
                         }
@@ -725,7 +834,7 @@ private fun TitleHeader(
     repo: String,
     state: Resource<CommitModel>,
     onNavigate: (Int, String?) -> Unit,
-    onCurrentSheetChanged: () -> Unit
+    onCurrentSheetChanged: (CommitScreenSheets) -> Unit
 ) {
     when (state) {
 
@@ -849,7 +958,13 @@ private fun TitleHeader(
                         }
                     }
 
-                    IconButton(onClick = { onCurrentSheetChanged() }) {
+                    IconButton(
+                        onClick = {
+                            onCurrentSheetChanged(
+                                CommitScreenSheets.CommitInfoSheet
+                            )
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_info_outline),
                             contentDescription = "info"
