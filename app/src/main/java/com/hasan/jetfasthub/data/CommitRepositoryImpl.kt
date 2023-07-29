@@ -34,14 +34,6 @@ interface CommitRepository {
         body: String
     ): Response<CommentPostResponse>
 
-    suspend fun editComment(
-        token: String,
-        owner: String,
-        repo: String,
-        commentId: Int,
-        body: String
-    ): Response<CommentPostResponse>
-
     suspend fun deleteComment(
         token: String,
         owner: String,
@@ -52,22 +44,6 @@ interface CommitRepository {
 }
 
 class CommitRepositoryImpl(private val context: Context) : CommitRepository {
-
-    override suspend fun editComment(
-        token: String,
-        owner: String,
-        repo: String,
-        commentId: Int,
-        body: String
-    ): Response<CommentPostResponse> {
-        return RetrofitInstance(context).gitHubService.editComment(
-            token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
-            owner = owner,
-            repo = repo,
-            commentId = commentId,
-            body = CommentRequestModel(body)
-        )
-    }
 
     override suspend fun deleteComment(
         token: String,

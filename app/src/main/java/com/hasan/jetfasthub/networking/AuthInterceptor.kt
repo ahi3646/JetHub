@@ -1,14 +1,11 @@
 package com.hasan.jetfasthub.networking
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
-import com.hasan.jetfasthub.utility.Constants
-import okhttp3.Credentials
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response

@@ -7,8 +7,6 @@ import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
-import com.hasan.jetfasthub.screens.main.repository.BottomSheetScreens
-import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -95,32 +93,6 @@ class CommitViewModel(
             try {
                 repository.deleteComment(token, owner, repo, commentId).let { response ->
                     if (response.code() == 204) {
-                        trySend(true)
-                    } else {
-                        trySend(false)
-                    }
-                }
-            } catch (e: Exception) {
-                trySend(false)
-            }
-        }
-        awaitClose {
-            channel.close()
-            Log.d("ahi3646", "postCommitComment: channel closed ")
-        }
-    }
-
-    fun editComment(
-        token: String,
-        owner: String,
-        repo: String,
-        commentId: Int,
-        body: String
-    ): Flow<Boolean> = callbackFlow {
-        viewModelScope.launch {
-            try {
-                repository.editComment(token, owner, repo, commentId, body).let { response ->
-                    if (response.code() == 200) {
                         trySend(true)
                     } else {
                         trySend(false)

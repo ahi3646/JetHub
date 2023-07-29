@@ -146,10 +146,19 @@ class CommitFragment : Fragment() {
                         owner = owner!!,
                         repo = repo!!,
                         state = state,
-                        onNavigate = { dest, data ->
+                        onNavigate = { dest, data , id ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
+                                }
+
+                                R.id.action_commitFragment_to_editCommentFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("owner", owner)
+                                    bundle.putString("repo", repo)
+                                    bundle.putString("edit_comment", data)
+                                    bundle.putInt("comment_id", id!!)
+                                    findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_commitFragment_to_profileFragment -> {
@@ -162,31 +171,35 @@ class CommitFragment : Fragment() {
                             when (action) {
 
                                 "post_comment" -> {
-                                    commitViewModel.postCommitComment(
-                                        token = token,
-                                        owner = owner,
-                                        repo = repo,
-                                        branch = sha!!,
-                                        body = data!!
-                                    )
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach { response ->
-                                            if (response) {
-                                                commitViewModel.getCommitComments(
-                                                    token = token,
-                                                    owner = owner,
-                                                    repo = repo,
-                                                    branch = sha
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't post comment",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                    if(data!!.length >=2){
+                                        commitViewModel.postCommitComment(
+                                            token = token,
+                                            owner = owner,
+                                            repo = repo,
+                                            branch = sha!!,
+                                            body = data
+                                        )
+                                            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                            .onEach { response ->
+                                                if (response) {
+                                                    commitViewModel.getCommitComments(
+                                                        token = token,
+                                                        owner = owner,
+                                                        repo = repo,
+                                                        branch = sha
+                                                    )
+                                                } else {
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Can't post comment",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
                                             }
-                                        }
-                                        .launchIn(lifecycleScope)
+                                            .launchIn(lifecycleScope)
+                                    }else{
+                                        Toast.makeText(requireContext(), "Min length for comment is 2 !", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
 
                                 "share" -> {
@@ -281,7 +294,7 @@ private fun MainContent(
     owner: String,
     repo: String,
     state: CommitScreenState,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: (currentSheet: CommitScreenSheets) -> Unit,
 ) {
@@ -477,7 +490,8 @@ private fun MainContent(
                                     sheetScaffoldState.bottomSheetState.collapse()
                                 }
                             }
-                        }
+                        },
+                        onNavigate = onNavigate
                     )
                 }
             }
@@ -535,7 +549,8 @@ private fun FilesScreen(
 private fun CommentsScreen(
     state: Resource<CommitCommentsModel>,
     onAction: (String, String?) -> Unit,
-    onCurrentSheetChanged: (CommitScreenSheets) -> Unit
+    onCurrentSheetChanged: (CommitScreenSheets) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
@@ -595,7 +610,8 @@ private fun CommentsScreen(
                                         ).show()
                                     }
                                 },
-                                onCurrentSheetChanged = onCurrentSheetChanged
+                                onCurrentSheetChanged = onCurrentSheetChanged,
+                                onNavigate = onNavigate
                             )
                             if (index < comments.lastIndex) {
                                 Divider(
@@ -682,7 +698,8 @@ private fun CommentItem(
     comment: CommitCommentsModelItem,
     onAction: (String, String?) -> Unit,
     onReply: (String) -> Unit,
-    onCurrentSheetChanged: (CommitScreenSheets) -> Unit
+    onCurrentSheetChanged: (CommitScreenSheets) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -780,7 +797,7 @@ private fun CommentItem(
                     DropdownMenuItem(
                         text = { Text(text = "Edit") },
                         onClick = {
-                            onAction("edit", "")
+                            onNavigate(R.id.action_commitFragment_to_editCommentFragment, comment.body, comment.id)
                             showMenu = false
                         }
                     )
@@ -825,7 +842,7 @@ private fun CommentItem(
 private fun TitleHeader(
     repo: String,
     state: Resource<CommitModel>,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit,
     onCurrentSheetChanged: (CommitScreenSheets) -> Unit
 ) {
     when (state) {
@@ -906,7 +923,8 @@ private fun TitleHeader(
                                 if (commit.author != null) {
                                     onNavigate(
                                         R.id.action_commitFragment_to_profileFragment,
-                                        commit.author.login
+                                        commit.author.login,
+                                        null
                                     )
                                 }
                             },
@@ -1017,7 +1035,7 @@ private fun TitleHeader(
 @Composable
 private fun Toolbar(
     state: Resource<CommitModel>,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
 ) {
     when (state) {
@@ -1098,7 +1116,7 @@ private fun Toolbar(
                     .padding(top = 4.dp)
             ) {
 
-                IconButton(onClick = { onNavigate(-1, null) }) {
+                IconButton(onClick = { onNavigate(-1, null, null) }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
