@@ -122,6 +122,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.nio.file.WatchEvent
 
 class RepositoryFragment : Fragment() {
 
@@ -1616,7 +1617,11 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1F)
+            ) {
                 Text(
                     text = commit.commit.message,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
@@ -1628,17 +1633,38 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(text = buildAnnotatedString {
-                    if (commit.author != null) {
-                        append(commit.author.login)
-                    } else {
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("N/A")
+                Row {
+                    Text(
+                        text = buildAnnotatedString {
+                            if (commit.author != null) {
+                                append(commit.author.login)
+                            } else {
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("N/A")
+                                }
+                            }
+                            append(" ")
+                            append(ParseDateFormat.getTimeAgo(commit.commit.author.date).toString())
                         }
+                    )
+
+                    Spacer(Modifier.weight(1F))
+
+                    if(commit.commit.comment_count != 0){
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_comment_small),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+
+                        Text(
+                            text = commit.commit.comment_count.toString(),
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
                     }
-                    append(" ")
-                    append(ParseDateFormat.getTimeAgo(commit.commit.author.date).toString())
-                })
+                }
 
             }
         }

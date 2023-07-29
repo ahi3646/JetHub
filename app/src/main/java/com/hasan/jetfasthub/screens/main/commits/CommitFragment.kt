@@ -419,16 +419,6 @@ private fun MainContent(
                                 }
                             }
                         }
-//                        {
-////                            scope.launch {
-////                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
-////                                    sheetScaffoldState.bottomSheetState.expand()
-////                                } else {
-////                                    sheetScaffoldState.bottomSheetState.collapse()
-////                                }
-////                            }
-//
-//                        }
                     )
                     Toolbar(
                         state = state.Commit,
@@ -754,12 +744,14 @@ private fun CommentItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = comment.author_association.lowercase(Locale.ROOT),
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if(comment.author_association.lowercase(Locale.ROOT) != "none"){
+                    Text(
+                        text = comment.author_association.lowercase(Locale.ROOT),
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             IconButton(onClick = { }) {
@@ -905,7 +897,6 @@ private fun TitleHeader(
                             } else {
                                 R.drawable.baseline_account_circle_24
                             }
-                            //repository.owner.avatar_url
                         }, // loading a network image using an URL.
                         modifier = Modifier
                             .size(48.dp, 48.dp)
