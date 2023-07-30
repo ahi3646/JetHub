@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,15 +25,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.Tab
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +50,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -48,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -56,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -80,6 +92,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
+import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModelItem
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
@@ -90,6 +104,7 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GistFragment : Fragment() {
@@ -108,6 +123,7 @@ class GistFragment : Fragment() {
 
         if (gistId != null) {
             gistViewModel.getGist(token, gistId)
+            gistViewModel.getGistComments(token, gistId)
             gistViewModel.hasGistStarred(token, gistId)
         } else {
             Toast.makeText(requireContext(), "Can't find gist !", Toast.LENGTH_SHORT).show()
@@ -174,7 +190,8 @@ class GistFragment : Fragment() {
                                         )
                                         .onEach { response ->
                                             if (response) {
-                                                delay(2000)
+                                                //delay for future animation :)
+                                                delay(300)
                                                 findNavController().popBackStack()
                                             } else {
                                                 Toast.makeText(
@@ -254,6 +271,7 @@ class GistFragment : Fragment() {
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MainContent(
     state: GistScreenState,
@@ -261,74 +279,136 @@ private fun MainContent(
     onAction: (String, String?) -> Unit,
     gistOwner: String
 ) {
-    Scaffold(
-        topBar = {
-            Column(Modifier.fillMaxWidth()) {
-                TitleHeader(
-                    state = state.Gist,
-                    onNavigate = onNavigate,
-                )
-                Toolbar(
-                    gistOwner = gistOwner,
-                    state = state,
-                    onNavigate = onNavigate,
-                    onAction = onAction,
-                    //                    onCurrentSheetChanged = {
-//                        onCurrentSheetChanged(it)
-//                        scope.launch {
-//                            if (sheetScaffoldState.bottomSheetState.isCollapsed) {
-//                                sheetScaffoldState.bottomSheetState.expand()
-//                            } else {
-//                                sheetScaffoldState.bottomSheetState.collapse()
-//                            }
-//                        }
-//                    }
-                )
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Collapsed,
+    )
+    val sheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = sheetState
+    )
+
+    val closeSheet: () -> Unit = {
+        scope.launch {
+            sheetState.collapse()
+        }
+    }
+
+    BottomSheetScaffold(
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                scope.launch {
+                    if (sheetScaffoldState.bottomSheetState.isExpanded) {
+                        sheetScaffoldState.bottomSheetState.collapse()
+                    }
+                }
+            })
+        },
+        scaffoldState = sheetScaffoldState,
+        sheetPeekHeight = 0.dp,
+        sheetContent = {
+            Column(
+                Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+
+                Text(text = "Delete", style = MaterialTheme.typography.titleLarge)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(text = "Are you sure ?")
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Button(onClick = { closeSheet() }) {
+                        Text(text = "No", color = Color.Red)
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Button(onClick = {
+                        onAction("delete_gist", null)
+                        closeSheet()
+                    }) {
+                        Text(text = "Yes", color = Color.White)
+                    }
+                }
             }
         },
-    ) { paddingValues ->
+        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    ) { sheetPadding ->
+        Scaffold(
+            topBar = {
+                Column(Modifier.fillMaxWidth()) {
+                    TitleHeader(
+                        state = state.Gist,
+                        onNavigate = onNavigate,
+                    )
+                    Toolbar(
+                        gistOwner = gistOwner,
+                        state = state,
+                        onNavigate = onNavigate,
+                        onAction = onAction,
+                        onDelete = {
+                            scope.launch {
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
+                                } else {
+                                    sheetScaffoldState.bottomSheetState.collapse()
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            modifier = Modifier.padding(sheetPadding)
+        ) { paddingValues ->
 
-        var tabIndex by remember { mutableIntStateOf(0) }
-        val tabs = listOf("FILES", "COMMENTS")
+            var tabIndex by remember { mutableIntStateOf(0) }
+            val tabs = listOf("FILES", "COMMENTS")
 
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-        ) {
-            TabRow(
-                selectedTabIndex = tabIndex,
-                containerColor = Color.White,
+            Column(
                 modifier = Modifier
+                    .padding(paddingValues)
                     .fillMaxWidth()
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = tabIndex == index, onClick = { tabIndex = index },
-                        text = {
-                            if (tabIndex == index) {
-                                Text(title, color = Color.Blue)
-                            } else {
-                                Text(title, color = Color.Black)
-                            }
-                        },
-                    )
+                TabRow(
+                    selectedTabIndex = tabIndex,
+                    containerColor = Color.White,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = tabIndex == index, onClick = { tabIndex = index },
+                            text = {
+                                if (tabIndex == index) {
+                                    Text(title, color = Color.Blue)
+                                } else {
+                                    Text(title, color = Color.Black)
+                                }
+                            },
+                        )
+                    }
                 }
-            }
 
-            when (tabIndex) {
-                0 -> {
-                    FilesScreen(
+                when (tabIndex) {
+                    0 -> {
+                        FilesScreen(
 //                        state = state.Commit,
 //                        onAction = onAction
+                        )
+                    }
+
+                    1 -> CommentsScreen(
+                        state = state.GistComments,
+                        onAction = onAction,
+                        onNavigate = onNavigate
                     )
                 }
-
-                1 -> CommentsScreen(
-//                    state = state.CommitComments,
-//                    onAction = onAction,
-//                    onNavigate = onNavigate
-                )
             }
         }
     }
@@ -381,49 +461,49 @@ private fun FilesScreen(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun CommentsScreen(
-//    state: Resource<CommitCommentsModel>,
-//    onAction: (String, String?) -> Unit,
-//    onNavigate: (Int, String?, Int?) -> Unit
+    state: Resource<GistCommentsModel>,
+    onAction: (String, String?) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit
 ) {
-//    when (state) {
-//        is Resource.Loading -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Loading ...")
-//            }
-//        }
-//
-//        is Resource.Success -> {
-//            val comments = state.data!!
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
-    var textFieldValueState by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = ""
-            )
-        )
-    }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = remember { FocusRequester() }
+        is Resource.Success -> {
+            val comments = state.data!!
 
-    //if (!comments.isEmpty()) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1F)
-        ) {
-//                        itemsIndexed(comments) { index, comment ->
-//                            CommentItem(
-//                                comment = comment,
-//                                onAction = onAction,
+            var textFieldValueState by remember {
+                mutableStateOf(
+                    TextFieldValue(
+                        text = ""
+                    )
+                )
+            }
+            val keyboardController = LocalSoftwareKeyboardController.current
+            val focusRequester = remember { FocusRequester() }
+
+            if (!comments.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                ) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1F)
+                    ) {
+                        itemsIndexed(comments) { index, comment ->
+                            GistCommentItem(
+                                comment = comment,
+                                onAction = onAction,
 //                                onReply = { userLogin ->
 //                                    if (userLogin != "N/A") {
 //                                        //text = "@$userLogin"
@@ -444,81 +524,80 @@ private fun CommentsScreen(
 //                                },
 //                                onCurrentSheetChanged = onCurrentSheetChanged,
 //                                onNavigate = onNavigate
-//                            )
-//                            if (index < comments.lastIndex) {
-//                                Divider(
-//                                    color = Color.Gray,
-//                                    modifier = Modifier
-//                                        .height(0.5.dp)
-//                                        .padding(start = 6.dp, end = 6.dp)
-//                                        .fillMaxWidth()
-//                                        .align(Alignment.End)
-//                                )
-//                            }
-//                        }
+                            )
+                            if (index < comments.lastIndex) {
+                                Divider(
+                                    color = Color.Gray,
+                                    modifier = Modifier
+                                        .height(0.5.dp)
+                                        .padding(start = 6.dp, end = 6.dp)
+                                        .fillMaxWidth()
+                                        .align(Alignment.End)
+                                )
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.LightGray),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                       TextField(
+                            value = textFieldValueState,
+                            onValueChange = {
+                                textFieldValueState = it
+                            },
+                            textStyle = TextStyle(fontSize = 16.sp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            maxLines = 1,
+                            modifier = Modifier
+                                .weight(1F)
+                                .focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                        )
+
+                        IconButton(onClick = {
+                            textFieldValueState = TextFieldValue("")
+                            keyboardController?.hide()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_send),
+                                tint = Color.Blue,
+                                contentDescription = "search icon"
+                            )
+                        }
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No comments")
+                }
+            }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.LightGray),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
 
-            androidx.compose.material3.TextField(
-                value = textFieldValueState,
-                onValueChange = {
-                    textFieldValueState = it
-                },
-                textStyle = TextStyle(fontSize = 16.sp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-                maxLines = 1,
-                modifier = Modifier
-                    .weight(1F)
-                    .focusRequester(focusRequester),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
-            )
-
-            IconButton(onClick = {
-                textFieldValueState = TextFieldValue("")
-                keyboardController?.hide()
-            }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_send),
-                    tint = Color.Blue,
-                    contentDescription = "search icon"
-                )
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
             }
         }
     }
-    //} else {
-//                Column(
-//                    modifier = Modifier.fillMaxSize(),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Text(text = "No comments")
-//                }
-    //}
-//        }
-//
-//        is Resource.Failure -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Something went wrong !")
-//            }
-//        }
-//    }
 }
 
 //@Composable
@@ -862,6 +941,7 @@ private fun Toolbar(
     state: GistScreenState,
     onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
+    onDelete: () -> Unit
 ) {
     when (state.Gist) {
         is Resource.Loading -> {
@@ -998,7 +1078,7 @@ private fun Toolbar(
                         }
                     }) {
                         Icon(
-                            painter =painterResource(id = R.drawable.ic_star_filled),
+                            painter = painterResource(id = R.drawable.ic_star_filled),
                             contentDescription = null,
                             tint = if (state.HasGistStarred) Color.Blue else Color.Black
                         )
@@ -1049,7 +1129,7 @@ private fun Toolbar(
                             DropdownMenuItem(
                                 text = { Text(text = "Delete") },
                                 onClick = {
-                                    onAction("delete_gist", gist.id)
+                                    onDelete()
                                     showMenu = false
                                 }
                             )
@@ -1192,9 +1272,12 @@ private fun GistFileItem() {
     }
 }
 
-@Preview
+
 @Composable
-private fun GistCommentItem() {
+private fun GistCommentItem(
+    comment: GistCommentsModelItem,
+    onAction: (String, String?) -> Unit,
+) {
 
     var showMenu by remember { mutableStateOf(false) }
 
@@ -1211,35 +1294,20 @@ private fun GistCommentItem() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-//            GlideImage(
-//                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-//                imageModel = {
-//                    if (comment.user != null) {
-//                        comment.user.avatar_url
-//                    } else {
-//                        R.drawable.baseline_account_circle_24
-//                    }
-//                    //repository.owner.avatar_url
-//                }, // loading a network image using an URL.
-//                modifier = Modifier
-//                    .size(32.dp, 32.dp)
-//                    .clip(CircleShape)
-//                    .clickable { },
-//                imageOptions = ImageOptions(
-//                    contentScale = ContentScale.Crop,
-//                    alignment = Alignment.CenterStart,
-//                    contentDescription = "Actor Avatar"
-//                )
-//            )
-
-            Image(
-                painter = painterResource(id = R.drawable.baseline_account_circle_24),
-                contentDescription = "avatar icon",
+            GlideImage(
+                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
+                imageModel = {
+                    comment.user.avatar_url
+                }, // loading a network image using an URL.
                 modifier = Modifier
-                    .size(48.dp, 48.dp)
-                    .size(48.dp, 48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
+                    .size(32.dp, 32.dp)
+                    .clip(CircleShape)
+                    .clickable { },
+                imageOptions = ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.CenterStart,
+                    contentDescription = "Actor Avatar"
+                )
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -1250,13 +1318,13 @@ private fun GistCommentItem() {
                 modifier = Modifier.weight(1F)
             ) {
                 Text(
-                    text = "Hasan Anorov",
+                    text = comment.user.login,
                     fontSize = 14.sp,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 Text(
-                    text = "Yesterday",
+                    text = comment.created_at,
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -1307,7 +1375,6 @@ private fun GistCommentItem() {
                     DropdownMenuItem(
                         text = { Text(text = "Share") },
                         onClick = {
-                            //onAction("share", comment.html_url)
                             showMenu = false
                         }
                     )
@@ -1316,7 +1383,7 @@ private fun GistCommentItem() {
         }
 
         Text(
-            text = "here should be message body",
+            text = comment.body,
             modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp)
         )
     }

@@ -2529,9 +2529,7 @@ private fun TitleHeader(
                         }
                     }
                 }
-
             }
-
         }
 
         is Resource.Failure -> {

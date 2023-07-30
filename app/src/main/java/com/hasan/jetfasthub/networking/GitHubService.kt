@@ -34,6 +34,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkResponse
+import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
@@ -161,6 +162,13 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Path("gist_id") gistId: String
     ): Response<GistModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("gists/{gist_id}/comments")
+    suspend fun getGistComments(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<GistCommentsModel>
 
     @Headers("Accept: application/vnd.github+json")
     @POST("gists/{gist_id}/forks")

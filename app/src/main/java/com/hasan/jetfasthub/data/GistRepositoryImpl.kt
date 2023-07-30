@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RetrofitInstance
 import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkResponse
+import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Response
@@ -11,6 +12,8 @@ import retrofit2.Response
 interface GistRepository {
 
     suspend fun getGist(token: String, gistId: String): Response<GistModel>
+
+    suspend fun getGistComments(token: String, gistId: String): Response<GistCommentsModel>
 
     suspend fun deleteGist(token: String, gistId: String): Response<Boolean>
 
@@ -49,6 +52,13 @@ class GistRepositoryImpl(private val context: Context): GistRepository {
 
     override suspend fun getGist(token: String, gistId: String): Response<GistModel> {
         return RetrofitInstance(context).gitHubService.getGist(
+            token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
+            gistId = gistId
+        )
+    }
+
+    override suspend fun getGistComments(token: String, gistId: String): Response<GistCommentsModel> {
+        return RetrofitInstance(context).gitHubService.getGistComments(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )

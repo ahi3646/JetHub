@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.GistRepository
+import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
@@ -36,6 +37,28 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
             } catch (e: Exception) {
                 _state.update {
                     it.copy(Gist = Resource.Failure(e.message.toString()) )
+                }
+            }
+        }
+    }
+
+    fun getGistComments(token: String, gistId: String) {
+        viewModelScope.launch {
+            try {
+                repository.getGistComments(token, gistId).let {gistCommentsResponse->
+                    if(gistCommentsResponse.isSuccessful){
+                        _state.update {
+                            it.copy(GistComments = Resource.Success(gistCommentsResponse.body()!!) )
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(GistComments = Resource.Failure(gistCommentsResponse.errorBody().toString()) )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(GistComments = Resource.Failure(e.message.toString()) )
                 }
             }
         }
@@ -107,7 +130,6 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
         }
     }
 
-
     fun changeForkStatus(){
         _state.update {
             it.copy(
@@ -164,6 +186,7 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
 
 data class GistScreenState(
     val Gist: Resource<GistModel> = Resource.Loading(),
+    val GistComments: Resource<GistCommentsModel> = Resource.Loading(),
     val HasGistStarred: Boolean = false,
     val HasForked: Boolean = false
 )

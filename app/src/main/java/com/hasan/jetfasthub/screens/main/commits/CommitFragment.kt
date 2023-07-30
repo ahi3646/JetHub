@@ -51,6 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -405,7 +406,7 @@ private fun MainContent(
                                 onAction("delete_comment", commentId.toString())
                                 closeSheet()
                             }) {
-                                Text(text = "Yes", color = Color.Blue)
+                                Text(text = "Yes", color = Color.White)
                             }
                         }
                     }
@@ -416,8 +417,7 @@ private fun MainContent(
     ) { sheetPadding ->
         Scaffold(
             modifier = Modifier.padding(sheetPadding),
-            topBar = {
-                Column(Modifier.fillMaxWidth()) {
+            topBar = { Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
                         repo = repo,
                         state = state.Commit,
@@ -438,8 +438,7 @@ private fun MainContent(
                         onNavigate = onNavigate,
                         onAction = onAction,
                     )
-                }
-            },
+                } },
         ) { paddingValues ->
 
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -632,8 +631,7 @@ private fun CommentsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-
-                        androidx.compose.material3.TextField(
+                        TextField(
                             value = textFieldValueState,
                             onValueChange = {
                                 textFieldValueState = it
@@ -654,7 +652,7 @@ private fun CommentsScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        androidx.compose.material3.IconButton(onClick = {
+                        IconButton(onClick = {
                             onAction(
                                 "post_comment",
                                 textFieldValueState.text
