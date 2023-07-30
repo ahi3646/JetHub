@@ -6,6 +6,7 @@ import com.hasan.jetfasthub.di.basicAuthViewModelModule
 import com.hasan.jetfasthub.di.commentEditModule
 import com.hasan.jetfasthub.di.commitModule
 import com.hasan.jetfasthub.di.eventsModule
+import com.hasan.jetfasthub.di.gistModule
 import com.hasan.jetfasthub.di.gistsModule
 import com.hasan.jetfasthub.di.homeViewModelModule
 import com.hasan.jetfasthub.di.notificationsModule
@@ -32,6 +33,7 @@ class JetHubApp: Application() {
                 commitModule,
                 commentEditModule,
                 gistsModule,
+                gistModule,
                 notificationsModule,
                 searchModule,
                 profileModule,

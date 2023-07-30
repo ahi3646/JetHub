@@ -61,7 +61,7 @@ import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModelItem
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModelItem
-import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.ParseDateFormat
@@ -94,8 +94,14 @@ class GistsFragment : Fragment() {
                     MainContent(
                         state = state,
                         onNavigate = { dest, data ->
-                            if (dest == -1) {
-                                findNavController().popBackStack()
+                            when (dest) {
+                                -1 -> findNavController().popBackStack()
+                                R.id.action_gistsFragment_to_gistFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("gist_id", data)
+                                    bundle.putString("gist_owner", username)
+                                    findNavController().navigate(dest, bundle)
+                                }
                             }
                         }
                     )
@@ -162,7 +168,10 @@ private fun TabScreen(
 }
 
 @Composable
-private fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun MyGists(
+    state: Resource<GistsModel>,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
     when (state) {
         is Resource.Loading -> {
             Column(
@@ -187,7 +196,7 @@ private fun MyGists(state: Resource<GistModel>, onRecyclerItemClick: (Int, Strin
                 ) {
                     itemsIndexed(state.data) { index, gist ->
                         GistItemCard(
-                            gist, onGistItemClick = onRecyclerItemClick
+                            gistModelItem = gist, onGistItemClick = onRecyclerItemClick
                         )
                         if (index < state.data.lastIndex) {
                             Divider(
@@ -235,9 +244,9 @@ private fun GistItemCard(
 
     val fileValues = gistModelItem.files.values
 
-    val fileName = if(gistModelItem.description == "" || gistModelItem.description == null){
+    val fileName = if (gistModelItem.description == "" || gistModelItem.description == null) {
         fileValues.elementAt(0).filename
-    }else{
+    } else {
         gistModelItem.description
     }
 
@@ -245,7 +254,10 @@ private fun GistItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onGistItemClick(0, gistModelItem.url)
+                onGistItemClick(
+                    R.id.action_gistsFragment_to_gistFragment,
+                    gistModelItem.id
+                )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -278,7 +290,10 @@ private fun GistItemCard(
 }
 
 @Composable
-private fun Starred(state: Resource<StarredGistModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun Starred(
+    state: Resource<StarredGistModel>,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
     when (state) {
         is Resource.Loading -> {
             Column(
@@ -352,7 +367,10 @@ private fun StarredGistsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(0, gist.description)
+                onItemClicked(
+                    R.id.action_gistsFragment_to_gistFragment,
+                    gist.id
+                )
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -379,10 +397,18 @@ private fun StarredGistsItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
+            val fileValues = gist.files.values
+
+            val fileName = if(gist.description == "" || gist.description == null){
+                fileValues.elementAt(0).filename
+            }else{
+                gist.description
+            }
+
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
 
                 androidx.compose.material.Text(
-                    text = gist.description,
+                    text = fileName,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
@@ -415,7 +441,10 @@ private fun StarredGistsItem(
 }
 
 @Composable
-private fun PublicGists(state: Resource<PublicGistsModel>, onRecyclerItemClick: (Int, String?) -> Unit) {
+private fun PublicGists(
+    state: Resource<PublicGistsModel>,
+    onRecyclerItemClick: (Int, String?) -> Unit
+) {
     when (state) {
         is Resource.Loading -> {
             Column(
@@ -488,9 +517,14 @@ private fun PublicGistsItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onItemClicked(0, gist.description)
-            })
+            .clickable(
+                onClick = {
+                    onItemClicked(
+                        R.id.action_gistsFragment_to_gistFragment,
+                        gist.id
+                    )
+                }
+            )
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
         Row(
@@ -517,15 +551,15 @@ private fun PublicGistsItem(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                val file = gist.files.values
+                val fileName = file.elementAt(0).filename
 
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(gist.owner.login + "/ ")
                         }
-                        if (gist.files.hello_world_rb != null) {
-                            append(gist.files.hello_world_rb.filename)
-                        }
+                        append(fileName)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,

@@ -6,7 +6,7 @@ import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
-import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -30,7 +30,7 @@ interface ProfileRepository {
 
     suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
 
-    suspend fun getUserGists(token: String, username: String, page: Int): Response<GistModel>
+    suspend fun getUserGists(token: String, username: String, page: Int): Response<GistsModel>
 
     suspend fun followUser(token: String, username: String): Response<Boolean>
 
@@ -132,7 +132,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         token: String,
         username: String,
         page: Int
-    ): Response<GistModel> {
+    ): Response<GistsModel> {
         return RetrofitInstance(context).gitHubService.getUserGists(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,

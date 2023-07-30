@@ -9,6 +9,8 @@ import com.hasan.jetfasthub.data.CommentRepository
 import com.hasan.jetfasthub.data.CommentRepositoryImpl
 import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.CommitRepositoryImpl
+import com.hasan.jetfasthub.data.GistRepository
+import com.hasan.jetfasthub.data.GistRepositoryImpl
 import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.data.GistsRepositoryImpl
 import com.hasan.jetfasthub.screens.login.LoginViewModel
@@ -31,6 +33,7 @@ import com.hasan.jetfasthub.networking.AuthInterceptor
 import com.hasan.jetfasthub.networking.GitHubService
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
+import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
@@ -106,6 +109,11 @@ val organisationModule = module {
 val gistsModule = module {
     single<GistsRepository> { GistsRepositoryImpl(get()) }
     viewModel{ GistsViewModel(get()) }
+}
+
+val gistModule = module {
+    single <GistRepository>{ GistRepositoryImpl(get()) }
+    viewModel{ GistViewModel(get()) }
 }
 
 val eventsModule = module {

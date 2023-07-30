@@ -17,7 +17,7 @@ import com.hasan.jetfasthub.screens.main.organisations.organisation_model.Organi
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
-import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
@@ -33,6 +33,8 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_mode
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
+import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkResponse
+import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
@@ -151,7 +153,42 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Path("username") username: String,
         @Query("page") page: Int,
+    ): Response<GistsModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("gists/{gist_id}")
+    suspend fun getGist(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
     ): Response<GistModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @POST("gists/{gist_id}/forks")
+    suspend fun forkGist(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<GistForkResponse>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("gists/{gist_id}/star")
+    suspend fun checkIfGistStarred(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("gists/{gist_id}")
+    suspend fun deleteGist(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
+    @PUT("gists/{gist_id}/star")
+    suspend fun starGist(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("gists/starred")

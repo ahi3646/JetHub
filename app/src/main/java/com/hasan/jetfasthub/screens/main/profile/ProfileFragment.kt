@@ -94,7 +94,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.followers_model.Followers
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModel
 import com.hasan.jetfasthub.screens.main.profile.model.following_model.FollowingModelItem
-import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModel
+import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistModelItem
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModelItem
@@ -1293,7 +1293,7 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen(gists: Resource<GistModel>, onGistItemClick: (Int, String) -> Unit) {
+fun GistsScreen(gists: Resource<GistsModel>, onGistItemClick: (Int, String) -> Unit) {
     when (gists) {
         is Resource.Loading -> {
             Column(
