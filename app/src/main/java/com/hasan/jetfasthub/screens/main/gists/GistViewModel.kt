@@ -66,6 +66,9 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
             try {
                 repository.starGist(token, gistId).let { response ->
                     if(response.code() == 204){
+                        _state.update {
+                            it.copy(HasGistStarred = true)
+                        }
                         trySend(true)
                     }else{
                         trySend(false)
@@ -77,10 +80,32 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
         }
         awaitClose {
             channel.close()
-            Log.d("ahi3646", "deleteGist: channel closed ")
+            Log.d("ahi3646", "starGist: channel closed ")
         }
     }
 
+    fun unstarGist(token: String, gistId: String): Flow<Boolean> = callbackFlow {
+        viewModelScope.launch {
+            try {
+                repository.unstarGist(token, gistId).let { response ->
+                    if(response.code() == 204){
+                        _state.update {
+                            it.copy(HasGistStarred = false)
+                        }
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "unStarGist: channel closed ")
+        }
+    }
 
 
     fun changeForkStatus(){

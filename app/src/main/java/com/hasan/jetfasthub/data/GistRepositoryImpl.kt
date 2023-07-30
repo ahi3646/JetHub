@@ -20,9 +20,18 @@ interface GistRepository {
 
     suspend fun starGist(token: String, gistId: String): Response<Boolean>
 
+    suspend fun unstarGist(token: String, gistId: String): Response<Boolean>
+
 }
 
 class GistRepositoryImpl(private val context: Context): GistRepository {
+
+    override suspend fun unstarGist(token: String, gistId: String): Response<Boolean> {
+        return RetrofitInstance(context).gitHubService.unstarGist(
+            token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
+            gistId = gistId
+        )
+    }
 
     override suspend fun starGist(token: String, gistId: String): Response<Boolean> {
         return RetrofitInstance(context).gitHubService.starGist(

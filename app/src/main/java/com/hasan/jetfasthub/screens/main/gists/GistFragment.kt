@@ -3,7 +3,6 @@ package com.hasan.jetfasthub.screens.main.gists
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -59,7 +58,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -82,8 +80,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.commits.CommitScreenSheets
-import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModelItem
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
@@ -95,8 +91,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.Locale
-import kotlin.math.log
 
 class GistFragment : Fragment() {
 
@@ -119,14 +113,13 @@ class GistFragment : Fragment() {
             Toast.makeText(requireContext(), "Can't find gist !", Toast.LENGTH_SHORT).show()
         }
 
-
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by gistViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
                         state = state,
-                        onNavigate = { dest, data, id ->
+                        onNavigate = { dest, data, _ ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
@@ -195,14 +188,12 @@ class GistFragment : Fragment() {
                                 }
 
                                 "fork_gist" -> {
-                                    gistViewModel.forkGist(token, data!!)
+                                    gistViewModel.forkGist(token, gistId!!)
                                         .flowWithLifecycle(
                                             lifecycle, Lifecycle.State.STARTED
                                         )
                                         .onEach { response ->
-                                            if (response) {
-
-                                            } else {
+                                            if (!response) {
                                                 Toast.makeText(
                                                     requireContext(),
                                                     "Can't fork a gist !",
@@ -216,6 +207,41 @@ class GistFragment : Fragment() {
                                 "change_fork_status" -> {
                                     gistViewModel.changeForkStatus()
                                 }
+
+                                "star_gist" -> {
+                                    gistViewModel.starGist(token, gistId!!)
+                                        .flowWithLifecycle(
+                                            lifecycle, Lifecycle.State.STARTED
+                                        )
+                                        .onEach { response ->
+                                            if (!response) {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't star a gist !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
+                                "un_star_gist" -> {
+                                    gistViewModel.unstarGist(token, gistId!!)
+                                        .flowWithLifecycle(
+                                            lifecycle, Lifecycle.State.STARTED
+                                        )
+                                        .onEach { response ->
+                                            if (!response) {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't unstar a gist !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
                             }
                         },
                         gistOwner = gistOwner!!
@@ -712,24 +738,18 @@ private fun TitleHeader(
                     GlideImage(
                         failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                         imageModel = {
-                            if (gist.owner != null) {
-                                gist.owner.avatar_url
-                            } else {
-                                R.drawable.baseline_account_circle_24
-                            }
+                            gist.owner.avatar_url
                         }, // loading a network image using an URL.
                         modifier = Modifier
                             .size(48.dp, 48.dp)
                             .size(48.dp, 48.dp)
                             .clip(CircleShape)
                             .clickable {
-                                if (gist.owner != null) {
-                                    onNavigate(
-                                        R.id.action_commitFragment_to_profileFragment,
-                                        gist.owner.login,
-                                        null
-                                    )
-                                }
+                                onNavigate(
+                                    R.id.action_commitFragment_to_profileFragment,
+                                    gist.owner.login,
+                                    null
+                                )
                             },
                         imageOptions = ImageOptions(
                             contentScale = ContentScale.Crop,
@@ -748,7 +768,7 @@ private fun TitleHeader(
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append(gist.owner?.login ?: "N/A")
+                                    append(gist.owner.login)
                                 }
                                 append(" / ")
                                 append(gist.description)
@@ -878,7 +898,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser incon"
+                            contentDescription = "browser icon"
                         )
                     }
 
@@ -887,7 +907,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin incon"
+                            contentDescription = "pin icon"
                         )
                     }
 
@@ -971,21 +991,17 @@ private fun Toolbar(
                     }
 
                     IconButton(onClick = {
-                        onAction("start_gist", gist.id)
-                    }) {
-                        Log.d("ahi3646", "Toolbar: ${state.HasGistStarred} ")
                         if (state.HasGistStarred) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_star_filled),
-                                contentDescription = null,
-                                tint = Color.Blue
-                            )
+                            onAction("un_star_gist", null)
                         } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_star),
-                                contentDescription = null
-                            )
+                            onAction("star_gist", null)
                         }
+                    }) {
+                        Icon(
+                            painter =painterResource(id = R.drawable.ic_star_filled),
+                            contentDescription = null,
+                            tint = if (state.HasGistStarred) Color.Blue else Color.Black
+                        )
                     }
 
                     IconButton(onClick = {
@@ -993,7 +1009,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser incon"
+                            contentDescription = "browser icon"
                         )
                     }
 
@@ -1002,7 +1018,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin incon"
+                            contentDescription = "pin icon"
                         )
                     }
 
@@ -1079,7 +1095,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser incon"
+                            contentDescription = "browser icon"
                         )
                     }
 
@@ -1088,7 +1104,7 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin incon"
+                            contentDescription = "pin icon"
                         )
                     }
 
@@ -1109,7 +1125,7 @@ private fun Toolbar(
 @Preview
 @Composable
 private fun GistFileItem() {
-    Surface() {
+    Surface {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,

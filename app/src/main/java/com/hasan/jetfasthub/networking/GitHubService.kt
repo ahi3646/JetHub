@@ -191,6 +191,13 @@ interface GitHubService {
     ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
+    @DELETE("gists/{gist_id}/star")
+    suspend fun unstarGist(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String
+    ): Response<Boolean>
+
+    @Headers("Accept: application/vnd.github+json")
     @GET("gists/starred")
     suspend fun getStarredGists(
         @Header("Authorization") token: String,
