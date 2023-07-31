@@ -63,12 +63,14 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
-import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -77,7 +79,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class EditCommentFragment : Fragment() {
 
     private val editCommentViewModel: EditCommentViewModel by viewModel()
-    private val gistViewModel: GistViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -98,38 +99,29 @@ class EditCommentFragment : Fragment() {
                         editComment = editComment!!,
                         onEdit = { body ->
 
-                            gistViewModel.starGist(token, "7d14b6af5676917f7c188dcf7adb1bd6")
-
                             Log.d("ahi3646", "onCreateView: on Edit ")
-
-                            editCommentViewModel.editComment(
+                            editCommentViewModel.edit(
                                 token = token,
                                 owner = owner!!,
                                 repo = repo!!,
                                 commentId = commentId!!,
                                 body = body
-                            )
-                                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                .onEach { response ->
-                                    if (response) {
+                            ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                .onEach {
+                                    if (it) {
+                                        delay(300)
                                         findNavController().popBackStack()
-                                        Toast.makeText(
-                                            requireContext(),
-                                            "Changed",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
                                     } else {
                                         Toast.makeText(
                                             requireContext(),
-                                            "Can't edit comment !",
+                                            "Can't edit a comment !",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        //delay(300)
                                         findNavController().popBackStack()
                                     }
                                 }
-
-                            Toast.makeText(requireContext(), "clicked", Toast.LENGTH_SHORT).show()
-
+                                .launchIn(lifecycleScope)
                         },
                         onDiscard = {
                             findNavController().popBackStack()
