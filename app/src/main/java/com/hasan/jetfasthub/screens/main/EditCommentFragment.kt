@@ -89,6 +89,7 @@ class EditCommentFragment : Fragment() {
         val token = PreferenceHelper.getToken(requireContext())
         val owner = arguments?.getString("owner", "")
         val repo = arguments?.getString("repo", "")
+        val destination = arguments?.getString("destination", "")
         val editComment = arguments?.getString("edit_comment", "")
         val commentId = arguments?.getInt("comment_id", 0)
 

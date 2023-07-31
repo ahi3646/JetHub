@@ -53,6 +53,12 @@ class RepositoryViewModel(
         }
     }
 
+    fun downloadFile(url: String, message: String) {
+        viewModelScope.launch {
+            downloader.downloadFile(url, message)
+        }
+    }
+
 
     fun onBottomBarItemClicked(repositoryScreen: RepositoryScreens) {
         _state.update {

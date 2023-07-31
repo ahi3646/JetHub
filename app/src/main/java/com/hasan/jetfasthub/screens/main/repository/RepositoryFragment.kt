@@ -459,6 +459,16 @@ class RepositoryFragment : Fragment() {
                                     )
                                 }
 
+                                "download_file" -> {
+                                    val message = Uri.parse(
+                                        data!!
+                                    ).lastPathSegment
+                                    repositoryViewModel.downloadFile(
+                                        data,
+                                        message ?: "jethub_download"
+                                    )
+                                }
+
                                 "repo_download_link_change" -> {
                                     repositoryViewModel.updateDownloadLink(Resource.Success(data!!))
                                 }
@@ -1340,8 +1350,9 @@ private fun FilePathRowItemCard(path: String, onAction: (String, String?) -> Uni
 private fun FileFolderItemCard(
     file: FileModel,
     onAction: (String, String?) -> Unit,
-    //onPathChanged: (pathModel: PathModel) -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1371,11 +1382,32 @@ private fun FileFolderItemCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_overflow),
-                    contentDescription = "option menu"
-                )
+            Box {
+                IconButton(
+                    onClick = {
+                        showMenu = !showMenu
+                    },
+                ) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                ) {
+                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        onAction("share", file.html_url)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                        onAction("copy", file.html_url)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "File History") }, onClick = {
+                        onAction("file_history", file.html_url)
+                        showMenu = false
+                    })
+                }
             }
         }
     }
@@ -1386,8 +1418,9 @@ private fun FileFolderItemCard(
 private fun FileDocumentItemCard(
     file: FileModel,
     onAction: (String, String?) -> Unit,
-    //onPathChanged: (path: PathModel) -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1418,11 +1451,36 @@ private fun FileDocumentItemCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_overflow),
-                    contentDescription = "option menu"
-                )
+            Box {
+                IconButton(
+                    onClick = {
+                        showMenu = !showMenu
+                    },
+                ) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                ) {
+                    DropdownMenuItem(text = { Text(text = "Download") }, onClick = {
+                        onAction("download_file", file.download_url)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        onAction("share", file.html_url)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                        onAction("copy", file.html_url)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "File History") }, onClick = {
+                        onAction("file_history", file.html_url)
+                        showMenu = false
+                    })
+                }
             }
         }
     }
@@ -1859,7 +1917,7 @@ private fun ReleaseItemCard(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = releasesModelItem.name,
+                    text = releasesModelItem.tag_name,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = Color.Black,
                     style = MaterialTheme.typography.titleLarge,
