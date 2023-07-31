@@ -2,6 +2,7 @@ package com.hasan.jetfasthub.data.download
 
 import android.app.DownloadManager
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import android.webkit.MimeTypeMap
@@ -52,7 +53,7 @@ class AndroidDownloader(context: Context) : Downloader {
     override fun downloadFile(url: String, message: String): Long {
         val mimeType = getMimeType(url) ?: ""
         Log.d("ahi3646", "downloadFile: $mimeType")
-        val request = DownloadManager.Request(url.toUri())
+        val request = DownloadManager.Request(Uri.parse(url))
             .setMimeType(mimeType)
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -68,11 +69,12 @@ class AndroidDownloader(context: Context) : Downloader {
 
     override fun downloadRepo(url: String, message: String): Long {
         val mimeType = getMimeType(url) ?: "application/zip"
+        Log.d("ahi3646", "downloadRepo: $mimeType ")
         val request = DownloadManager.Request(url.toUri())
             .setMimeType(mimeType)
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setTitle("$message.zip")
+            .setTitle(message)
             .addRequestHeader("Authorization", "Bearer $PERSONAL_ACCESS_TOKEN")
             .setDestinationInExternalPublicDir(
                 Environment.DIRECTORY_DOWNLOADS,

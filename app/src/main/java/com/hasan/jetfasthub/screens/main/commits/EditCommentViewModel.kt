@@ -11,6 +11,26 @@ import kotlinx.coroutines.launch
 
 class EditCommentViewModel(private val repository: CommentRepository) : ViewModel() {
 
+    fun editGistComment(token: String, commentId: Int, gistId: String, body: String): Flow<Boolean> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.editGistComment(token, gistId, commentId, body).let { response ->
+                    if (response.code() == 200) {
+                        trySend(true)
+                    } else {
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "editGistComment : channel closed ")
+        }
+    }
+
     fun edit(
         token: String,
         owner: String,

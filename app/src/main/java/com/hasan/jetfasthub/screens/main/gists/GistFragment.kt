@@ -137,17 +137,19 @@ class GistFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(
                         state = state,
-                        onNavigate = { dest, data, _ ->
+                        onNavigate = { dest, data, id ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
                                 }
 
                                 R.id.action_gistFragment_to_editCommentFragment -> {
-//                                    val bundle = Bundle()
-//                                    bundle.putString("destination", "GistFragment")
-//                                    bundle.putString("edit_comment", data!!)
-//                                    bundle.putInt("comment_id", id!!)
+                                    val bundle = Bundle()
+                                    bundle.putString("destination", "GistFragment")
+                                    bundle.putString("gist_id", gistId!!)
+                                    bundle.putString("edit_comment", data!!)
+                                    bundle.putInt("comment_id", id!!)
+                                    findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_gistFragment_to_premiumFragment -> {
@@ -675,11 +677,72 @@ private fun CommentsScreen(
                 }
             } else {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
                 ) {
-                    Text(text = "No comments")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1F),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = "No comments so far ")
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.LightGray),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextField(
+                            value = textFieldValueState,
+                            onValueChange = {
+                                textFieldValueState = it
+                            },
+                            textStyle = TextStyle(fontSize = 16.sp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            maxLines = 1,
+                            modifier = Modifier
+                                .weight(1F)
+                                .focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+                        )
+
+                        IconButton(
+                            onClick = {
+                                if (textFieldValueState.text.length >= 2) {
+                                    onAction(
+                                        "create_gist_comment",
+                                        textFieldValueState.text
+                                    )
+                                    textFieldValueState = TextFieldValue("")
+                                    keyboardController?.hide()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Min length for comment is 2 !",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_send),
+                                tint = Color.Blue,
+                                contentDescription = "search icon"
+                            )
+                        }
+                    }
                 }
             }
         }

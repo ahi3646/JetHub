@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,7 +41,6 @@ import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Tab
 import androidx.compose.material.Text
@@ -59,6 +57,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
@@ -985,6 +984,7 @@ private fun SwitchBranchDialog(
         }
 
         when (tabIndex) {
+
             0 -> {
                 Spacer(modifier = Modifier.height(6.dp))
                 LazyColumn {
@@ -1227,14 +1227,6 @@ private fun FilesScreen(
                                         BottomSheetScreens.RepoDownloadSheet(
                                             state.RepoDownloadLink
                                         )
-                                    )
-                                    Log.d(
-                                        "ahi3646",
-                                        "FilesScreen: download link - ${state.RepoDownloadLink.data.toString()} "
-                                    )
-                                    Log.d(
-                                        "ahi3646",
-                                        "FilesScreen: download link branch - ${state.Branch.data!!._links.html} "
                                     )
                                 }
                             ) {

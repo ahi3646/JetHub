@@ -181,6 +181,15 @@ interface GitHubService {
     ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
+    @PATCH("gists/{gist_id}/comments/{comment_id}")
+    suspend fun editGistComment(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String,
+        @Path("comment_id") commentId: Int,
+        @Body body: CommentRequestModel
+    ): Response<GistCommentResponse>
+
+    @Headers("Accept: application/vnd.github+json")
     @GET("gists/{gist_id}/comments")
     suspend fun getGistComments(
         @Header("Authorization") token: String,

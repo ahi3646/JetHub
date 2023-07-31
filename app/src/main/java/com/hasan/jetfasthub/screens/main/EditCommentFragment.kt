@@ -87,9 +87,13 @@ class EditCommentFragment : Fragment() {
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
+
         val owner = arguments?.getString("owner", "")
         val repo = arguments?.getString("repo", "")
+
         val destination = arguments?.getString("destination", "")
+
+        val gistId = arguments?.getString("gist_id", "")
         val editComment = arguments?.getString("edit_comment", "")
         val commentId = arguments?.getInt("comment_id", 0)
 
@@ -99,30 +103,54 @@ class EditCommentFragment : Fragment() {
                     MainContent(
                         editComment = editComment!!,
                         onEdit = { body ->
-
-                            Log.d("ahi3646", "onCreateView: on Edit ")
-                            editCommentViewModel.edit(
-                                token = token,
-                                owner = owner!!,
-                                repo = repo!!,
-                                commentId = commentId!!,
-                                body = body
-                            ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                .onEach {
-                                    if (it) {
-                                        delay(300)
-                                        findNavController().popBackStack()
-                                    } else {
-                                        Toast.makeText(
-                                            requireContext(),
-                                            "Can't edit a comment !",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        //delay(300)
-                                        findNavController().popBackStack()
-                                    }
+                            when(destination){
+                                "GistFragment" -> {
+                                    editCommentViewModel.editGistComment(
+                                        token, commentId!!, gistId!!, body
+                                    )
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            if (it) {
+                                                //delay(300)
+                                                findNavController().popBackStack()
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't edit a comment !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                delay(300)
+                                                findNavController().popBackStack()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
                                 }
-                                .launchIn(lifecycleScope)
+                                "CommitFragment" -> {
+                                    editCommentViewModel.edit(
+                                        token = token,
+                                        owner = owner!!,
+                                        repo = repo!!,
+                                        commentId = commentId!!,
+                                        body = body
+                                    )
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            if (it) {
+                                                //delay(300)
+                                                findNavController().popBackStack()
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't edit a comment !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                delay(300)
+                                                findNavController().popBackStack()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+                            }
                         },
                         onDiscard = {
                             findNavController().popBackStack()
