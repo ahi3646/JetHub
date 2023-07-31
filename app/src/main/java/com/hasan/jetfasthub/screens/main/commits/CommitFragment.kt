@@ -147,7 +147,7 @@ class CommitFragment : Fragment() {
                         owner = owner!!,
                         repo = repo!!,
                         state = state,
-                        onNavigate = { dest, data , id ->
+                        onNavigate = { dest, data, id ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
@@ -172,35 +172,31 @@ class CommitFragment : Fragment() {
                             when (action) {
 
                                 "post_comment" -> {
-                                    if(data!!.length >=2){
-                                        commitViewModel.postCommitComment(
-                                            token = token,
-                                            owner = owner,
-                                            repo = repo,
-                                            branch = sha!!,
-                                            body = data
-                                        )
-                                            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                            .onEach { response ->
-                                                if (response) {
-                                                    commitViewModel.getCommitComments(
-                                                        token = token,
-                                                        owner = owner,
-                                                        repo = repo,
-                                                        branch = sha
-                                                    )
-                                                } else {
-                                                    Toast.makeText(
-                                                        requireContext(),
-                                                        "Can't post comment",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
+                                    commitViewModel.postCommitComment(
+                                        token = token,
+                                        owner = owner,
+                                        repo = repo,
+                                        branch = sha!!,
+                                        body = data!!
+                                    )
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach { response ->
+                                            if (response) {
+                                                commitViewModel.getCommitComments(
+                                                    token = token,
+                                                    owner = owner,
+                                                    repo = repo,
+                                                    branch = sha
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't post comment",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
-                                            .launchIn(lifecycleScope)
-                                    }else{
-                                        Toast.makeText(requireContext(), "Min length for comment is 2 !", Toast.LENGTH_SHORT).show()
-                                    }
+                                        }
+                                        .launchIn(lifecycleScope)
                                 }
 
                                 "share" -> {
@@ -367,6 +363,7 @@ private fun MainContent(
                                 }
                             }
                         }
+
                         is Resource.Failure -> {}
                     }
                 }
@@ -417,7 +414,8 @@ private fun MainContent(
     ) { sheetPadding ->
         Scaffold(
             modifier = Modifier.padding(sheetPadding),
-            topBar = { Column(Modifier.fillMaxWidth()) {
+            topBar = {
+                Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
                         repo = repo,
                         state = state.Commit,
@@ -438,7 +436,8 @@ private fun MainContent(
                         onNavigate = onNavigate,
                         onAction = onAction,
                     )
-                } },
+                }
+            },
         ) { paddingValues ->
 
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -593,7 +592,6 @@ private fun CommentsScreen(
                                 onAction = onAction,
                                 onReply = { userLogin ->
                                     if (userLogin != "N/A") {
-                                        //text = "@$userLogin"
                                         val newValue = textFieldValueState.text.plus("@$userLogin")
                                         textFieldValueState = TextFieldValue(
                                             text = newValue,
@@ -652,14 +650,24 @@ private fun CommentsScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        IconButton(onClick = {
-                            onAction(
-                                "post_comment",
-                                textFieldValueState.text
-                            )
-                            textFieldValueState = TextFieldValue("")
-                            keyboardController?.hide()
-                        }) {
+                        IconButton(
+                            onClick = {
+                                if (textFieldValueState.text.length >= 2) {
+                                    onAction(
+                                        "post_comment",
+                                        textFieldValueState.text
+                                    )
+                                    textFieldValueState = TextFieldValue("")
+                                    keyboardController?.hide()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Min length for comment is 2 !",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_send),
                                 tint = Color.Blue,
@@ -759,7 +767,7 @@ private fun CommentItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                if(comment.author_association.lowercase(Locale.ROOT) != "none"){
+                if (comment.author_association.lowercase(Locale.ROOT) != "none") {
                     Text(
                         text = comment.author_association.lowercase(Locale.ROOT),
                         color = Color.Gray,
@@ -795,7 +803,11 @@ private fun CommentItem(
                     DropdownMenuItem(
                         text = { Text(text = "Edit") },
                         onClick = {
-                            onNavigate(R.id.action_commitFragment_to_editCommentFragment, comment.body, comment.id)
+                            onNavigate(
+                                R.id.action_commitFragment_to_editCommentFragment,
+                                comment.body,
+                                comment.id
+                            )
                             showMenu = false
                         }
                     )

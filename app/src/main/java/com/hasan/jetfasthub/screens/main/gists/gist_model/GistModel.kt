@@ -5,7 +5,7 @@ data class GistModel(
     val comments_url: String,
     val commits_url: String,
     val created_at: String,
-    val description: String,
+    val description: String?,
     val files: Map<String, GistFile>,
     val forks: List<Any>,
     val forks_url: String,

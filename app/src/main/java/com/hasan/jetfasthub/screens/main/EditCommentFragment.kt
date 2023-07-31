@@ -30,6 +30,7 @@ import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -66,6 +67,7 @@ import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
+import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -75,6 +77,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class EditCommentFragment : Fragment() {
 
     private val editCommentViewModel: EditCommentViewModel by viewModel()
+    private val gistViewModel: GistViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -94,7 +97,11 @@ class EditCommentFragment : Fragment() {
                     MainContent(
                         editComment = editComment!!,
                         onEdit = { body ->
+
+                            gistViewModel.starGist(token, "7d14b6af5676917f7c188dcf7adb1bd6")
+
                             Log.d("ahi3646", "onCreateView: on Edit ")
+
                             editCommentViewModel.editComment(
                                 token = token,
                                 owner = owner!!,
@@ -120,6 +127,9 @@ class EditCommentFragment : Fragment() {
                                         findNavController().popBackStack()
                                     }
                                 }
+
+                            Toast.makeText(requireContext(), "clicked", Toast.LENGTH_SHORT).show()
+
                         },
                         onDiscard = {
                             findNavController().popBackStack()
@@ -223,7 +233,7 @@ private fun MainContent(
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) { sheetPadding ->
 
-        androidx.compose.material3.Scaffold(
+        Scaffold(
             modifier = Modifier.padding(sheetPadding),
             topBar = {
                 TopAppBar(
@@ -242,13 +252,21 @@ private fun MainContent(
                                 }
                             },
                             onSend = {
-                                if (textFieldValueState.text != editComment) {
-                                    keyboardController?.hide()
-                                    onEdit(textFieldValueState.text)
+                                if (textFieldValueState.text.length >= 2) {
+                                    if (textFieldValueState.text != editComment) {
+                                        keyboardController?.hide()
+                                        onEdit(textFieldValueState.text)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Do changes to edit !",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        "Do changes to edit !",
+                                        "Min length for comment is 2 !",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

@@ -135,8 +135,6 @@ class RepositoryFragment : Fragment() {
         val owner = arguments?.getString("home_data") ?: ""
         val repo = arguments?.getString("home_extra") ?: ""
 
-        Log.d("ahi3646", "onCreateView repo: $owner -- $repo ")
-
         repositoryViewModel.getRepo(
             token = token, owner = owner, repo = repo
         )

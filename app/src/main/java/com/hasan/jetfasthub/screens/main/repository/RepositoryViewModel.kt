@@ -286,7 +286,6 @@ class RepositoryViewModel(
     }
 
     fun isWatchingRepo(token: String, owner: String, repo: String) {
-        Log.d("ahi3646", "isWatchingRepo: triggered ")
         viewModelScope.launch {
             try {
                 repository.isWatchingRepo(
@@ -423,7 +422,6 @@ class RepositoryViewModel(
     }
 
     fun isStarringRepo(token: String, owner: String, repo: String) {
-        Log.d("ahi3646", "isWatchingRepo: triggered ")
         viewModelScope.launch {
             try {
                 repository.checkStarring(

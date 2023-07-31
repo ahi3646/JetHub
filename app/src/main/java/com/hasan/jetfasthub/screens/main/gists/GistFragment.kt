@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.gists
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,9 +72,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -80,7 +84,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -94,6 +97,7 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModelItem
+import com.hasan.jetfasthub.screens.main.gists.gist_model.GistFileModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
@@ -112,9 +116,7 @@ class GistFragment : Fragment() {
     private val gistViewModel: GistViewModel by viewModel()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         val token = PreferenceHelper.getToken(requireContext())
@@ -141,6 +143,13 @@ class GistFragment : Fragment() {
                                     findNavController().popBackStack()
                                 }
 
+                                R.id.action_gistFragment_to_editCommentFragment -> {
+//                                    val bundle = Bundle()
+//                                    bundle.putString("destination", "GistFragment")
+//                                    bundle.putString("edit_comment", data!!)
+//                                    bundle.putInt("comment_id", id!!)
+                                }
+
                                 R.id.action_gistFragment_to_premiumFragment -> {
                                     findNavController().navigate(dest)
                                 }
@@ -155,6 +164,44 @@ class GistFragment : Fragment() {
                         },
                         onAction = { action, data ->
                             when (action) {
+
+
+
+                                "delete_gist_comment" -> {
+                                    gistViewModel.deleteGistComment(token, gistId!!, data!!.toInt())
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            if (it) {
+                                                gistViewModel.getGistComments(token, gistId)
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't delete a gist comment !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
+                                "create_gist_comment" -> {
+                                    gistViewModel.posGistComment(token, gistId!!, data!!)
+                                        .flowWithLifecycle(
+                                            lifecycle, Lifecycle.State.STARTED
+                                        )
+                                        .onEach { response ->
+                                            if (response) {
+                                                gistViewModel.getGistComments(token, gistId)
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't post a gist comment !",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.launchIn(lifecycleScope)
+                                }
+
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -184,41 +231,35 @@ class GistFragment : Fragment() {
                                 }
 
                                 "delete_gist" -> {
-                                    gistViewModel.deleteGist(token, gistId!!)
-                                        .flowWithLifecycle(
-                                            lifecycle, Lifecycle.State.STARTED
-                                        )
-                                        .onEach { response ->
-                                            if (response) {
-                                                //delay for future animation :)
-                                                delay(300)
-                                                findNavController().popBackStack()
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't delete a gist !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                    gistViewModel.deleteGist(token, gistId!!).flowWithLifecycle(
+                                        lifecycle, Lifecycle.State.STARTED
+                                    ).onEach { response ->
+                                        if (response) {
+                                            //delay for future animation :)
+                                            delay(300)
+                                            findNavController().popBackStack()
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't delete a gist !",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        .launchIn(lifecycleScope)
+                                    }.launchIn(lifecycleScope)
                                 }
 
                                 "fork_gist" -> {
-                                    gistViewModel.forkGist(token, gistId!!)
-                                        .flowWithLifecycle(
-                                            lifecycle, Lifecycle.State.STARTED
-                                        )
-                                        .onEach { response ->
-                                            if (!response) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't fork a gist !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                    gistViewModel.forkGist(token, gistId!!).flowWithLifecycle(
+                                        lifecycle, Lifecycle.State.STARTED
+                                    ).onEach { response ->
+                                        if (!response) {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't fork a gist !",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        .launchIn(lifecycleScope)
+                                    }.launchIn(lifecycleScope)
                                 }
 
                                 "change_fork_status" -> {
@@ -226,42 +267,39 @@ class GistFragment : Fragment() {
                                 }
 
                                 "star_gist" -> {
-                                    gistViewModel.starGist(token, gistId!!)
-                                        .flowWithLifecycle(
-                                            lifecycle, Lifecycle.State.STARTED
-                                        )
-                                        .onEach { response ->
-                                            if (!response) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't star a gist !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                    gistViewModel.starGist(token, gistId!!).flowWithLifecycle(
+                                        lifecycle, Lifecycle.State.STARTED
+                                    ).onEach { response ->
+                                        if (!response) {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't star a gist !",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        .launchIn(lifecycleScope)
+                                    }.launchIn(lifecycleScope)
                                 }
 
                                 "un_star_gist" -> {
-                                    gistViewModel.unstarGist(token, gistId!!)
-                                        .flowWithLifecycle(
-                                            lifecycle, Lifecycle.State.STARTED
-                                        )
-                                        .onEach { response ->
-                                            if (!response) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't unstar a gist !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                    gistViewModel.unstarGist(token, gistId!!).flowWithLifecycle(
+                                        lifecycle, Lifecycle.State.STARTED
+                                    ).onEach { response ->
+                                        if (!response) {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't unstar a gist !",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                        .launchIn(lifecycleScope)
+                                    }.launchIn(lifecycleScope)
                                 }
 
                             }
                         },
-                        gistOwner = gistOwner!!
+                        gistOwner = gistOwner!!,
+                        onCurrentSheetChanged = {
+                            gistViewModel.changeCurrentSheet(it)
+                        }
                     )
                 }
             }
@@ -277,7 +315,8 @@ private fun MainContent(
     state: GistScreenState,
     onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
-    gistOwner: String
+    gistOwner: String,
+    onCurrentSheetChanged: (GistScreenSheets) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
@@ -306,37 +345,79 @@ private fun MainContent(
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            Column(
-                Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
+            when (state.CurrentSheet) {
 
-                Text(text = "Delete", style = MaterialTheme.typography.titleLarge)
+                GistScreenSheets.DeleteGistSheet -> {
+                    Column(
+                        Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
 
-                Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = "Delete", style = MaterialTheme.typography.titleLarge)
 
-                Text(text = "Are you sure ?")
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                        Text(text = "Are you sure ?")
 
-                    Button(onClick = { closeSheet() }) {
-                        Text(text = "No", color = Color.Red)
-                    }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                            Button(onClick = { closeSheet() }) {
+                                Text(text = "No", color = Color.Red)
+                            }
 
-                    Button(onClick = {
-                        onAction("delete_gist", null)
-                        closeSheet()
-                    }) {
-                        Text(text = "Yes", color = Color.White)
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Button(onClick = {
+                                onAction("delete_gist", null)
+                                closeSheet()
+                            }) {
+                                Text(text = "Yes", color = Color.White)
+                            }
+                        }
                     }
                 }
+
+                is GistScreenSheets.DeleteGistCommentSheet -> {
+                    val commentId = state.CurrentSheet.commentId
+                    Column(
+                        Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        Text(text = "Delete", style = MaterialTheme.typography.titleLarge)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(text = "Are you sure ?")
+
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Button(onClick = { closeSheet() }) {
+                                Text(text = "No", color = Color.Red)
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Button(onClick = {
+                                onAction("delete_gist_comment", commentId.toString())
+                                closeSheet()
+                            }) {
+                                Text(text = "Yes", color = Color.White)
+                            }
+                        }
+                    }
+                }
+
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
@@ -348,12 +429,12 @@ private fun MainContent(
                         state = state.Gist,
                         onNavigate = onNavigate,
                     )
-                    Toolbar(
-                        gistOwner = gistOwner,
+                    Toolbar(gistOwner = gistOwner,
                         state = state,
                         onNavigate = onNavigate,
                         onAction = onAction,
                         onDelete = {
+                            onCurrentSheetChanged(GistScreenSheets.DeleteGistSheet)
                             scope.launch {
                                 if (sheetScaffoldState.bottomSheetState.isCollapsed) {
                                     sheetScaffoldState.bottomSheetState.expand()
@@ -364,8 +445,7 @@ private fun MainContent(
                         }
                     )
                 }
-            },
-            modifier = Modifier.padding(sheetPadding)
+            }, modifier = Modifier.padding(sheetPadding)
         ) { paddingValues ->
 
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -398,14 +478,23 @@ private fun MainContent(
                 when (tabIndex) {
                     0 -> {
                         FilesScreen(
-//                        state = state.Commit,
-//                        onAction = onAction
+                            state = state.Gist, onAction = onAction
                         )
                     }
 
                     1 -> CommentsScreen(
                         state = state.GistComments,
                         onAction = onAction,
+                        onCurrentSheetChanged = { sheet ->
+                            onCurrentSheetChanged(sheet)
+                            scope.launch {
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
+                                } else {
+                                    sheetScaffoldState.bottomSheetState.collapse()
+                                }
+                            }
+                        },
                         onNavigate = onNavigate
                     )
                 }
@@ -416,46 +505,49 @@ private fun MainContent(
 
 @Composable
 private fun FilesScreen(
-//    state: Resource<CommitModel>,
-//    onAction: (String, String?) -> Unit
+    state: Resource<GistModel>, onAction: (String, String?) -> Unit
 ) {
-//    when (state) {
-//        is Resource.Loading -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Loading ...")
-//            }
-//        }
-//
-//        is Resource.Success -> {
-//            val files = state.data!!.files
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...")
+            }
+        }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-//                items(files) { file ->
-//                    ExpandableCard(file = file, onAction = onAction)
-//                }
+        is Resource.Success -> {
+            val files = state.data!!.files
+            val listFiles = arrayListOf<GistFileModel>()
+            files.forEach { (key, value) ->
+                listFiles.add(GistFileModel(key, value.type, value.size, value.raw_url))
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                items(listFiles) { file ->
+                    GistFileItem(file, onAction)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
     }
-//        }
-//
-//        is Resource.Failure -> {
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Something went wrong !")
-//            }
-//        }
-//    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -463,6 +555,7 @@ private fun FilesScreen(
 private fun CommentsScreen(
     state: Resource<GistCommentsModel>,
     onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (GistScreenSheets) -> Unit,
     onNavigate: (Int, String?, Int?) -> Unit
 ) {
     when (state) {
@@ -488,11 +581,12 @@ private fun CommentsScreen(
             }
             val keyboardController = LocalSoftwareKeyboardController.current
             val focusRequester = remember { FocusRequester() }
+            val context = LocalContext.current
 
             if (!comments.isEmpty()) {
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .background(Color.White),
                 ) {
                     LazyColumn(
@@ -503,27 +597,17 @@ private fun CommentsScreen(
                         itemsIndexed(comments) { index, comment ->
                             GistCommentItem(
                                 comment = comment,
-                                onAction = onAction,
-//                                onReply = { userLogin ->
-//                                    if (userLogin != "N/A") {
-//                                        //text = "@$userLogin"
-//                                        val newValue = textFieldValueState.text.plus("@$userLogin")
-//                                        textFieldValueState = TextFieldValue(
-//                                            text = newValue,
-//                                            selection = TextRange(newValue.length)
-//                                        )
-//                                        focusRequester.requestFocus()
-//                                        keyboardController?.show()
-//                                    } else {
-//                                        Toast.makeText(
-//                                            context,
-//                                            "Can't identify user !",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                },
-//                                onCurrentSheetChanged = onCurrentSheetChanged,
-//                                onNavigate = onNavigate
+                                onCurrentSheetChanged = onCurrentSheetChanged,
+                                onReply = { userLogin ->
+                                    val newValue = textFieldValueState.text.plus("@$userLogin")
+                                    textFieldValueState = TextFieldValue(
+                                        text = newValue,
+                                        selection = TextRange(newValue.length)
+                                    )
+                                    focusRequester.requestFocus()
+                                    keyboardController?.show()
+                                },
+                                onNavigate = onNavigate
                             )
                             if (index < comments.lastIndex) {
                                 Divider(
@@ -544,7 +628,7 @@ private fun CommentsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                       TextField(
+                        TextField(
                             value = textFieldValueState,
                             onValueChange = {
                                 textFieldValueState = it
@@ -566,8 +650,20 @@ private fun CommentsScreen(
                         )
 
                         IconButton(onClick = {
-                            textFieldValueState = TextFieldValue("")
-                            keyboardController?.hide()
+                            if (textFieldValueState.text.length >= 2) {
+                                onAction(
+                                    "create_gist_comment",
+                                    textFieldValueState.text
+                                )
+                                textFieldValueState = TextFieldValue("")
+                                keyboardController?.hide()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Min length for comment is 2 !",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_send),
@@ -599,155 +695,6 @@ private fun CommentsScreen(
         }
     }
 }
-
-//@Composable
-//private fun CommentItem(
-//    comment: CommitCommentsModelItem,
-//    onAction: (String, String?) -> Unit,
-//    onReply: (String) -> Unit,
-//    onCurrentSheetChanged: (CommitScreenSheets) -> Unit,
-//    onNavigate: (Int, String?, Int?) -> Unit
-//) {
-//
-//    var showMenu by remember { mutableStateOf(false) }
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(Color.White)
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp),
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.SpaceBetween
-//        ) {
-//
-//            GlideImage(
-//                failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
-//                imageModel = {
-//                    if (comment.user != null) {
-//                        comment.user.avatar_url
-//                    } else {
-//                        R.drawable.baseline_account_circle_24
-//                    }
-//                    //repository.owner.avatar_url
-//                }, // loading a network image using an URL.
-//                modifier = Modifier
-//                    .size(32.dp, 32.dp)
-//                    .clip(CircleShape)
-//                    .clickable { },
-//                imageOptions = ImageOptions(
-//                    contentScale = ContentScale.Crop,
-//                    alignment = Alignment.CenterStart,
-//                    contentDescription = "Actor Avatar"
-//                )
-//            )
-//
-//            Spacer(modifier = Modifier.width(12.dp))
-//
-//            Column(
-//                horizontalAlignment = Alignment.Start,
-//                verticalArrangement = Arrangement.Center,
-//                modifier = Modifier.weight(1F)
-//            ) {
-//                Row {
-//                    Text(
-//                        text = comment.user?.login ?: "N/A",
-//                        fontSize = 14.sp,
-//                        color = Color.Black
-//                    )
-//                    Spacer(modifier = Modifier.weight(1F))
-//                    Text(
-//                        text = ParseDateFormat.getTimeAgo(comment.created_at).toString(),
-//                        fontSize = 12.sp,
-//                        color = Color.Gray
-//                    )
-//                }
-//
-//                Spacer(modifier = Modifier.height(4.dp))
-//
-//                if (comment.author_association.lowercase(Locale.ROOT) != "none") {
-//                    Text(
-//                        text = comment.author_association.lowercase(Locale.ROOT),
-//                        color = Color.Gray,
-//                        maxLines = 1,
-//                        overflow = TextOverflow.Ellipsis
-//                    )
-//                }
-//            }
-//
-//            IconButton(onClick = { }) {
-//                Icon(
-//                    painter = painterResource(id = R.drawable.ic_add_emoji),
-//                    contentDescription = "emoji"
-//                )
-//            }
-//
-//            Box {
-//                IconButton(
-//                    onClick = {
-//                        showMenu = !showMenu
-//                    },
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.ic_overflow),
-//                        contentDescription = "more option"
-//                    )
-//                }
-//
-//                DropdownMenu(
-//                    expanded = showMenu,
-//                    onDismissRequest = { showMenu = false },
-//                ) {
-//                    DropdownMenuItem(
-//                        text = { Text(text = "Edit") },
-//                        onClick = {
-//                            onNavigate(
-//                                R.id.action_commitFragment_to_editCommentFragment,
-//                                comment.body,
-//                                comment.id
-//                            )
-//                            showMenu = false
-//                        }
-//                    )
-//                    DropdownMenuItem(
-//                        text = { Text(text = "Delete") },
-//                        onClick = {
-//                            onCurrentSheetChanged(
-//                                CommitScreenSheets.CommitDeleteRequestSheet(
-//                                    comment.id
-//                                )
-//                            )
-//                            onAction("delete", "")
-//                            showMenu = false
-//                        }
-//                    )
-//                    DropdownMenuItem(
-//                        text = { Text(text = "Reply") },
-//                        onClick = {
-//                            onReply(comment.user?.login ?: "N/A")
-//                            showMenu = false
-//                        }
-//                    )
-//                    DropdownMenuItem(
-//                        text = { Text(text = "Share") },
-//                        onClick = {
-//                            onAction("share", comment.html_url)
-//                            showMenu = false
-//                        }
-//                    )
-//                }
-//            }
-//        }
-//
-//        Text(
-//            text = comment.body,
-//            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp)
-//        )
-//    }
-//}
 
 @Composable
 private fun TitleHeader(
@@ -839,6 +786,14 @@ private fun TitleHeader(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
+                    val fileValues = gist.files.values
+
+                    val fileName = if (gist.description == "" || gist.description == null) {
+                        fileValues.elementAt(0).filename
+                    } else {
+                        gist.description
+                    }
+
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center,
@@ -850,12 +805,9 @@ private fun TitleHeader(
                                     append(gist.owner.login)
                                 }
                                 append(" / ")
-                                append(gist.description)
+                                append(fileName)
 
-                            },
-                            color = Color.Black,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                            }, color = Color.Black, maxLines = 2, overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -869,15 +821,13 @@ private fun TitleHeader(
                             if (gist.history.size != 1) {
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "edited",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
+                                    text = "edited", fontSize = 14.sp, color = Color.Gray
                                 )
                             }
 
                             val file = gist.files.values
                             val fileSize = file.elementAt(0).size
-
+                            Log.d("ahi3646", "TitleHeader: $fileSize ")
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = FileSizeCalculator.humanReadableByteCountBin(fileSize.toLong()),
@@ -953,18 +903,14 @@ private fun Toolbar(
                     .padding(top = 4.dp)
             ) {
 
-                IconButton(
-                    onClick = {
-                        onNavigate(-1, null, null)
-                    }
-                ) {
+                IconButton(onClick = {
+                    onNavigate(-1, null, null)
+                }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
                 Text(
-                    text = "Gist",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.Black
+                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
                 )
 
                 Row(
@@ -1015,18 +961,14 @@ private fun Toolbar(
                     .padding(top = 4.dp)
             ) {
 
-                IconButton(
-                    onClick = {
-                        onNavigate(-1, null, null)
-                    }
-                ) {
+                IconButton(onClick = {
+                    onNavigate(-1, null, null)
+                }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
                 Text(
-                    text = "Gist",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.Black
+                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
                 )
 
                 Row(
@@ -1117,22 +1059,16 @@ private fun Toolbar(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(text = "Share") },
-                            onClick = {
-                                onAction("share", gist.html_url)
-                                showMenu = false
-                            }
-                        )
+                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                            onAction("share", gist.html_url)
+                            showMenu = false
+                        })
 
                         if (gist.owner.login == gistOwner) {
-                            DropdownMenuItem(
-                                text = { Text(text = "Delete") },
-                                onClick = {
-                                    onDelete()
-                                    showMenu = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
+                                onDelete()
+                                showMenu = false
+                            })
                         }
 
                     }
@@ -1150,18 +1086,14 @@ private fun Toolbar(
                     .padding(top = 4.dp)
             ) {
 
-                IconButton(
-                    onClick = {
-                        onNavigate(-1, null, null)
-                    }
-                ) {
+                IconButton(onClick = {
+                    onNavigate(-1, null, null)
+                }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                 }
 
                 Text(
-                    text = "Gist",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.Black
+                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
                 )
 
                 Row(
@@ -1202,18 +1134,21 @@ private fun Toolbar(
     }
 }
 
-@Preview
 @Composable
-private fun GistFileItem() {
-    Surface {
+private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -> Unit) {
+    Surface(shadowElevation = 10.dp, modifier = Modifier
+        .padding(4.dp)
+        .clickable {
+            onAction("browser", fileModel.raw_url)
+        }
+    ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier
-                .padding(12.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             Row(Modifier.fillMaxWidth()) {
-                Text(text = "here should be gist file name . extension")
+                Text(text = fileModel.fileName)
             }
             Divider(
                 modifier = Modifier
@@ -1226,7 +1161,7 @@ private fun GistFileItem() {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.height(IntrinsicSize.Min),
             ) {
-                Text(text = "Kotlin")
+                Text(text = fileModel.textType)
                 Spacer(modifier = Modifier.weight(1F))
                 Divider(
                     color = Color.Gray,
@@ -1235,7 +1170,10 @@ private fun GistFileItem() {
                         .fillMaxHeight()  //fill the max height
                         .width(1.dp)
                 )
-                Text(text = "16KB", color = Color.Gray)
+                Text(
+                    text = FileSizeCalculator.humanReadableByteCountBin(fileModel.fileSize.toLong()),
+                    color = Color.Gray
+                )
                 Divider(
                     color = Color.Gray,
                     modifier = Modifier
@@ -1243,30 +1181,31 @@ private fun GistFileItem() {
                         .fillMaxHeight()  //fill the max height
                         .width(1.dp)
                 )
-                IconButton(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(24.dp)
-                        .padding(4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_edit),
-                        contentDescription = null
-                    )
-                }
-                IconButton(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(24.dp)
-                        .padding(4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_trash),
-                        contentDescription = null
-                    )
-                }
+                //didn't not get why fast hub not show this on even private gist ???
+//                IconButton(
+//                    onClick = { /*TODO*/ },
+//                    modifier = Modifier
+//                        .height(24.dp)
+//                        .width(24.dp)
+//                        .padding(4.dp)
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_edit),
+//                        contentDescription = null
+//                    )
+//                }
+//                IconButton(
+//                    onClick = { /*TODO*/ },
+//                    modifier = Modifier
+//                        .height(24.dp)
+//                        .width(24.dp)
+//                        .padding(4.dp)
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_trash),
+//                        contentDescription = null
+//                    )
+//                }
             }
         }
     }
@@ -1275,8 +1214,10 @@ private fun GistFileItem() {
 
 @Composable
 private fun GistCommentItem(
+    onReply: (String) -> Unit,
     comment: GistCommentsModelItem,
-    onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (GistScreenSheets) -> Unit,
+    onNavigate: (Int, String?, Int?) -> Unit
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -1318,15 +1259,11 @@ private fun GistCommentItem(
                 modifier = Modifier.weight(1F)
             ) {
                 Text(
-                    text = comment.user.login,
-                    fontSize = 14.sp,
-                    color = Color.Black
+                    text = comment.user.login, fontSize = 14.sp, color = Color.Black
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 Text(
-                    text = comment.created_at,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+                    text = comment.created_at, fontSize = 12.sp, color = Color.Gray
                 )
             }
 
@@ -1346,38 +1283,29 @@ private fun GistCommentItem(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Edit") },
-                        onClick = {
-//                            onNavigate(R.id.action_commitFragment_to_editCommentFragment, comment.body, comment.id)
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Delete") },
-                        onClick = {
-//                            onCurrentSheetChanged(
-//                                CommitScreenSheets.CommitDeleteRequestSheet(
-//                                    comment.id
-//                                )
-//                            )
-                            //onAction("delete", "")
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Reply") },
-                        onClick = {
-                            //onReply(comment.user?.login ?: "N/A")
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Share") },
-                        onClick = {
-                            showMenu = false
-                        }
-                    )
+                    DropdownMenuItem(text = { Text(text = "Edit") }, onClick = {
+                        onNavigate(
+                            R.id.action_gistFragment_to_editCommentFragment,
+                            comment.body,
+                            comment.id
+                        )
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
+                        onCurrentSheetChanged(
+                            GistScreenSheets.DeleteGistCommentSheet(
+                                comment.id
+                            )
+                        )
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Reply") }, onClick = {
+                        onReply(comment.user.login)
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        showMenu = false
+                    })
                 }
             }
         }

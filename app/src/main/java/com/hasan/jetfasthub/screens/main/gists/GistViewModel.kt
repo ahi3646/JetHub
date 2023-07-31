@@ -84,7 +84,48 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
         }
     }
 
+    fun deleteGistComment(token: String, gistId: String, commentId: Int): Flow<Boolean> = callbackFlow{
+        viewModelScope.launch {
+            try {
+                repository.deleteGistComment(token, gistId, commentId).let {
+                    if(it.code() == 204){
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "deleteGistComment: channel closed ")
+        }
+    }
+
+    fun posGistComment(token: String, gistId: String, body: String): Flow<Boolean> = callbackFlow {
+        viewModelScope.launch {
+            try {
+                repository.postGistComment(token, gistId, body ).let { response ->
+                    if(response.code() == 201){
+                        trySend(true)
+                    }else{
+                        trySend(false)
+                    }
+                }
+            }catch (e: Exception){
+                trySend(false)
+            }
+        }
+        awaitClose {
+            channel.close()
+            Log.d("ahi3646", "postGistComment: channel closed ")
+        }
+    }
+
     fun starGist(token: String, gistId: String): Flow<Boolean> = callbackFlow {
+        Log.d("ahi3646", "starGist: trigger ")
         viewModelScope.launch {
             try {
                 repository.starGist(token, gistId).let { response ->
@@ -163,13 +204,11 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
     }
 
     fun hasGistStarred(token: String, gistId: String) {
-        Log.d("ahi3646", "hasGistStarred vm ")
         viewModelScope.launch {
             try {
                 repository.checkIfGistStarred(token, gistId).let {response->
                     if(response.isSuccessful){
                         _state.update {
-                            Log.d("ahi3646", "hasGistStarred: true ")
                             it.copy(HasGistStarred = true )
                         }
                     }else{
@@ -182,11 +221,26 @@ class GistViewModel(private val repository: GistRepository): ViewModel() {
         }
     }
 
+    fun changeCurrentSheet(sheet: GistScreenSheets){
+        _state.update {
+            it.copy(CurrentSheet = sheet)
+        }
+    }
+
 }
 
 data class GistScreenState(
     val Gist: Resource<GistModel> = Resource.Loading(),
     val GistComments: Resource<GistCommentsModel> = Resource.Loading(),
     val HasGistStarred: Boolean = false,
-    val HasForked: Boolean = false
+    val HasForked: Boolean = false,
+    val CurrentSheet: GistScreenSheets = GistScreenSheets.DeleteGistSheet
 )
+
+sealed interface GistScreenSheets {
+
+    object DeleteGistSheet : GistScreenSheets
+
+    class DeleteGistCommentSheet(val commentId: Int): GistScreenSheets
+
+}

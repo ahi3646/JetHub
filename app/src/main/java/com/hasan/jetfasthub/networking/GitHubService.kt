@@ -34,6 +34,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_model.RepoSubscriptionModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
 import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkResponse
+import com.hasan.jetfasthub.screens.main.gists.gist_comment_response.GistCommentResponse
 import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
@@ -162,6 +163,22 @@ interface GitHubService {
         @Header("Authorization") token: String,
         @Path("gist_id") gistId: String
     ): Response<GistModel>
+
+    @Headers("Accept: application/vnd.github+json")
+    @POST("gists/{gist_id}/comments")
+    suspend fun postGistComment(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String,
+        @Body body: CommentRequestModel
+    ): Response<GistCommentResponse>
+
+    @Headers("Accept: application/vnd.github+json")
+    @DELETE("gists/{gist_id}/comments/{comment_id}")
+    suspend fun deleteGistComment(
+        @Header("Authorization") token: String,
+        @Path("gist_id") gistId: String,
+        @Path("comment_id") commentId: Int,
+    ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("gists/{gist_id}/comments")

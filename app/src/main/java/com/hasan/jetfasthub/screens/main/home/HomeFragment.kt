@@ -2,7 +2,6 @@ package com.hasan.jetfasthub.screens.main.home
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -207,16 +206,11 @@ class HomeFragment : Fragment() {
                         scaffoldState = scaffoldState,
                         closeDrawer = {
                             drawerScope.launch {
-                                Log.d(
-                                    "ahi3646",
-                                    "onCreateView: clicked ${drawerState.currentValue} "
-                                )
                                 if (drawerState.isClosed) {
                                     drawerState.open()
                                 } else {
                                     drawerState.close()
                                 }
-                                Log.d("ahi3646", "onCreateView: after ${drawerState.currentValue} ")
                             }
                         }
                     )
