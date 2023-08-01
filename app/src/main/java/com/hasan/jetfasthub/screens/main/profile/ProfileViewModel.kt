@@ -29,19 +29,29 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch {
-            repository.getUser(token, username).let { user ->
-                if (user.isSuccessful) {
-                    _state.update {
-                        it.copy(OverviewScreenState = UserOverviewScreen.Content(user.body()!!))
-                    }
-                } else {
-                    _state.update {
-                        it.copy(
-                            OverviewScreenState = UserOverviewScreen.Error(
-                                user.errorBody().toString()
+            try {
+                repository.getUser(token, username).let { user ->
+                    if (user.isSuccessful) {
+                        _state.update {
+                            it.copy(OverviewScreenState = UserOverviewScreen.Content(user.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                OverviewScreenState = UserOverviewScreen.Error(
+                                    user.errorBody().toString()
+                                )
                             )
-                        )
+                        }
                     }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(
+                        OverviewScreenState = UserOverviewScreen.Error(
+                            e.message.toString()
+                        )
+                    )
                 }
             }
         }
@@ -49,19 +59,29 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
 
     fun getUserOrganisations(token: String, username: String) {
         viewModelScope.launch {
-            repository.getUserOrganisations(token, username).let { organisations ->
-                if (organisations.isSuccessful) {
-                    _state.update {
-                        it.copy(UserOrganisations = Resource.Success(organisations.body()!!))
-                    }
-                } else {
-                    _state.update {
-                        it.copy(
-                            UserOrganisations = Resource.Failure(
-                                organisations.errorBody().toString()
+            try {
+                repository.getUserOrganisations(token, username).let { organisations ->
+                    if (organisations.isSuccessful) {
+                        _state.update {
+                            it.copy(UserOrganisations = Resource.Success(organisations.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                UserOrganisations = Resource.Failure(
+                                    organisations.errorBody().toString()
+                                )
                             )
-                        )
+                        }
                     }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(
+                        UserOrganisations = Resource.Failure(
+                            e.message.toString()
+                        )
+                    )
                 }
             }
         }
@@ -272,17 +292,18 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.unfollowUser(token, username).let { response ->
                     if (response.code() == 204) {
-
                         trySend(false)
-
                         _state.update {
                             it.copy(
                                 isFollowing = false,
                             )
                         }
+                    }else{
+                        trySend(false)
                     }
                 }
             } catch (e: Exception) {
+                trySend(false)
                 Log.d("ahi3646", "unfollowUser: exception - ${e.message} ")
             }
         }
@@ -297,17 +318,18 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.followUser(token, username).let { res ->
                     if (res.code() == 204) {
-
                         trySend(true)
-
                         _state.update {
                             it.copy(
                                 isFollowing = true,
                             )
                         }
+                    }else{
+                        trySend(false)
                     }
                 }
             } catch (e: Exception) {
+                trySend(false)
                 Log.d("ahi3646", "followUser:  ${e.message}")
             }
         }
@@ -338,7 +360,6 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.blockUser(token, username).let { response ->
                     trySend(true)
-
                     if (response.code() == 204) {
                         _state.update {
                             it.copy(isUserBlocked = true)
@@ -361,14 +382,16 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.unblockUser(token, username).let { response ->
                     trySend(false)
-
                     if (response.code() == 204) {
                         _state.update {
                             it.copy(isUserBlocked = false)
                         }
+                    }else{
+                        trySend(false)
                     }
                 }
             } catch (e: Exception) {
+                trySend(false)
                 Log.d("ahi3646", "blockUser: ${e.message} ")
             }
         }
@@ -391,8 +414,8 @@ data class ProfileScreenState(
     val UserFollowings: Resource<FollowingModel> = Resource.Loading(),
     val UserFollowers: Resource<FollowersModel> = Resource.Loading(),
     val UserGists: Resource<GistsModel> = Resource.Loading(),
-    var isFollowing: Boolean = false,
-    var isUserBlocked: Boolean = false
+    val isFollowing: Boolean = false,
+    val isUserBlocked: Boolean = false
 )
 
 sealed interface UserOverviewScreen {

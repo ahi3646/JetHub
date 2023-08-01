@@ -32,7 +32,7 @@ class RestClient(context: Context) {
                     .alwaysReadResponseBody(false)
                     .build()
             )
-            //.addInterceptor(AuthenticationInterceptor())
+            //.addInterceptor(AuthenticationInterceptor(context))
             .build()
 
         val gson = GsonBuilder()

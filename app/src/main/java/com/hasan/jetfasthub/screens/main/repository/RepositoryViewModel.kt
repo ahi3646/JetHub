@@ -462,8 +462,6 @@ class RepositoryViewModel(
                             it.copy(isStarring = true)
                         }
                         trySend(true)
-                    } else {
-                        trySend(false)
                     }
                 }
             } catch (e: Exception) {
@@ -490,6 +488,7 @@ class RepositoryViewModel(
                     }
                 }
             } catch (e: Exception) {
+                trySend(false)
                 Log.d("ahi3646", "starRepo: ${e.message.toString()} ")
             }
         }
@@ -543,8 +542,8 @@ class RepositoryViewModel(
                     }
                 }
             } catch (e: Exception) {
-                Log.d("ahi3646", "forkRepo: ${e.message} ")
                 trySend(false)
+                Log.d("ahi3646", "forkRepo: ${e.message} ")
             }
         }
         awaitClose {

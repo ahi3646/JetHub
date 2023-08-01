@@ -60,15 +60,21 @@ class HomeViewModel(
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getUser(token, username).let { gitHubUser ->
-                if (gitHubUser.isSuccessful) {
-                    _state.update {
-                        it.copy(user = Resource.Success(gitHubUser.body()!!))
+            try {
+                repository.getUser(token, username).let { gitHubUser ->
+                    if (gitHubUser.isSuccessful) {
+                        _state.update {
+                            it.copy(user = Resource.Success(gitHubUser.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(user = Resource.Failure(gitHubUser.errorBody().toString()))
+                        }
                     }
-                } else {
-                    _state.update {
-                        it.copy(user = Resource.Failure(gitHubUser.errorBody().toString()))
-                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(user = Resource.Failure(e.message.toString()))
                 }
             }
         }

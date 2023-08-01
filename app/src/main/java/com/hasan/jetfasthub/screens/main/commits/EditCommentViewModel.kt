@@ -44,14 +44,14 @@ class EditCommentViewModel(private val repository: CommentRepository) : ViewMode
         body: String
     ): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
-            repository.editComment(token, owner, repo, commentId, body).let { response ->
-                if (response.code() == 200) {
-                    trySend(true)
-                } else {
-                    trySend(false)
-                }
-            }
             try {
+                repository.editComment(token, owner, repo, commentId, body).let { response ->
+                    if (response.code() == 200) {
+                        trySend(true)
+                    } else {
+                        trySend(false)
+                    }
+                }
             } catch (e: Exception) {
                 trySend(false)
             }

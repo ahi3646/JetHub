@@ -10,7 +10,7 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 
-class AuthenticationInterface(private val context: Context) : Interceptor {
+class AuthenticationInterceptor(private val context: Context) : Interceptor {
 
     private lateinit var response: Response
     private lateinit var token: AccessTokenModel
