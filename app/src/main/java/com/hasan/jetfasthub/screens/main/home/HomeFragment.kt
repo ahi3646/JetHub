@@ -200,9 +200,6 @@ class HomeFragment : Fragment() {
                                     findNavController().navigate(dest)
                                 }
 
-                                R.id.action_homeFragment_to_addAccountFragment -> {
-                                    findNavController().navigate(dest)
-                                }
                             }
                         },
                         scaffoldState = scaffoldState,
@@ -981,7 +978,7 @@ fun DrawerProfileScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate(R.id.action_homeFragment_to_addAccountFragment, null, null)
+                    //implement action
                 }
         ) {
             Image(

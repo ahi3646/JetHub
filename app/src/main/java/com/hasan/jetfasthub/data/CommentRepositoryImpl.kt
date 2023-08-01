@@ -36,7 +36,7 @@ class CommentRepositoryImpl(private val context: Context) : CommentRepository {
         commentId: Int,
         body: String
     ): Response<GistCommentResponse> {
-        return RestClient(context).gistService.editGistComment(
+        return RestClient(context).commentService.editGistComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId,
             commentId = commentId,
@@ -52,7 +52,7 @@ class CommentRepositoryImpl(private val context: Context) : CommentRepository {
         body: String
     ): Response<CommentPostResponse> {
         Log.d("ahi3646", "editComment: comment repo impl ")
-        return RestClient(context).gitHubService.editComment(
+        return RestClient(context).commentService.editComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,

@@ -152,10 +152,6 @@ class GistFragment : Fragment() {
                                     findNavController().navigate(dest, bundle)
                                 }
 
-                                R.id.action_gistFragment_to_premiumFragment -> {
-                                    findNavController().navigate(dest)
-                                }
-
                                 R.id.action_gistFragment_to_profileFragment -> {
                                     val bundle = bundleOf("home_date" to data)
                                     findNavController().navigate(
@@ -991,7 +987,7 @@ private fun Toolbar(
                     }
 
                     IconButton(onClick = {
-                        onNavigate(R.id.action_gistFragment_to_premiumFragment, null, null)
+                        //implement action
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
@@ -1041,7 +1037,7 @@ private fun Toolbar(
 
                     if (gist.owner.login == gistOwner) {
                         IconButton(onClick = {
-                            onNavigate(R.id.action_gistFragment_to_premiumFragment, null, null)
+                            //implement action
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_edit),
@@ -1098,7 +1094,7 @@ private fun Toolbar(
                     }
 
                     IconButton(onClick = {
-                        onNavigate(R.id.action_gistFragment_to_premiumFragment, null, null)
+                        //implement action
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
@@ -1174,7 +1170,7 @@ private fun Toolbar(
                     }
 
                     IconButton(onClick = {
-                        onNavigate(R.id.action_gistFragment_to_premiumFragment, null, null)
+                        //implement action
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),

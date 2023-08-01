@@ -66,21 +66,21 @@ interface ProfileRepository {
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
 
     override suspend fun getUser(token: String, username: String): Response<GitHubUser> {
-        return RestClient(context = context).profileGist.getUser(
+        return RestClient(context = context).profileService.getUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserOrganisations(token: String, username: String): Response<OrgModel> {
-        return RestClient(context = context).profileGist.getUserOrgs(
+        return RestClient(context = context).profileService.getUserOrgs(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserEvents(token: String, username: String): Response<UserEvents> {
-        return RestClient(context).profileGist.getUserEvents(
+        return RestClient(context).profileService.getUserEvents(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -90,7 +90,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         token: String,
         username: String
     ): Response<UserRepositoryModel> {
-        return RestClient(context).profileGist.getUserRepos(
+        return RestClient(context).profileService.getUserRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -101,7 +101,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<StarredRepoModel> {
-        return RestClient(context).profileGist.getUserStarredRepos(
+        return RestClient(context).profileService.getUserStarredRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -113,7 +113,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         per_page: Int
     ): Response<StarredRepoModel> {
-        return RestClient(context).profileGist.getUserStarredReposCount(
+        return RestClient(context).profileService.getUserStarredReposCount(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             per_page = per_page
@@ -125,7 +125,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowingModel> {
-        return RestClient(context).profileGist.getUserFollowings(
+        return RestClient(context).profileService.getUserFollowings(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -137,7 +137,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowersModel> {
-        return RestClient(context).profileGist.getUserFollowers(
+        return RestClient(context).profileService.getUserFollowers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -149,7 +149,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<GistsModel> {
-        return RestClient(context).profileGist.getUserGists(
+        return RestClient(context).profileService.getUserGists(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -157,42 +157,42 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
     }
 
     override suspend fun followUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).profileGist.followUser(
+        return RestClient(context).profileService.followUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
         )
     }
 
     override suspend fun getFollowStatus(token: String, username: String): Response<Boolean> {
-        return RestClient(context = context).profileGist.getFollowStatus(
+        return RestClient(context = context).profileService.getFollowStatus(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unfollowUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).profileGist.unfollowUser(
+        return RestClient(context).profileService.unfollowUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun isUserBlocked(token: String, username: String): Response<Boolean> {
-        return RestClient(context).profileGist.isUserBlocked(
+        return RestClient(context).profileService.isUserBlocked(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun blockUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).profileGist.blockUser(
+        return RestClient(context).profileService.blockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unblockUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).profileGist.unblockUser(
+        return RestClient(context).profileService.unblockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )

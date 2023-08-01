@@ -29,8 +29,7 @@ import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.data.download.Downloader
-import com.hasan.jetfasthub.networking.AuthInterceptor
-import com.hasan.jetfasthub.networking.GitHubService
+import com.hasan.jetfasthub.networking.AuthenticationInterface
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistViewModel
@@ -56,7 +55,7 @@ val appModule = module {
 }
 
 val networkModule = module {
-    factory { AuthInterceptor(get()) }
+    factory { AuthenticationInterface(get()) }
     factory {
         provideOkHttpClient(
             ChuckerInterceptor.Builder(get())
@@ -68,13 +67,13 @@ val networkModule = module {
             HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
         )
     }
-    factory { provideGitHubService(get()) }
+    //factory { provideHomeService(get()) }
     single { provideRetrofit(get()) }
 }
 
-fun provideGitHubService(retrofit: Retrofit): GitHubService {
-    return retrofit.create(GitHubService::class.java)
-}
+//fun provideHomeService(retrofit: Retrofit): HomeService {
+//    return retrofit.create(HomeService::class.java)
+//}
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     val gson = GsonBuilder()
@@ -92,8 +91,11 @@ fun provideOkHttpClient(
     chuckerInterceptor: ChuckerInterceptor,
     httpLoggingInterceptor: HttpLoggingInterceptor
 ): OkHttpClient {
-    return OkHttpClient.Builder().addInterceptor(chuckerInterceptor)
-        .addInterceptor(httpLoggingInterceptor).build()
+    return OkHttpClient
+        .Builder()
+        .addInterceptor(chuckerInterceptor)
+        .addInterceptor(httpLoggingInterceptor)
+        .build()
 }
 
 val profileModule = module {

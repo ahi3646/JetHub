@@ -14,7 +14,6 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
-import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -52,15 +51,6 @@ interface GistService {
         @Path("gist_id") gistId: String,
         @Path("comment_id") commentId: Int,
     ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PATCH("gists/{gist_id}/comments/{comment_id}")
-    suspend fun editGistComment(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String,
-        @Path("comment_id") commentId: Int,
-        @Body body: CommentRequestModel
-    ): Response<GistCommentResponse>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("gists/{gist_id}/comments")

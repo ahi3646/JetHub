@@ -15,7 +15,7 @@ interface AuthRepository {
 class AuthRepositoryImpl(private val context: Context) : AuthRepository {
 
     override suspend fun getAccessToken(code: String): Response<AccessTokenModel> {
-        return RestClient(context).gitHubService.getAccessToken(
+        return RestClient(context).authorizationService.getAccessToken(
             clientId = Constants.CLIENT_ID,
             clientSecret = Constants.CLIENT_SECRET,
             code = code,

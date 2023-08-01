@@ -51,7 +51,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         commentId: Int
     ): Response<Boolean> {
-        return RestClient(context).gitHubService.deleteComment(
+        return RestClient(context).commitService.deleteComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -66,7 +66,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         branch: String,
         body: String
     ): Response<CommentPostResponse> {
-        return RestClient(context).gitHubService.postCommitComment(
+        return RestClient(context).commitService.postCommitComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -81,7 +81,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         branch: String,
     ): Response<CommitModel> {
-        return RestClient(context).gitHubService.getCommit(
+        return RestClient(context).commitService.getCommit(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -95,7 +95,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         branch: String,
     ): Response<CommitCommentsModel> {
-        return RestClient(context).gitHubService.getCommitComments(
+        return RestClient(context).commitService.getCommitComments(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,

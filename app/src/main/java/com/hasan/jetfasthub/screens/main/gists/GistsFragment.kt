@@ -95,7 +95,9 @@ class GistsFragment : Fragment() {
                         state = state,
                         onNavigate = { dest, data ->
                             when (dest) {
-                                -1 -> findNavController().popBackStack()
+                                -1 -> {
+                                    findNavController().popBackStack()
+                                }
                                 R.id.action_gistsFragment_to_gistFragment -> {
                                     val bundle = Bundle()
                                     bundle.putString("gist_id", data)
@@ -265,14 +267,13 @@ private fun GistItemCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(6.dp)
-
         ) {
 
             Text(
                 text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

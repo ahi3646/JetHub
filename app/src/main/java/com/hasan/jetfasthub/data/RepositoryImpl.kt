@@ -151,7 +151,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<LabelsModel> {
-        return RestClient(context).gitHubService.getLabels(
+        return RestClient(context).repositoryService.getLabels(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -165,7 +165,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<TagsModel> {
-        return RestClient(context).gitHubService.getTags(
+        return RestClient(context).repositoryService.getTags(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -174,7 +174,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun getRepo(token: String, owner: String, repo: String): Response<RepoModel> {
-        return RestClient(context).gitHubService.getRepo(
+        return RestClient(context).repositoryService.getRepo(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -187,7 +187,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<Contributors> {
-        return RestClient(context).gitHubService.getContributors(
+        return RestClient(context).repositoryService.getContributors(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -201,7 +201,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<ReleasesModel> {
-        return RestClient(context).gitHubService.getReleases(
+        return RestClient(context).repositoryService.getReleases(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -210,7 +210,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun getReadmeAsHtml(token: String, url: String): Response<String> {
-        return RestClient(context).gitHubService.getReadmeAsHtml(
+        return RestClient(context).repositoryService.getReadmeAsHtml(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             url = url
         )
@@ -224,7 +224,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         path: String,
         ref: String
     ): Response<FilesModel> {
-        return RestClient(context).gitHubService.getContentFiles(
+        return RestClient(context).repositoryService.getContentFiles(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -238,7 +238,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<BranchesModel> {
-        return RestClient(context).gitHubService.getBranches(
+        return RestClient(context).repositoryService.getBranches(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -251,7 +251,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         branch: String
     ): Response<BranchModel> {
-        return RestClient(context).gitHubService.getBranch(
+        return RestClient(context).repositoryService.getBranch(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -267,7 +267,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         path: String,
         page: Int
     ): Response<CommitsModel> {
-        return RestClient(context).gitHubService.getCommits(
+        return RestClient(context).repositoryService.getCommits(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -282,7 +282,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<RepoSubscriptionModel> {
-        return RestClient(context).gitHubService.isWatchingRepo(
+        return RestClient(context).repositoryService.isWatchingRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -294,7 +294,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<RepoSubscriptionModel> {
-        return RestClient(context).gitHubService.watchRepo(
+        return RestClient(context).repositoryService.watchRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -306,7 +306,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<Boolean> {
-        return RestClient(context).gitHubService.unwatchRepo(
+        return RestClient(context).repositoryService.unwatchRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -318,7 +318,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<SubscriptionsModel> {
-        return RestClient(context).gitHubService.getWatchers(
+        return RestClient(context).repositoryService.getWatchers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -331,7 +331,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<StargazersModel> {
-        return RestClient(context).gitHubService.getStargazers(
+        return RestClient(context).repositoryService.getStargazers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -344,7 +344,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<Boolean> {
-        return RestClient(context).gitHubService.checkStarring(
+        return RestClient(context).repositoryService.checkStarring(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -352,7 +352,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun starRepo(token: String, owner: String, repo: String): Response<Boolean> {
-        return RestClient(context).gitHubService.starRepo(
+        return RestClient(context).repositoryService.starRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -360,7 +360,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun unStarRepo(token: String, owner: String, repo: String): Response<Boolean> {
-        return RestClient(context).gitHubService.unStarRepo(
+        return RestClient(context).repositoryService.unStarRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -372,7 +372,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<ForksModel> {
-        return RestClient(context).gitHubService.getForks(
+        return RestClient(context).repositoryService.getForks(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -384,7 +384,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<ForkResponseModel> {
-        return RestClient(context).gitHubService.forkRepo(
+        return RestClient(context).repositoryService.forkRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -396,7 +396,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<LicenseModel> {
-        return RestClient(context).gitHubService.getLicense(
+        return RestClient(context).repositoryService.getLicense(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,

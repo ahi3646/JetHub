@@ -23,7 +23,6 @@ interface SearchRepository {
 
     suspend fun searchCodes(token: String, query: String, page: Long): Response<CodeModel>
 
-
 }
 
 
@@ -34,7 +33,7 @@ class SearchRepositoryImpl(private val context: Context) : SearchRepository {
         query: String,
         page: Long
     ): Response<RepositoryModel> {
-        return RestClient(context).gitHubService.searchRepositories(
+        return RestClient(context).searchService.searchRepositories(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             query = query,
             page = page
@@ -46,7 +45,7 @@ class SearchRepositoryImpl(private val context: Context) : SearchRepository {
         query: String,
         page: Long
     ): Response<UserModel> {
-        return RestClient(context).gitHubService.searchUsers(
+        return RestClient(context).searchService.searchUsers(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             query = query,
             page = page
@@ -58,7 +57,7 @@ class SearchRepositoryImpl(private val context: Context) : SearchRepository {
         query: String,
         page: Long
     ): Response<IssuesModel> {
-        return RestClient(context).gitHubService.searchIssues(
+        return RestClient(context).searchService.searchIssues(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             query = query,
             page = page,
@@ -70,7 +69,7 @@ class SearchRepositoryImpl(private val context: Context) : SearchRepository {
         query: String,
         page: Long
     ): Response<CodeModel> {
-        return RestClient(context = context).gitHubService.searchCodes(
+        return RestClient(context = context).searchService.searchCodes(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             query = query,
             page = page

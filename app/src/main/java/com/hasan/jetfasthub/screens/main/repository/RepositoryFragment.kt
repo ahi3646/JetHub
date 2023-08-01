@@ -242,10 +242,6 @@ class RepositoryFragment : Fragment() {
                                     findNavController().navigate(dest)
                                 }
 
-                                R.id.action_repositoryFragment_to_premiumFragment -> {
-                                    findNavController().navigate(dest)
-                                }
-
                                 R.id.action_repositoryFragment_to_profileFragment -> {
                                     val bundle = Bundle()
                                     if (data != null) {
@@ -1242,11 +1238,7 @@ private fun FilesScreen(
 
                     if (state.Repository.data!!.permissions.admin) {
                         IconButton(onClick = {
-                            onItemClicked(
-                                R.id.action_repositoryFragment_to_premiumFragment,
-                                null,
-                                null
-                            )
+                            //implement action
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_add),
