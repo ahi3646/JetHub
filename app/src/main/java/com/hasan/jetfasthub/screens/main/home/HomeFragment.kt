@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.home
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -87,9 +88,8 @@ class HomeFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by viewModel()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
 
         val token = PreferenceHelper.getToken(requireContext())
 
@@ -102,6 +102,11 @@ class HomeFragment : Fragment() {
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
             }
             .launchIn(lifecycleScope)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
 
         return ComposeView(requireContext()).apply {
             setContent {

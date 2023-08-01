@@ -24,6 +24,16 @@ class CommitViewModel(
     private var _state: MutableStateFlow<CommitScreenState> = MutableStateFlow(CommitScreenState())
     val state = _state.asStateFlow()
 
+    fun init(owner: String, repo: String, branch: String){
+        _state.update {
+            it.copy(
+                CommitOwner = owner,
+                CommitRepo = repo,
+                CommitSha = branch
+            )
+        }
+    }
+
     fun downloadCommit(url: String, message: String) {
         viewModelScope.launch {
             downloader.downloadCommit(url, message)
@@ -148,6 +158,9 @@ class CommitViewModel(
 }
 
 data class CommitScreenState(
+    val CommitOwner: String = "",
+    val CommitSha: String = "",
+    val CommitRepo: String = "",
     val Commit: Resource<CommitModel> = Resource.Loading(),
     val CommitComments: Resource<CommitCommentsModel> = Resource.Loading(),
     val CurrentSheet: CommitScreenSheets = CommitScreenSheets.CommitInfoSheet

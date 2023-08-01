@@ -107,19 +107,19 @@ import java.util.Locale
 class CommitFragment : Fragment() {
 
     private val commitViewModel: CommitViewModel by viewModel()
+    private lateinit var token: String
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-
-        val token = PreferenceHelper.getToken(requireContext())
-        val owner = arguments?.getString("owner", "")
-        val repo = arguments?.getString("repo", "")
-        val sha = arguments?.getString("sha", "")
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // Consider using safe args plugin
+        token = PreferenceHelper.getToken(requireContext())
+        val owner = arguments?.getString("owner")
+        val repo = arguments?.getString("repo" )
+        val sha = arguments?.getString("sha" )
 
         if (!owner.isNullOrEmpty() && !repo.isNullOrEmpty() && !sha.isNullOrEmpty()) {
+
+            commitViewModel.init(owner, repo, sha)
 
             commitViewModel.getCommit(
                 token = token,
@@ -139,13 +139,21 @@ class CommitFragment : Fragment() {
             Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
         }
 
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by commitViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
-                        owner = owner!!,
-                        repo = repo!!,
+//                        owner = owner!!,
+//                        repo = repo!!,
                         state = state,
                         onNavigate = { dest, data, id ->
                             when (dest) {
@@ -155,8 +163,8 @@ class CommitFragment : Fragment() {
 
                                 R.id.action_commitFragment_to_editCommentFragment -> {
                                     val bundle = Bundle()
-                                    bundle.putString("owner", owner)
-                                    bundle.putString("repo", repo)
+                                    bundle.putString("owner", state.CommitOwner)
+                                    bundle.putString("repo", state.CommitRepo)
                                     bundle.putString("edit_comment", data)
                                     bundle.putInt("comment_id", id!!)
                                     findNavController().navigate(dest, bundle)
@@ -174,9 +182,9 @@ class CommitFragment : Fragment() {
                                 "post_comment" -> {
                                     commitViewModel.postCommitComment(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
-                                        branch = sha!!,
+                                        owner = state.CommitOwner,
+                                        repo = state.CommitRepo,
+                                        branch = state.CommitSha,
                                         body = data!!
                                     )
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -184,9 +192,9 @@ class CommitFragment : Fragment() {
                                             if (response) {
                                                 commitViewModel.getCommitComments(
                                                     token = token,
-                                                    owner = owner,
-                                                    repo = repo,
-                                                    branch = sha
+                                                    owner = state.CommitOwner,
+                                                    repo = state.CommitRepo,
+                                                    branch = state.CommitSha
                                                 )
                                             } else {
                                                 Toast.makeText(
@@ -249,8 +257,8 @@ class CommitFragment : Fragment() {
                                 "delete_comment" -> {
                                     commitViewModel.deleteComment(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.CommitOwner,
+                                        repo = state.CommitRepo,
                                         commentId = data!!.toInt()
                                     )
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -258,9 +266,9 @@ class CommitFragment : Fragment() {
                                             if (response) {
                                                 commitViewModel.getCommitComments(
                                                     token = token,
-                                                    owner = owner,
-                                                    repo = repo,
-                                                    branch = sha!!
+                                                    owner = state.CommitOwner,
+                                                    repo = state.CommitRepo,
+                                                    branch = state.CommitSha
                                                 )
                                             } else {
                                                 Toast.makeText(
@@ -288,8 +296,8 @@ class CommitFragment : Fragment() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MainContent(
-    owner: String,
-    repo: String,
+//    owner: String,
+//    repo: String,
     state: CommitScreenState,
     onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
@@ -341,7 +349,7 @@ private fun MainContent(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Text(
-                                    text = "$owner / $repo"
+                                    text = "${state.CommitOwner} / ${state.CommitRepo}"
                                 )
 
                                 Row(
@@ -417,7 +425,7 @@ private fun MainContent(
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
-                        repo = repo,
+                        repo = state.CommitRepo,
                         state = state.Commit,
                         onNavigate = onNavigate,
                         onCurrentSheetChanged = {
