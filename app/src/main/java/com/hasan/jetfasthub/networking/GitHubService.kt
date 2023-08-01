@@ -278,51 +278,51 @@ interface GitHubService {
 //        @Path("username") username: String,
 //    ): Response<Boolean>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("orgs/{org}/members")
-    suspend fun getOrganisationMembers(
-        @Header("Authorization") authToken: String,
-        @Path("org") organisation: String,
-        @Query("page") page: Int
-    ): Response<OrganisationMemberModel>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("orgs/{org}/members")
+//    suspend fun getOrganisationMembers(
+//        @Header("Authorization") authToken: String,
+//        @Path("org") organisation: String,
+//        @Query("page") page: Int
+//    ): Response<OrganisationMemberModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("orgs/{org}/repos")
+//    suspend fun getOrganisationsRepositories(
+//        @Header("Authorization") authToken: String,
+//        @Path("org") org: String,
+//        @Query("type") type: String,
+//        @Query("page") page: Int
+//    ): Response<OrganisationsRepositoryModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("orgs/{org}")
+//    suspend fun getOrganisation(
+//        @Header("Authorization") authToken: String,
+//        @Path("org") org: String,
+//    ): Response<OrganisationModel>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("orgs/{org}/repos")
-    suspend fun getOrganisationsRepositories(
-        @Header("Authorization") authToken: String,
-        @Path("org") org: String,
-        @Query("type") type: String,
-        @Query("page") page: Int
-    ): Response<OrganisationsRepositoryModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("orgs/{org}")
-    suspend fun getOrganisation(
-        @Header("Authorization") authToken: String,
-        @Path("org") org: String,
-    ): Response<OrganisationModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("notifications")
-    suspend fun getAllNotifications(
-        @Query("all") all: Boolean,
-        @Query("per_page") perPage: Int,
-        @Header("Authorization") authToken: String,
-    ): Response<Notification>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("notifications")
-    suspend fun getUnreadNotifications(
-        @Header("Authorization") authToken: String,
-        @Query("since") since: String
-    ): Response<Notification>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PATCH("notifications/threads/{thread_id}")
-    suspend fun markAsRead(
-        @Header("Authorization") authToken: String,
-        @Path("thread_id") threadId: String
-    ): Response<Int>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("notifications")
+//    suspend fun getAllNotifications(
+//        @Query("all") all: Boolean,
+//        @Query("per_page") perPage: Int,
+//        @Header("Authorization") authToken: String,
+//    ): Response<Notification>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("notifications")
+//    suspend fun getUnreadNotifications(
+//        @Header("Authorization") authToken: String,
+//        @Query("since") since: String
+//    ): Response<Notification>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @PATCH("notifications/threads/{thread_id}")
+//    suspend fun markAsRead(
+//        @Header("Authorization") authToken: String,
+//        @Path("thread_id") threadId: String
+//    ): Response<Int>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("search/repositories")

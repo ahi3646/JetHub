@@ -34,7 +34,7 @@ class OrganisationImpl(private val context: Context) : OrganisationRepository {
         token: String,
         organisation: String
     ): Response<OrganisationModel> {
-        return RestClient(context).gitHubService.getOrganisation(
+        return RestClient(context).organisationService.getOrganisation(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             org = organisation
         )
@@ -45,7 +45,7 @@ class OrganisationImpl(private val context: Context) : OrganisationRepository {
         organisation: String,
         page: Int
     ): Response<OrganisationMemberModel> {
-        return RestClient(context = context).gitHubService.getOrganisationMembers(
+        return RestClient(context = context).organisationService.getOrganisationMembers(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             organisation = organisation,
             page = page
@@ -58,7 +58,7 @@ class OrganisationImpl(private val context: Context) : OrganisationRepository {
         page: Int,
         type: String
     ): Response<OrganisationsRepositoryModel> {
-        return RestClient(context).gitHubService.getOrganisationsRepositories(
+        return RestClient(context).organisationService.getOrganisationsRepositories(
             authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             org = organisation,
             page = page,

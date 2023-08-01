@@ -6,6 +6,8 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
 import com.hasan.jetfasthub.networking.services.GistService
 import com.hasan.jetfasthub.networking.services.HomeService
+import com.hasan.jetfasthub.networking.services.NotificationsService
+import com.hasan.jetfasthub.networking.services.OrganisationService
 import com.hasan.jetfasthub.networking.services.ProfileService
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
@@ -41,6 +43,14 @@ class RestClient(context: Context) {
 
     val gitHubService: GitHubService by lazy {
         retrofit.create(GitHubService::class.java)
+    }
+
+    val notificationsService: NotificationsService by lazy {
+        retrofit.create(NotificationsService::class.java)
+    }
+
+    val organisationService: OrganisationService by lazy {
+        retrofit.create(OrganisationService::class.java)
     }
 
     val homeService: HomeService by lazy {
