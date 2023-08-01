@@ -81,198 +81,202 @@ interface GitHubService {
         //other parameters are optional
     ): Response<AccessTokenModel>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("user")
-    suspend fun getAuthenticatedUser(
-        @Header("Authorization") token: String,
-    ): Response<AuthenticatedUser>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("user")
+//    suspend fun getAuthenticatedUser(
+//        @Header("Authorization") token: String,
+//    ): Response<AuthenticatedUser>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/received_events")
+//    suspend fun getReceivedUserEvents(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String,
+//    ): Response<ReceivedEventsModel>
 
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}")
-    suspend fun getUser(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String
-    ): Response<GitHubUser>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}")
+//    suspend fun getUser(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String
+//    ): Response<GitHubUser>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/orgs")
+//    suspend fun getUserOrgs(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String
+//    ): Response<OrgModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/events")
+//    suspend fun getUserEvents(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String
+//    ): Response<UserEvents>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/repos")
+//    suspend fun getUserRepos(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String
+//    ): Response<UserRepositoryModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/starred")
+//    suspend fun getUserStarredRepos(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String,
+//        @Query("page") page: Int,
+//    ): Response<StarredRepoModel>
+//
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/starred")
+//    suspend fun getUserStarredReposCount(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String,
+//        @Query("per_page") per_page: Int
+//    ): Response<StarredRepoModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/following")
+//    suspend fun getUserFollowings(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String,
+//        @Query("page") page: Int,
+//    ): Response<FollowingModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/followers")
+//    suspend fun getUserFollowers(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String,
+//        @Query("page") page: Int,
+//    ): Response<FollowersModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("users/{username}/gists")
+//    suspend fun getUserGists(
+//        @Header("Authorization") token: String,
+//        @Path("username") username: String,
+//        @Query("page") page: Int,
+//    ): Response<GistsModel>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/orgs")
-    suspend fun getUserOrgs(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String
-    ): Response<OrgModel>
+    /**
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("gists/{gist_id}")
+//    suspend fun getGist(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<GistModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @POST("gists/{gist_id}/comments")
+//    suspend fun postGistComment(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String,
+//        @Body body: CommentRequestModel
+//    ): Response<GistCommentResponse>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @DELETE("gists/{gist_id}/comments/{comment_id}")
+//    suspend fun deleteGistComment(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String,
+//        @Path("comment_id") commentId: Int,
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @PATCH("gists/{gist_id}/comments/{comment_id}")
+//    suspend fun editGistComment(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String,
+//        @Path("comment_id") commentId: Int,
+//        @Body body: CommentRequestModel
+//    ): Response<GistCommentResponse>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("gists/{gist_id}/comments")
+//    suspend fun getGistComments(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<GistCommentsModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @POST("gists/{gist_id}/forks")
+//    suspend fun forkGist(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<GistForkResponse>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("gists/{gist_id}/star")
+//    suspend fun checkIfGistStarred(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @DELETE("gists/{gist_id}")
+//    suspend fun deleteGist(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @PUT("gists/{gist_id}/star")
+//    suspend fun starGist(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @DELETE("gists/{gist_id}/star")
+//    suspend fun unstarGist(
+//        @Header("Authorization") token: String,
+//        @Path("gist_id") gistId: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("gists/starred")
+//    suspend fun getStarredGists(
+//        @Header("Authorization") token: String,
+//        @Query("page") page: Int,
+//    ): Response<StarredGistModel>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("gists/public")
+//    suspend fun getPublicGists(
+//        @Header("Authorization") token: String,
+//        @Query("per_page") perPage: Int,
+//        @Query("page") page: Int,
+//    ): Response<PublicGistsModel>
+*/
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/events")
-    suspend fun getUserEvents(
-        @Header("Authorization") token: String,
-        @Path("username") username: String
-    ): Response<UserEvents>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/repos")
-    suspend fun getUserRepos(
-        @Header("Authorization") token: String,
-        @Path("username") username: String
-    ): Response<UserRepositoryModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/starred")
-    suspend fun getUserStarredRepos(
-        @Header("Authorization") token: String,
-        @Path("username") username: String,
-        @Query("page") page: Int,
-    ): Response<StarredRepoModel>
-
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/starred")
-    suspend fun getUserStarredReposCount(
-        @Header("Authorization") token: String,
-        @Path("username") username: String,
-        @Query("per_page") per_page: Int
-    ): Response<StarredRepoModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/following")
-    suspend fun getUserFollowings(
-        @Header("Authorization") token: String,
-        @Path("username") username: String,
-        @Query("page") page: Int,
-    ): Response<FollowingModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/followers")
-    suspend fun getUserFollowers(
-        @Header("Authorization") token: String,
-        @Path("username") username: String,
-        @Query("page") page: Int,
-    ): Response<FollowersModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/gists")
-    suspend fun getUserGists(
-        @Header("Authorization") token: String,
-        @Path("username") username: String,
-        @Query("page") page: Int,
-    ): Response<GistsModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("gists/{gist_id}")
-    suspend fun getGist(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<GistModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @POST("gists/{gist_id}/comments")
-    suspend fun postGistComment(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String,
-        @Body body: CommentRequestModel
-    ): Response<GistCommentResponse>
-
-    @Headers("Accept: application/vnd.github+json")
-    @DELETE("gists/{gist_id}/comments/{comment_id}")
-    suspend fun deleteGistComment(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String,
-        @Path("comment_id") commentId: Int,
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PATCH("gists/{gist_id}/comments/{comment_id}")
-    suspend fun editGistComment(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String,
-        @Path("comment_id") commentId: Int,
-        @Body body: CommentRequestModel
-    ): Response<GistCommentResponse>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("gists/{gist_id}/comments")
-    suspend fun getGistComments(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<GistCommentsModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @POST("gists/{gist_id}/forks")
-    suspend fun forkGist(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<GistForkResponse>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("gists/{gist_id}/star")
-    suspend fun checkIfGistStarred(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @DELETE("gists/{gist_id}")
-    suspend fun deleteGist(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PUT("gists/{gist_id}/star")
-    suspend fun starGist(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @DELETE("gists/{gist_id}/star")
-    suspend fun unstarGist(
-        @Header("Authorization") token: String,
-        @Path("gist_id") gistId: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("gists/starred")
-    suspend fun getStarredGists(
-        @Header("Authorization") token: String,
-        @Query("page") page: Int,
-    ): Response<StarredGistModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("gists/public")
-    suspend fun getPublicGists(
-        @Header("Authorization") token: String,
-        @Query("per_page") perPage: Int,
-        @Query("page") page: Int,
-    ): Response<PublicGistsModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("users/{username}/received_events")
-    suspend fun getReceivedUserEvents(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String,
-    ): Response<ReceivedEventsModel>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PUT("user/following/{username}")
-    suspend fun followUser(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String,
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @DELETE("user/following/{username}")
-    suspend fun unfollowUser(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String,
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @GET("user/following/{username}")
-    suspend fun getFollowStatus(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String,
-    ): Response<Boolean>
+//    @Headers("Accept: application/vnd.github+json")
+//    @PUT("user/following/{username}")
+//    suspend fun followUser(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String,
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @DELETE("user/following/{username}")
+//    suspend fun unfollowUser(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String,
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("user/following/{username}")
+//    suspend fun getFollowStatus(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String,
+//    ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("orgs/{org}/members")
@@ -352,26 +356,26 @@ interface GitHubService {
         @Query("page") page: Long
     ): Response<CodeModel>
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("user/blocks/{username}")
-    suspend fun isUserBlocked(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @PUT("user/blocks/{username}")
-    suspend fun blockUser(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String
-    ): Response<Boolean>
-
-    @Headers("Accept: application/vnd.github+json")
-    @DELETE("user/blocks/{username}")
-    suspend fun unblockUser(
-        @Header("Authorization") authToken: String,
-        @Path("username") username: String
-    ): Response<Boolean>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("user/blocks/{username}")
+//    suspend fun isUserBlocked(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @PUT("user/blocks/{username}")
+//    suspend fun blockUser(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String
+//    ): Response<Boolean>
+//
+//    @Headers("Accept: application/vnd.github+json")
+//    @DELETE("user/blocks/{username}")
+//    suspend fun unblockUser(
+//        @Header("Authorization") authToken: String,
+//        @Path("username") username: String
+//    ): Response<Boolean>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}")

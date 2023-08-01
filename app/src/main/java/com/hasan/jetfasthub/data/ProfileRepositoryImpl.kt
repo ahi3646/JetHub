@@ -66,21 +66,21 @@ interface ProfileRepository {
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
 
     override suspend fun getUser(token: String, username: String): Response<GitHubUser> {
-        return RestClient(context = context).gitHubService.getUser(
+        return RestClient(context = context).profileGist.getUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserOrganisations(token: String, username: String): Response<OrgModel> {
-        return RestClient(context = context).gitHubService.getUserOrgs(
+        return RestClient(context = context).profileGist.getUserOrgs(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserEvents(token: String, username: String): Response<UserEvents> {
-        return RestClient(context).gitHubService.getUserEvents(
+        return RestClient(context).profileGist.getUserEvents(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -90,7 +90,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         token: String,
         username: String
     ): Response<UserRepositoryModel> {
-        return RestClient(context).gitHubService.getUserRepos(
+        return RestClient(context).profileGist.getUserRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -101,7 +101,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<StarredRepoModel> {
-        return RestClient(context).gitHubService.getUserStarredRepos(
+        return RestClient(context).profileGist.getUserStarredRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -113,7 +113,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         per_page: Int
     ): Response<StarredRepoModel> {
-        return RestClient(context).gitHubService.getUserStarredReposCount(
+        return RestClient(context).profileGist.getUserStarredReposCount(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             per_page = per_page
@@ -125,7 +125,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowingModel> {
-        return RestClient(context).gitHubService.getUserFollowings(
+        return RestClient(context).profileGist.getUserFollowings(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -137,7 +137,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowersModel> {
-        return RestClient(context).gitHubService.getUserFollowers(
+        return RestClient(context).profileGist.getUserFollowers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -149,7 +149,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<GistsModel> {
-        return RestClient(context).gitHubService.getUserGists(
+        return RestClient(context).profileGist.getUserGists(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -157,42 +157,42 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
     }
 
     override suspend fun followUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).gitHubService.followUser(
+        return RestClient(context).profileGist.followUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
         )
     }
 
     override suspend fun getFollowStatus(token: String, username: String): Response<Boolean> {
-        return RestClient(context = context).gitHubService.getFollowStatus(
+        return RestClient(context = context).profileGist.getFollowStatus(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unfollowUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).gitHubService.unfollowUser(
+        return RestClient(context).profileGist.unfollowUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun isUserBlocked(token: String, username: String): Response<Boolean> {
-        return RestClient(context).gitHubService.isUserBlocked(
+        return RestClient(context).profileGist.isUserBlocked(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun blockUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).gitHubService.blockUser(
+        return RestClient(context).profileGist.blockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unblockUser(token: String, username: String): Response<Boolean> {
-        return RestClient(context).gitHubService.unblockUser(
+        return RestClient(context).profileGist.unblockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )

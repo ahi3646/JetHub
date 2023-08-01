@@ -24,13 +24,13 @@ interface HomeRepository {
 class HomeRepositoryImpl(private val context: Context) : HomeRepository {
 
     override suspend fun getAuthenticatedUser(token: String): Response<AuthenticatedUser> {
-        return RestClient(context = context).gitHubService.getAuthenticatedUser(
+        return RestClient(context = context).homeService.getAuthenticatedUser(
             token = "Bearer $PERSONAL_ACCESS_TOKEN"
         )
     }
 
     override suspend fun getUser(token: String, username: String): Response<GitHubUser> {
-        return RestClient(context = context).gitHubService.getUser(
+        return RestClient(context = context).homeService.getUser(
             authToken = PERSONAL_ACCESS_TOKEN,
             username = username
         )
@@ -39,7 +39,7 @@ class HomeRepositoryImpl(private val context: Context) : HomeRepository {
     override suspend fun getReceivedUserEvents(
         token: String, username: String
     ): Response<ReceivedEventsModel> {
-        return RestClient(context).gitHubService.getReceivedUserEvents(
+        return RestClient(context).homeService.getReceivedUserEvents(
             authToken = PERSONAL_ACCESS_TOKEN,
             username = username,
         )
