@@ -116,7 +116,6 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         headerValue: String
     ): Request.Builder {
         return request.newBuilder()
-            //.header("Content-Type","application/json")
             .header(headerName, headerValue)
     }
 

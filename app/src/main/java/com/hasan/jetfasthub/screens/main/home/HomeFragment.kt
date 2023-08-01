@@ -2,6 +2,7 @@ package com.hasan.jetfasthub.screens.main.home
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -173,7 +174,8 @@ class HomeFragment : Fragment() {
                                 }
 
                                 R.id.action_homeFragment_to_profileFragment -> {
-                                    val bundle = bundleOf("home_date" to data)
+                                    Log.d("ahi3646", "onCreateView: $data ")
+                                    val bundle = bundleOf("home_data" to data)
                                     findNavController().navigate(dest, bundle)
                                 }
 
@@ -542,7 +544,7 @@ private fun ItemEventCard(
                     .size(48.dp, 48.dp)
                     .clip(CircleShape)
                     .clickable {
-
+                        Log.d("ahi3646", "ItemEventCard: user login - ${eventItem.actor.login} ")
                         onNavigate(
                             R.id.action_homeFragment_to_profileFragment,
                             eventItem.actor.login,

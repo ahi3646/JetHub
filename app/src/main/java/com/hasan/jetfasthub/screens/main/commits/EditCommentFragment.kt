@@ -1,7 +1,6 @@
-package com.hasan.jetfasthub.screens.main
+package com.hasan.jetfasthub.screens.main.commits
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -67,7 +66,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -103,7 +101,7 @@ class EditCommentFragment : Fragment() {
                     MainContent(
                         editComment = editComment!!,
                         onEdit = { body ->
-                            when(destination){
+                            when (destination) {
                                 "GistFragment" -> {
                                     editCommentViewModel.editGistComment(
                                         token, commentId!!, gistId!!, body
@@ -125,6 +123,7 @@ class EditCommentFragment : Fragment() {
                                         }
                                         .launchIn(lifecycleScope)
                                 }
+
                                 "CommitFragment" -> {
                                     editCommentViewModel.edit(
                                         token = token,

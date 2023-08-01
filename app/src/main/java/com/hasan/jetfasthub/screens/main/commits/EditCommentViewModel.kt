@@ -11,7 +11,12 @@ import kotlinx.coroutines.launch
 
 class EditCommentViewModel(private val repository: CommentRepository) : ViewModel() {
 
-    fun editGistComment(token: String, commentId: Int, gistId: String, body: String): Flow<Boolean> = callbackFlow{
+    fun editGistComment(
+        token: String,
+        commentId: Int,
+        gistId: String,
+        body: String
+    ): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
                 repository.editGistComment(token, gistId, commentId, body).let { response ->
@@ -21,7 +26,7 @@ class EditCommentViewModel(private val repository: CommentRepository) : ViewMode
                         trySend(false)
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 trySend(false)
             }
         }

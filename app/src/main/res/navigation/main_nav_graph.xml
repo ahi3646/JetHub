@@ -410,7 +410,7 @@
 
     <fragment
         android:id="@+id/editCommentFragment"
-        android:name="com.hasan.jetfasthub.screens.main.EditCommentFragment"
+        android:name="com.hasan.jetfasthub.screens.main.commits.EditCommentFragment"
         android:label="EditCommentFragment" />
 
     <fragment

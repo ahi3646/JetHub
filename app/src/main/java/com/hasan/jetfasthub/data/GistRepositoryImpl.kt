@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
-import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
 import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkResponse
 import com.hasan.jetfasthub.screens.main.gists.gist_comment_response.GistCommentResponse
@@ -48,7 +48,7 @@ class GistRepositoryImpl(private val context: Context) : GistRepository {
         gistId: String,
         commentId: Int
     ): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.deleteGistComment(
+        return RestClient(context).gistService.deleteGistComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId,
             commentId = commentId
@@ -60,7 +60,7 @@ class GistRepositoryImpl(private val context: Context) : GistRepository {
         gistId: String,
         body: String
     ): Response<GistCommentResponse> {
-        return RetrofitInstance(context).gitHubService.postGistComment(
+        return RestClient(context).gistService.postGistComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId,
             body = CommentRequestModel(body = body)
@@ -68,28 +68,28 @@ class GistRepositoryImpl(private val context: Context) : GistRepository {
     }
 
     override suspend fun unstarGist(token: String, gistId: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.unstarGist(
+        return RestClient(context).gistService.unstarGist(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
     }
 
     override suspend fun starGist(token: String, gistId: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.starGist(
+        return RestClient(context).gistService.starGist(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
     }
 
     override suspend fun deleteGist(token: String, gistId: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.deleteGist(
+        return RestClient(context).gistService.deleteGist(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
     }
 
     override suspend fun getGist(token: String, gistId: String): Response<GistModel> {
-        return RetrofitInstance(context).gitHubService.getGist(
+        return RestClient(context).gistService.getGist(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
@@ -99,21 +99,21 @@ class GistRepositoryImpl(private val context: Context) : GistRepository {
         token: String,
         gistId: String
     ): Response<GistCommentsModel> {
-        return RetrofitInstance(context).gitHubService.getGistComments(
+        return RestClient(context).gistService.getGistComments(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
     }
 
     override suspend fun checkIfGistStarred(token: String, gistId: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.checkIfGistStarred(
+        return RestClient(context).gistService.checkIfGistStarred(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )
     }
 
     override suspend fun forkGist(token: String, gistId: String): Response<GistForkResponse> {
-        return RetrofitInstance(context).gitHubService.forkGist(
+        return RestClient(context).gistService.forkGist(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId
         )

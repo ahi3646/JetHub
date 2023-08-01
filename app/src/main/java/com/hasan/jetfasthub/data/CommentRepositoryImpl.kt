@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import android.util.Log
-import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentPostResponse
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
 import com.hasan.jetfasthub.screens.main.gists.gist_comment_response.GistCommentResponse
@@ -10,6 +10,7 @@ import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Response
 
 interface CommentRepository {
+
     suspend fun editComment(
         token: String,
         owner: String,
@@ -35,7 +36,7 @@ class CommentRepositoryImpl(private val context: Context) : CommentRepository {
         commentId: Int,
         body: String
     ): Response<GistCommentResponse> {
-        return RetrofitInstance(context).gitHubService.editGistComment(
+        return RestClient(context).gistService.editGistComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             gistId = gistId,
             commentId = commentId,
@@ -51,7 +52,7 @@ class CommentRepositoryImpl(private val context: Context) : CommentRepository {
         body: String
     ): Response<CommentPostResponse> {
         Log.d("ahi3646", "editComment: comment repo impl ")
-        return RetrofitInstance(context).gitHubService.editComment(
+        return RestClient(context).gitHubService.editComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,

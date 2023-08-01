@@ -7,7 +7,6 @@ import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
-import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

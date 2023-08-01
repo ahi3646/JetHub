@@ -13,13 +13,14 @@ import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 
 interface Downloader {
 
-    fun downloadCommit(url:String, message: String): Long
+    fun downloadCommit(url: String, message: String): Long
 
-    fun downloadRepo(url:String, message: String): Long
+    fun downloadRepo(url: String, message: String): Long
 
     fun downloadRelease(release: ReleaseDownloadModel): Long
 
-    fun downloadFile(url:String, message: String): Long
+    fun downloadFile(url: String, message: String): Long
+
 }
 
 class AndroidDownloader(context: Context) : Downloader {

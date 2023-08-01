@@ -102,18 +102,18 @@ val profileModule = module {
 }
 
 val organisationModule = module {
-    single<OrganisationRepository>{OrganisationImpl(get())}
-    viewModel{ OrganisationsViewModel(get()) }
+    single<OrganisationRepository> { OrganisationImpl(get()) }
+    viewModel { OrganisationsViewModel(get()) }
 }
 
 val gistsModule = module {
     single<GistsRepository> { GistsRepositoryImpl(get()) }
-    viewModel{ GistsViewModel(get()) }
+    viewModel { GistsViewModel(get()) }
 }
 
 val gistModule = module {
-    single <GistRepository>{ GistRepositoryImpl(get()) }
-    viewModel{ GistViewModel(get()) }
+    single<GistRepository> { GistRepositoryImpl(get()) }
+    viewModel { GistViewModel(get()) }
 }
 
 val eventsModule = module {
@@ -122,20 +122,20 @@ val eventsModule = module {
 }
 
 val repositoryModule = module {
-    single <Downloader>{ AndroidDownloader(get()) }
-    single <Repository>{ RepositoryImpl(get()) }
+    single<Downloader> { AndroidDownloader(get()) }
+    single<Repository> { RepositoryImpl(get()) }
     viewModel { RepositoryViewModel(get(), get()) }
 }
 
-val commitModule = module{
-    single <Downloader>{ AndroidDownloader(get()) }
-    single  <CommitRepository> {CommitRepositoryImpl(get())}
-    viewModel{ CommitViewModel(get(), get()) }
+val commitModule = module {
+    single<Downloader> { AndroidDownloader(get()) }
+    single<CommitRepository> { CommitRepositoryImpl(get()) }
+    viewModel { CommitViewModel(get(), get()) }
 }
 
 val commentEditModule = module {
-    single <CommentRepository>{ CommentRepositoryImpl(get()) }
-    viewModel{ EditCommentViewModel(get()) }
+    single<CommentRepository> { CommentRepositoryImpl(get()) }
+    viewModel { EditCommentViewModel(get()) }
 }
 
 val notificationsModule = module {

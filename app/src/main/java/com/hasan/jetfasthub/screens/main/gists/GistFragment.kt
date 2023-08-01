@@ -167,8 +167,6 @@ class GistFragment : Fragment() {
                         onAction = { action, data ->
                             when (action) {
 
-
-
                                 "delete_gist_comment" -> {
                                     gistViewModel.deleteGistComment(token, gistId!!, data!!.toInt())
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -480,7 +478,8 @@ private fun MainContent(
                 when (tabIndex) {
                     0 -> {
                         FilesScreen(
-                            state = state.Gist, onAction = onAction
+                            state = state.Gist,
+                            onAction = onAction
                         )
                     }
 
@@ -1199,7 +1198,9 @@ private fun Toolbar(
 
 @Composable
 private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -> Unit) {
-    Surface(shadowElevation = 10.dp, modifier = Modifier
+    Surface(
+        shadowElevation = 10.dp,
+        modifier = Modifier
         .padding(4.dp)
         .clickable {
             onAction("browser", fileModel.raw_url)

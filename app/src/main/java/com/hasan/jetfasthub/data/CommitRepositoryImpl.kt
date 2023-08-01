@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
-import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentPostResponse
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
@@ -51,7 +51,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         commentId: Int
     ): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.deleteComment(
+        return RestClient(context).gitHubService.deleteComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -66,7 +66,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         branch: String,
         body: String
     ): Response<CommentPostResponse> {
-        return RetrofitInstance(context).gitHubService.postCommitComment(
+        return RestClient(context).gitHubService.postCommitComment(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -81,7 +81,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         branch: String,
     ): Response<CommitModel> {
-        return RetrofitInstance(context).gitHubService.getCommit(
+        return RestClient(context).gitHubService.getCommit(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
@@ -95,7 +95,7 @@ class CommitRepositoryImpl(private val context: Context) : CommitRepository {
         repo: String,
         branch: String,
     ): Response<CommitCommentsModel> {
-        return RetrofitInstance(context).gitHubService.getCommitComments(
+        return RestClient(context).gitHubService.getCommitComments(
             token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,

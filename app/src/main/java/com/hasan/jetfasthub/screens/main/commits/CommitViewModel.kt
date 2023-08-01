@@ -157,6 +157,6 @@ sealed interface CommitScreenSheets {
 
     object CommitInfoSheet : CommitScreenSheets
 
-    class CommitDeleteRequestSheet( val commentId: Int) : CommitScreenSheets
+    class CommitDeleteRequestSheet(val commentId: Int) : CommitScreenSheets
 
 }

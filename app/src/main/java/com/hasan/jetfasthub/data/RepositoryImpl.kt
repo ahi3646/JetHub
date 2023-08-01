@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
-import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
 import com.hasan.jetfasthub.screens.main.repository.models.branches_model.BranchesModel
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
@@ -151,7 +151,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<LabelsModel> {
-        return RetrofitInstance(context).gitHubService.getLabels(
+        return RestClient(context).gitHubService.getLabels(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -165,7 +165,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<TagsModel> {
-        return RetrofitInstance(context).gitHubService.getTags(
+        return RestClient(context).gitHubService.getTags(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -174,7 +174,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun getRepo(token: String, owner: String, repo: String): Response<RepoModel> {
-        return RetrofitInstance(context).gitHubService.getRepo(
+        return RestClient(context).gitHubService.getRepo(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -187,7 +187,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<Contributors> {
-        return RetrofitInstance(context).gitHubService.getContributors(
+        return RestClient(context).gitHubService.getContributors(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -201,7 +201,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<ReleasesModel> {
-        return RetrofitInstance(context).gitHubService.getReleases(
+        return RestClient(context).gitHubService.getReleases(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -210,7 +210,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun getReadmeAsHtml(token: String, url: String): Response<String> {
-        return RetrofitInstance(context).gitHubService.getReadmeAsHtml(
+        return RestClient(context).gitHubService.getReadmeAsHtml(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             url = url
         )
@@ -224,7 +224,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         path: String,
         ref: String
     ): Response<FilesModel> {
-        return RetrofitInstance(context).gitHubService.getContentFiles(
+        return RestClient(context).gitHubService.getContentFiles(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -238,8 +238,8 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<BranchesModel> {
-        return RetrofitInstance(context).gitHubService.getBranches(
-            token = token,
+        return RestClient(context).gitHubService.getBranches(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
         )
@@ -251,7 +251,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         branch: String
     ): Response<BranchModel> {
-        return RetrofitInstance(context).gitHubService.getBranch(
+        return RestClient(context).gitHubService.getBranch(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -267,7 +267,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         path: String,
         page: Int
     ): Response<CommitsModel> {
-        return RetrofitInstance(context).gitHubService.getCommits(
+        return RestClient(context).gitHubService.getCommits(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -282,7 +282,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<RepoSubscriptionModel> {
-        return RetrofitInstance(context).gitHubService.isWatchingRepo(
+        return RestClient(context).gitHubService.isWatchingRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -294,7 +294,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<RepoSubscriptionModel> {
-        return RetrofitInstance(context).gitHubService.watchRepo(
+        return RestClient(context).gitHubService.watchRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -306,7 +306,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.unwatchRepo(
+        return RestClient(context).gitHubService.unwatchRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -318,7 +318,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<SubscriptionsModel> {
-        return RetrofitInstance(context).gitHubService.getWatchers(
+        return RestClient(context).gitHubService.getWatchers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo
@@ -331,7 +331,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         repo: String,
         page: Int
     ): Response<StargazersModel> {
-        return RetrofitInstance(context).gitHubService.getStargazers(
+        return RestClient(context).gitHubService.getStargazers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -344,7 +344,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.checkStarring(
+        return RestClient(context).gitHubService.checkStarring(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -352,7 +352,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun starRepo(token: String, owner: String, repo: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.starRepo(
+        return RestClient(context).gitHubService.starRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -360,7 +360,7 @@ class RepositoryImpl(private val context: Context) : Repository {
     }
 
     override suspend fun unStarRepo(token: String, owner: String, repo: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.unStarRepo(
+        return RestClient(context).gitHubService.unStarRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -372,7 +372,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<ForksModel> {
-        return RetrofitInstance(context).gitHubService.getForks(
+        return RestClient(context).gitHubService.getForks(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -384,7 +384,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<ForkResponseModel> {
-        return RetrofitInstance(context).gitHubService.forkRepo(
+        return RestClient(context).gitHubService.forkRepo(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,
@@ -396,7 +396,7 @@ class RepositoryImpl(private val context: Context) : Repository {
         owner: String,
         repo: String
     ): Response<LicenseModel> {
-        return RetrofitInstance(context).gitHubService.getLicense(
+        return RestClient(context).gitHubService.getLicense(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             owner = owner,
             repo = repo,

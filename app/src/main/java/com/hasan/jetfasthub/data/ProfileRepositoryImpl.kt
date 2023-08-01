@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
-import com.hasan.jetfasthub.networking.RetrofitInstance
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.followers_model.FollowersModel
@@ -14,6 +14,7 @@ import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
 interface ProfileRepository {
+
     suspend fun getUser(token: String, username: String): Response<GitHubUser>
 
     suspend fun getUserOrganisations(token: String, username: String): Response<OrgModel>
@@ -22,13 +23,29 @@ interface ProfileRepository {
 
     suspend fun getUserRepository(token: String, username: String): Response<UserRepositoryModel>
 
-    suspend fun getUserStarredRepos(token: String, username: String, page: Int): Response<StarredRepoModel>
+    suspend fun getUserStarredRepos(
+        token: String,
+        username: String,
+        page: Int
+    ): Response<StarredRepoModel>
 
-    suspend fun getUserStarredReposCount(token: String, username: String, per_page: Int): Response<StarredRepoModel>
+    suspend fun getUserStarredReposCount(
+        token: String,
+        username: String,
+        per_page: Int
+    ): Response<StarredRepoModel>
 
-    suspend fun getUserFollowings(token: String, username: String, page: Int): Response<FollowingModel>
+    suspend fun getUserFollowings(
+        token: String,
+        username: String,
+        page: Int
+    ): Response<FollowingModel>
 
-    suspend fun getUserFollowers(token: String, username: String, page: Int): Response<FollowersModel>
+    suspend fun getUserFollowers(
+        token: String,
+        username: String,
+        page: Int
+    ): Response<FollowersModel>
 
     suspend fun getUserGists(token: String, username: String, page: Int): Response<GistsModel>
 
@@ -49,22 +66,21 @@ interface ProfileRepository {
 class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
 
     override suspend fun getUser(token: String, username: String): Response<GitHubUser> {
-        return RetrofitInstance(context = context).gitHubService.getUser(
-//            authToken = token,
+        return RestClient(context = context).gitHubService.getUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserOrganisations(token: String, username: String): Response<OrgModel> {
-        return RetrofitInstance(context = context).gitHubService.getUserOrgs(
+        return RestClient(context = context).gitHubService.getUserOrgs(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun getUserEvents(token: String, username: String): Response<UserEvents> {
-        return  RetrofitInstance(context).gitHubService.getUserEvents(
+        return RestClient(context).gitHubService.getUserEvents(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -74,7 +90,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         token: String,
         username: String
     ): Response<UserRepositoryModel> {
-        return RetrofitInstance(context).gitHubService.getUserRepos(
+        return RestClient(context).gitHubService.getUserRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
@@ -85,7 +101,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<StarredRepoModel> {
-        return RetrofitInstance(context).gitHubService.getUserStarredRepos(
+        return RestClient(context).gitHubService.getUserStarredRepos(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -97,10 +113,10 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         per_page: Int
     ): Response<StarredRepoModel> {
-        return RetrofitInstance(context).gitHubService.getUserStarredReposCount(
+        return RestClient(context).gitHubService.getUserStarredReposCount(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
-            per_page =  per_page
+            per_page = per_page
         )
     }
 
@@ -109,7 +125,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowingModel> {
-        return RetrofitInstance(context).gitHubService.getUserFollowings(
+        return RestClient(context).gitHubService.getUserFollowings(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -121,7 +137,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<FollowersModel> {
-        return RetrofitInstance(context).gitHubService.getUserFollowers(
+        return RestClient(context).gitHubService.getUserFollowers(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -133,7 +149,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         username: String,
         page: Int
     ): Response<GistsModel> {
-        return RetrofitInstance(context).gitHubService.getUserGists(
+        return RestClient(context).gitHubService.getUserGists(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
             page = page
@@ -141,42 +157,42 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
     }
 
     override suspend fun followUser(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.followUser(
+        return RestClient(context).gitHubService.followUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username,
         )
     }
 
     override suspend fun getFollowStatus(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context = context).gitHubService.getFollowStatus(
+        return RestClient(context = context).gitHubService.getFollowStatus(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unfollowUser(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.unfollowUser(
+        return RestClient(context).gitHubService.unfollowUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun isUserBlocked(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.isUserBlocked(
+        return RestClient(context).gitHubService.isUserBlocked(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun blockUser(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.blockUser(
+        return RestClient(context).gitHubService.blockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )
     }
 
     override suspend fun unblockUser(token: String, username: String): Response<Boolean> {
-        return RetrofitInstance(context).gitHubService.unblockUser(
+        return RestClient(context).gitHubService.unblockUser(
             authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
             username = username
         )

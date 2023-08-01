@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.profile
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -124,6 +125,8 @@ class ProfileFragment : Fragment() {
 
         val extra = arguments?.getString("home_extra") ?: "0"
         val username = arguments?.getString("home_data") ?: ""
+
+        Log.d("ahi3646", "onCreateView: username - $username ")
 
         val startIndex = try {
             extra.toInt()

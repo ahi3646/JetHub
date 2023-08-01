@@ -434,7 +434,6 @@ interface GitHubService {
     ): Response<BranchModel>
 
 
-
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/labels")
     suspend fun getLabels(

@@ -4,17 +4,16 @@ import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
+import com.hasan.jetfasthub.networking.services.GistService
 import com.hasan.jetfasthub.utility.Constants
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RetrofitInstance(context: Context) {
+class RestClient(context: Context) {
 
     private val retrofit by lazy {
-        val logging = HttpLoggingInterceptor()
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+
         val client = OkHttpClient.Builder()
             .addInterceptor(
                 ChuckerInterceptor.Builder(context)
@@ -25,7 +24,7 @@ class RetrofitInstance(context: Context) {
                     .build()
             )
             //.addInterceptor(AuthenticationInterceptor())
-            .addInterceptor(logging).build()
+            .build()
 
         val gson = GsonBuilder()
             .setLenient()
@@ -37,7 +36,13 @@ class RetrofitInstance(context: Context) {
             .client(client)
             .build()
     }
+
     val gitHubService: GitHubService by lazy {
         retrofit.create(GitHubService::class.java)
     }
+
+    val gistService: GistService by lazy {
+        retrofit.create(GistService::class.java)
+    }
+
 }
