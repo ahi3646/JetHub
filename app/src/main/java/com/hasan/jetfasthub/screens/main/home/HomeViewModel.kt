@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.HomeRepository
-import com.hasan.jetfasthub.screens.main.home.authenticated_user.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.utility.Resource

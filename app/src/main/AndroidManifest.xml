@@ -29,6 +29,7 @@
                 <data
                     android:host="login"
                     android:scheme="jetfasthub" />
+
             </intent-filter>
 
         </activity>

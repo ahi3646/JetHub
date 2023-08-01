@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home.authenticated_user
+package com.hasan.jetfasthub.screens.main.home.authenticated_user_model
 
 data class Plan(
     val collaborators: Int,

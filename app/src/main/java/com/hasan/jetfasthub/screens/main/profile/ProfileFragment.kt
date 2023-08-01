@@ -304,20 +304,21 @@ private fun MainContent(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(title = {
+            TopAppBar(
+                title = {
                 Text(
                     color = Color.Black,
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     text = username,
                     style = MaterialTheme.typography.titleLarge,
                 )
-            }, navigationIcon = {
-                IconButton(onClick = {
+            },
+                navigationIcon = { IconButton(onClick = {
                     onNavigate(-1, null)
                 }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-                }
-            }, actions = {
+                } },
+                actions = {
                 IconButton(onClick = {
                     onAction("share", username)
                 }) {
@@ -352,7 +353,8 @@ private fun MainContent(
                     }
 
                 }
-            })
+            }
+            )
         },
     ) { contentPadding ->
         TabScreen(
@@ -389,20 +391,25 @@ fun TabScreen(
             .padding(contentPaddingValues)
             .fillMaxWidth()
     ) {
-        ScrollableTabRow(selectedTabIndex = tabIndex, containerColor = Color.White) {
+        ScrollableTabRow(
+            selectedTabIndex = tabIndex,
+            containerColor = androidx.compose.material.MaterialTheme.colors.surface
+        ) {
             tabs.forEachIndexed { index, title ->
                 if (title == "STARRED") {
                     val count = state.UserStarredRepositories.data?.size.toString()
                     Tab(
-                        text = { Text("$title ($count)") },
+                        text = { Text("$title ($count)", color = androidx.compose.material.MaterialTheme.colors.primary) },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
                     )
                 } else {
                     Tab(
                         text = { Text(title) },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
+                        modifier = Modifier.background(androidx.compose.material.MaterialTheme.colors.background)
                     )
                 }
             }

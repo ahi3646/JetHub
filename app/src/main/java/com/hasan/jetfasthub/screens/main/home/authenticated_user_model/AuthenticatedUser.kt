@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home.authenticated_user
+package com.hasan.jetfasthub.screens.main.home.authenticated_user_model
 
 data class AuthenticatedUser(
     val avatar_url: String,
