@@ -65,7 +65,6 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -77,6 +76,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class EditCommentFragment : Fragment() {
 
     private val editCommentViewModel: EditCommentViewModel by viewModel()
+    private lateinit var token: String
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,80 +84,99 @@ class EditCommentFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val token = PreferenceHelper.getToken(requireContext())
+        val owner = arguments?.getString("owner")
+        val repo = arguments?.getString("repo")
 
-        val owner = arguments?.getString("owner", "")
-        val repo = arguments?.getString("repo", "")
+        val destination = arguments?.getString("destination")
 
-        val destination = arguments?.getString("destination", "")
+        val gistId = arguments?.getString("gist_id")
+        val editComment = arguments?.getString("edit_comment")
+        val commentId = arguments?.getInt("comment_id")
 
-        val gistId = arguments?.getString("gist_id", "")
-        val editComment = arguments?.getString("edit_comment", "")
-        val commentId = arguments?.getInt("comment_id", 0)
-
-        return ComposeView(requireContext()).apply {
-            setContent {
-                JetFastHubTheme {
-                    MainContent(
-                        editComment = editComment!!,
-                        onEdit = { body ->
-                            when (destination) {
-                                "GistFragment" -> {
-                                    editCommentViewModel.editGistComment(
-                                        token, commentId!!, gistId!!, body
-                                    )
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach {
-                                            if (it) {
-                                                //delay(300)
-                                                findNavController().popBackStack()
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't edit a comment !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                delay(300)
-                                                findNavController().popBackStack()
+        return if (
+            (destination != null && owner != null && repo != null) ||
+            (destination != null && editComment != null && commentId != null && gistId != null)
+        ) {
+            ComposeView(requireContext()).apply {
+                setContent {
+                    JetFastHubTheme {
+                        MainContent(
+                            editComment = editComment!!,
+                            onEdit = { body ->
+                                when (destination) {
+                                    "GistFragment" -> {
+                                        editCommentViewModel.editGistComment(
+                                            token, commentId!!, gistId!!, body
+                                        )
+                                            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                            .onEach {
+                                                if (it) {
+                                                    //delay(300)
+                                                    findNavController().popBackStack()
+                                                } else {
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Can't edit a comment !",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    delay(300)
+                                                    findNavController().popBackStack()
+                                                }
                                             }
-                                        }
-                                        .launchIn(lifecycleScope)
-                                }
+                                            .launchIn(lifecycleScope)
+                                    }
 
-                                "CommitFragment" -> {
-                                    editCommentViewModel.edit(
-                                        token = token,
-                                        owner = owner!!,
-                                        repo = repo!!,
-                                        commentId = commentId!!,
-                                        body = body
-                                    )
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach {
-                                            if (it) {
-                                                //delay(300)
-                                                findNavController().popBackStack()
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't edit a comment !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                delay(300)
-                                                findNavController().popBackStack()
+                                    "CommitFragment" -> {
+                                        editCommentViewModel.edit(
+                                            token = token,
+                                            owner = owner!!,
+                                            repo = repo!!,
+                                            commentId = commentId!!,
+                                            body = body
+                                        )
+                                            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                            .onEach {
+                                                if (it) {
+                                                    //delay(300)
+                                                    findNavController().popBackStack()
+                                                } else {
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Can't edit a comment !",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    delay(300)
+                                                    findNavController().popBackStack()
+                                                }
                                             }
-                                        }
-                                        .launchIn(lifecycleScope)
+                                            .launchIn(lifecycleScope)
+                                    }
                                 }
+                            },
+                            onDiscard = {
+                                findNavController().popBackStack()
                             }
-                        },
-                        onDiscard = {
-                            findNavController().popBackStack()
-                        }
-                    )
+                        )
+                    }
+                }
+            }
+        } else {
+            ComposeView(requireContext()).apply {
+                setContent {
+                    Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
+                    JetFastHubTheme {
+                        MainContent(
+                            editComment = "",
+                            onEdit = { },
+                            onDiscard = {
+                                findNavController().popBackStack()
+                            }
+                        )
+                    }
                 }
             }
         }
+
     }
 
 }

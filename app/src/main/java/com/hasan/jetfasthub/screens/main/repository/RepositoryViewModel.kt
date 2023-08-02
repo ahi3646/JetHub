@@ -658,9 +658,20 @@ class RepositoryViewModel(
         }
     }
 
+    fun setFields(owner: String, repo: String){
+        _state.update {
+            it.copy(
+                RepoOwner = owner,
+                RepoName = repo
+            )
+        }
+    }
+
 }
 
 data class RepositoryScreenState(
+    val RepoOwner: String = "",
+    val RepoName: String = "",
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val Repository: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),

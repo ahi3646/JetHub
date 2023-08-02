@@ -125,95 +125,107 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class RepositoryFragment : Fragment() {
 
     private val repositoryViewModel: RepositoryViewModel by viewModel()
+    private lateinit var token: String
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        token = PreferenceHelper.getToken(requireContext())
+        val owner = arguments?.getString("home_data")
+        val repo = arguments?.getString("home_extra")
+
+        if(owner != null && repo != null){
+
+            repositoryViewModel.setFields(owner, repo)
+
+            repositoryViewModel.getRepo(
+                token = token, owner = owner, repo = repo
+            )
+
+            repositoryViewModel.isWatchingRepo(
+                token = token, owner = owner, repo = repo
+            )
+
+            repositoryViewModel.isStarringRepo(
+                token = token, owner = owner, repo = repo
+            )
+
+            repositoryViewModel.getBranches(
+                token = token, owner = owner, repo = repo
+            )
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .onEach { branches ->
+
+                    val branchesList = arrayListOf<String>()
+                    branches.forEach {
+                        branchesList.add(it.name)
+                    }
+
+                    val initialBranch = if (branchesList.isNotEmpty()) {
+                        if (branchesList.contains("main")) {
+                            "main"
+                        } else if (branchesList.contains("master")) {
+                            "master"
+                        } else {
+                            branchesList[0]
+                        }
+                    } else {
+                        "main"
+                    }
+
+                    repositoryViewModel.updateFilesRef(initialBranch)
+                    repositoryViewModel.updateCommitsRef(initialBranch)
+
+                    repositoryViewModel.getBranch(
+                        token = token,
+                        owner = owner,
+                        repo = repo,
+                        branch = initialBranch
+                    )
+
+                    repositoryViewModel.getContentFiles(
+                        token = token,
+                        owner = owner,
+                        repo = repo,
+                        path = "",
+                        ref = initialBranch
+                    )
+
+                    repositoryViewModel.getCommits(
+                        token = token,
+                        owner = owner,
+                        repo = repo,
+                        branch = initialBranch,
+                        page = 1,
+                        path = ""
+                    )
+
+                }
+                .launchIn(lifecycleScope)
+
+            repositoryViewModel.getTags(
+                token = token, owner = owner, repo = repo, page = 1
+            )
+
+            repositoryViewModel.getLabels(
+                token = token, owner = owner, repo = repo, page = 1
+            )
+
+            repositoryViewModel.getReleases(
+                token = token, owner = owner, repo = repo, page = 1
+            )
+
+            repositoryViewModel.getContributors(
+                token = token, owner = owner, repo = repo, page = 1
+            )
+        }else{
+            Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
+        }
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-
-        val token = PreferenceHelper.getToken(requireContext())
-        val owner = arguments?.getString("home_data") ?: ""
-        val repo = arguments?.getString("home_extra") ?: ""
-
-        repositoryViewModel.getRepo(
-            token = token, owner = owner, repo = repo
-        )
-
-        repositoryViewModel.isWatchingRepo(
-            token = token, owner = owner, repo = repo
-        )
-
-        repositoryViewModel.isStarringRepo(
-            token = token, owner = owner, repo = repo
-        )
-
-        repositoryViewModel.getBranches(
-            token = token, owner = owner, repo = repo
-        )
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { branches ->
-
-                val branchesList = arrayListOf<String>()
-                branches.forEach {
-                    branchesList.add(it.name)
-                }
-
-                val initialBranch = if (branchesList.isNotEmpty()) {
-                    if (branchesList.contains("main")) {
-                        "main"
-                    } else if (branchesList.contains("master")) {
-                        "master"
-                    } else {
-                        branchesList[0]
-                    }
-                } else {
-                    "main"
-                }
-
-                repositoryViewModel.updateFilesRef(initialBranch)
-                repositoryViewModel.updateCommitsRef(initialBranch)
-
-                repositoryViewModel.getBranch(
-                    token = token,
-                    owner = owner,
-                    repo = repo,
-                    branch = initialBranch
-                )
-
-                repositoryViewModel.getContentFiles(
-                    token = token,
-                    owner = owner,
-                    repo = repo,
-                    path = "",
-                    ref = initialBranch
-                )
-
-                repositoryViewModel.getCommits(
-                    token = token,
-                    owner = owner,
-                    repo = repo,
-                    branch = initialBranch,
-                    page = 1,
-                    path = ""
-                )
-
-            }
-            .launchIn(lifecycleScope)
-
-        repositoryViewModel.getTags(
-            token = token, owner = owner, repo = repo, page = 1
-        )
-
-        repositoryViewModel.getLabels(
-            token = token, owner = owner, repo = repo, page = 1
-        )
-
-        repositoryViewModel.getReleases(
-            token = token, owner = owner, repo = repo, page = 1
-        )
-
-        repositoryViewModel.getContributors(
-            token = token, owner = owner, repo = repo, page = 1
-        )
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -245,10 +257,10 @@ class RepositoryFragment : Fragment() {
                                 R.id.action_repositoryFragment_to_profileFragment -> {
                                     val bundle = Bundle()
                                     if (data != null) {
-                                        bundle.putString("home_data", data)
+                                        bundle.putString("username", data)
                                     }
                                     if (extra != null) {
-                                        bundle.putString("home_extra", extra)
+                                        bundle.putString("start_index", extra)
                                     }
                                     findNavController().navigate(dest, bundle)
                                 }
@@ -267,8 +279,8 @@ class RepositoryFragment : Fragment() {
 
                                 R.id.action_repositoryFragment_to_commitFragment -> {
                                     val bundle = Bundle()
-                                    bundle.putString("owner", owner)
-                                    bundle.putString("repo", repo)
+                                    bundle.putString("owner", state.RepoOwner)
+                                    bundle.putString("repo", state.RepoName)
                                     if (data != null) {
                                         bundle.putString("sha", data)
                                     }
@@ -319,131 +331,6 @@ class RepositoryFragment : Fragment() {
                                         .show()
                                 }
 
-                                "on_path_change" -> {
-                                    val paths = state.Paths
-
-                                    if (paths.contains(data) && data != paths[paths.lastIndex]) {
-                                        val newPaths = paths.subList(
-                                            0,
-                                            state.Paths.indexOf(data) + 1
-                                        )
-                                        repositoryViewModel.updatePaths(newPaths)
-
-                                        repositoryViewModel.getContentFiles(
-                                            token = token,
-                                            owner = owner,
-                                            repo = repo,
-                                            path = data!!,
-                                            ref = state.FilesRef
-                                        )
-
-                                    } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
-                                        //just repeatable action
-                                    } else {
-                                        val newPaths = paths.toMutableList()
-                                        newPaths.add(data ?: "")
-                                        repositoryViewModel.updatePaths(newPaths)
-
-                                        repositoryViewModel.getContentFiles(
-                                            token = token,
-                                            owner = owner,
-                                            repo = repo,
-                                            path = data!!,
-                                            ref = state.FilesRef
-                                        )
-                                    }
-
-                                }
-
-                                "watch_repo" -> {
-                                    repositoryViewModel.watchRepo(
-                                        token, owner, repo
-                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        if (it.subscribed) {
-                                            repositoryViewModel.getRepo(
-                                                token = token, owner = owner, repo = repo
-                                            )
-                                        }
-                                    }.launchIn(lifecycleScope)
-                                }
-
-                                "unwatch_repo" -> {
-                                    repositoryViewModel.unwatchRepo(
-                                        token, owner, repo
-                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        if (it) {
-                                            repositoryViewModel.getRepo(
-                                                token = token, owner = owner, repo = repo
-                                            )
-                                        }
-                                    }.launchIn(lifecycleScope)
-                                }
-
-                                "star_repo" -> {
-                                    repositoryViewModel.starRepo(
-                                        token, owner, repo
-                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        if (it) {
-                                            //repositoryViewModel.changeStarringStatus(true)
-                                            Toast.makeText(
-                                                requireContext(),
-                                                "You starred repo",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            repositoryViewModel.getRepo(
-                                                token = token, owner = owner, repo = repo
-                                            )
-                                        } else {
-                                            Toast.makeText(
-                                                requireContext(),
-                                                "Action can't be done currently",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }.launchIn(lifecycleScope)
-                                }
-
-                                "un_star_repo" -> {
-                                    repositoryViewModel.unStarRepo(
-                                        token, owner, repo
-                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
-                                        if (it) {
-                                            Toast.makeText(
-                                                requireContext(),
-                                                "You unstarred repo",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            repositoryViewModel.getRepo(
-                                                token = token, owner = owner, repo = repo
-                                            )
-                                        } else {
-                                            Toast.makeText(
-                                                requireContext(),
-                                                "Action can't be done currently",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }.launchIn(lifecycleScope)
-                                }
-
-                                "fork_repo" -> {
-                                    repositoryViewModel.forkRepo(token, owner, repo)
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach {
-                                            if (it) {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "You forked this repository!",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                repositoryViewModel.getRepo(
-                                                    token = token, owner = owner, repo = repo
-                                                )
-                                            }
-                                        }
-                                        .launchIn(lifecycleScope)
-                                }
-
                                 "download" -> {
                                     val message = Uri.parse(
                                         data!!
@@ -464,6 +351,132 @@ class RepositoryFragment : Fragment() {
                                     )
                                 }
 
+                                "on_path_change" -> {
+                                    val paths = state.Paths
+
+                                    if (paths.contains(data) && data != paths[paths.lastIndex]) {
+                                        val newPaths = paths.subList(
+                                            0,
+                                            state.Paths.indexOf(data) + 1
+                                        )
+                                        repositoryViewModel.updatePaths(newPaths)
+
+                                        repositoryViewModel.getContentFiles(
+                                            token = token,
+                                            owner = state.RepoOwner,
+                                            repo = state.RepoName,
+                                            path = data!!,
+                                            ref = state.FilesRef
+                                        )
+
+                                    } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
+                                        //just repeatable action
+                                    } else {
+                                        val newPaths = paths.toMutableList()
+                                        newPaths.add(data ?: "")
+                                        repositoryViewModel.updatePaths(newPaths)
+
+                                        repositoryViewModel.getContentFiles(
+                                            token = token,
+                                            owner = state.RepoOwner,
+                                            repo = state.RepoName,
+                                            path = data!!,
+                                            ref = state.FilesRef
+                                        )
+                                    }
+
+                                }
+
+                                "watch_repo" -> {
+                                    repositoryViewModel.watchRepo(
+                                        token, state.RepoOwner, state.RepoName
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it.subscribed) {
+                                            repositoryViewModel.getRepo(
+                                                token = token,
+                                                owner = state.RepoOwner,
+                                                repo = state.RepoName
+                                            )
+                                        }
+                                    }.launchIn(lifecycleScope)
+                                }
+
+                                "unwatch_repo" -> {
+                                    repositoryViewModel.unwatchRepo(
+                                        token, state.RepoOwner, state.RepoName
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it) {
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                            )
+                                        }
+                                    }.launchIn(lifecycleScope)
+                                }
+
+                                "star_repo" -> {
+                                    repositoryViewModel.starRepo(
+                                        token, state.RepoOwner, state.RepoName
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it) {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "You starred repo",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Action can't be done currently",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
+                                }
+
+                                "un_star_repo" -> {
+                                    repositoryViewModel.unStarRepo(
+                                        token, state.RepoOwner, state.RepoName
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+                                        if (it) {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "You unstarred repo",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            repositoryViewModel.getRepo(
+                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Action can't be done currently",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
+                                }
+
+                                "fork_repo" -> {
+                                    repositoryViewModel.forkRepo(token, state.RepoOwner, state.RepoName)
+                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach {
+                                            if (it) {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "You forked this repository!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                repositoryViewModel.getRepo(
+                                                    token = token, owner = state.RepoOwner, repo = state.RepoName
+                                                )
+                                            }
+                                        }
+                                        .launchIn(lifecycleScope)
+                                }
+
                                 "repo_download_link_change" -> {
                                     repositoryViewModel.updateDownloadLink(Resource.Success(data!!))
                                 }
@@ -474,16 +487,16 @@ class RepositoryFragment : Fragment() {
 
                                     repositoryViewModel.getBranch(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.RepoOwner,
+                                        repo = state.RepoName,
                                         branch = data ?: "main"
                                     )
                                     val newPaths = state.Paths.subList(0, 1)
                                     repositoryViewModel.updatePaths(newPaths)
                                     repositoryViewModel.getContentFiles(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.RepoOwner,
+                                        repo = state.RepoName,
                                         path = "",
                                         ref = data ?: "main"
                                     )
@@ -495,8 +508,8 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.updatePaths(newPaths)
                                     repositoryViewModel.getContentFiles(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.RepoOwner,
+                                        repo = state.RepoName,
                                         path = "",
                                         ref = data
                                     )
@@ -506,8 +519,8 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.updateCommitsRef(data ?: "main")
                                     repositoryViewModel.getCommits(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.RepoOwner,
+                                        repo = state.RepoName,
                                         branch = data ?: "main",
                                         page = 1,
                                         path = ""
@@ -518,8 +531,8 @@ class RepositoryFragment : Fragment() {
                                     repositoryViewModel.updateCommitsRef(data ?: "main")
                                     repositoryViewModel.getCommits(
                                         token = token,
-                                        owner = owner,
-                                        repo = repo,
+                                        owner = state.RepoOwner,
+                                        repo = state.RepoName,
                                         branch = data ?: "main",
                                         page = 1,
                                         path = ""
@@ -2007,7 +2020,7 @@ private fun ContributorsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!")
             }
         }
     }
@@ -2122,9 +2135,9 @@ private fun PullRequestsScreen(paddingValues: PaddingValues) {
                 selected = tabIndex == index, onClick = { tabIndex = index },
                 text = {
                     if (tabIndex == index) {
-                        androidx.compose.material3.Text(title, color = Color.Blue)
+                        Text(title, color = Color.Blue)
                     } else {
-                        androidx.compose.material3.Text(title, color = Color.Black)
+                        Text(title, color = Color.Black)
                     }
                 },
             )
@@ -2153,9 +2166,9 @@ private fun ProjectsScreen(paddingValues: PaddingValues) {
                 selected = tabIndex == index, onClick = { tabIndex = index },
                 text = {
                     if (tabIndex == index) {
-                        androidx.compose.material3.Text(title, color = Color.Blue)
+                        Text(title, color = Color.Blue)
                     } else {
-                        androidx.compose.material3.Text(title, color = Color.Black)
+                        Text(title, color = Color.Black)
                     }
                 },
             )
@@ -2753,7 +2766,7 @@ private fun Toolbar(
                             }
                         }) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_star),
+                                painter = painterResource(id = R.drawable.ic_star_filled),
                                 contentDescription = "Star",
                                 tint = if (state.isStarring) Color.Blue else Color.Black
                             )

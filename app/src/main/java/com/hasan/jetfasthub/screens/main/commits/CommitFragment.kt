@@ -152,8 +152,6 @@ class CommitFragment : Fragment() {
                 val state by commitViewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
-//                        owner = owner!!,
-//                        repo = repo!!,
                         state = state,
                         onNavigate = { dest, data, id ->
                             when (dest) {
@@ -171,7 +169,7 @@ class CommitFragment : Fragment() {
                                 }
 
                                 R.id.action_commitFragment_to_profileFragment -> {
-                                    val bundle = bundleOf("home_data" to data)
+                                    val bundle = bundleOf("username" to data)
                                     findNavController().navigate(dest, bundle)
                                 }
                             }

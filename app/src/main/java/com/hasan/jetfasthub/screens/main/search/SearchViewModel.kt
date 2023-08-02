@@ -18,6 +18,12 @@ class SearchViewModel(private val repository: SearchRepository) : ViewModel() {
     private var _state: MutableStateFlow<SearchScreenState> = MutableStateFlow(SearchScreenState())
     val state = _state.asStateFlow()
 
+    fun setInitialQuery(query: String){
+        _state.update {
+            it.copy(InitialQuery = query)
+        }
+    }
+
     fun searchRepositories(token: String, query: String, page: Long) {
         _state.update {
             it.copy(Repositories = ResourceWithInitial.Loading())
@@ -137,6 +143,7 @@ class SearchViewModel(private val repository: SearchRepository) : ViewModel() {
 }
 
 data class SearchScreenState(
+    val InitialQuery: String  = "",
     val Repositories: ResourceWithInitial<RepositoryModel> = ResourceWithInitial.Initial(),
     val Users: ResourceWithInitial<UserModel> = ResourceWithInitial.Initial(),
     val Issues: ResourceWithInitial<IssuesModel> = ResourceWithInitial.Initial(),

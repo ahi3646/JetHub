@@ -27,6 +27,15 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
         MutableStateFlow(ProfileScreenState())
     val state = _state.asStateFlow()
 
+    fun setUserName( username: String, authUser: String){
+        _state.update {
+            it.copy(
+                AuthUsername  = authUser,
+                Username = username
+            )
+        }
+    }
+
     fun getUser(token: String, username: String) {
         viewModelScope.launch {
             try {
@@ -292,7 +301,7 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
             try {
                 repository.unfollowUser(token, username).let { response ->
                     if (response.code() == 204) {
-                        trySend(false)
+                        trySend(true)
                         _state.update {
                             it.copy(
                                 isFollowing = false,
@@ -406,6 +415,8 @@ class ProfileViewModel(private val repository: ProfileRepository) : ViewModel() 
 
 
 data class ProfileScreenState(
+    val Username: String = "",
+    val AuthUsername: String = "",
     val OverviewScreenState: UserOverviewScreen = UserOverviewScreen.Loading,
     val UserOrganisations: Resource<OrgModel> = Resource.Loading(),
     val UserEvents: Resource<UserEvents> = Resource.Loading(),
@@ -416,7 +427,9 @@ data class ProfileScreenState(
     val UserGists: Resource<GistsModel> = Resource.Loading(),
     val isFollowing: Boolean = false,
     val isUserBlocked: Boolean = false
-)
+){
+    fun isMe() = Username == AuthUsername
+}
 
 sealed interface UserOverviewScreen {
 

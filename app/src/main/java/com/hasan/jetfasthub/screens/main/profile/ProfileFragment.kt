@@ -1,9 +1,9 @@
 package com.hasan.jetfasthub.screens.main.profile
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,7 +69,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -119,40 +118,54 @@ class ProfileFragment : Fragment() {
 
     private val profileViewModel: ProfileViewModel by viewModel()
 
+    private lateinit var token: String
+    private var startIndex: Int = 0
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+
+        token = PreferenceHelper.getToken(requireContext())
+        val authUser = PreferenceHelper.getAuthenticatedUsername(context)
+
+        val username = arguments?.getString("username")
+        val extra = arguments?.getString("start_index") ?: "0"
+
+        if (username != null) {
+
+            profileViewModel.setUserName(username, authUser)
+
+            profileViewModel.getUser(token, username)
+            profileViewModel.getUserOrganisations(token, username)
+            profileViewModel.getUserEvents(token, username)
+            profileViewModel.getUserRepositories(token, username)
+            profileViewModel.getUserStarredRepos(token, username, 1)
+            profileViewModel.getUserFollowings(token, username, 1)
+            profileViewModel.getUserFollowers(token, username, 1)
+            profileViewModel.getUserGists(token, username, 1)
+            profileViewModel.getFollowStatus(token, username)
+
+            startIndex = try {
+                extra.toInt()
+            } catch (e: Exception) {
+                0
+            }
+
+        } else {
+            Toast.makeText(context, "Can't identify a user!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-
-        val extra = arguments?.getString("home_extra") ?: "0"
-        val username = arguments?.getString("home_data") ?: ""
-
-        Log.d("ahi3646", "onCreateView: username - $username ")
-
-        val startIndex = try {
-            extra.toInt()
-        } catch (e: Exception) {
-            0
-        }
-
-        val token = PreferenceHelper.getToken(requireContext())
-
-        profileViewModel.getUser(token, username)
-        profileViewModel.getUserOrganisations(token, username)
-        profileViewModel.getUserEvents(token, username)
-        profileViewModel.getUserRepositories(token, username)
-        profileViewModel.getUserStarredRepos(token, username, 1)
-        profileViewModel.getUserFollowings(token, username, 1)
-        profileViewModel.getUserFollowers(token, username, 1)
-        profileViewModel.getUserGists(token, username, 1)
-        profileViewModel.getFollowStatus(token, username)
 
         return ComposeView(requireContext()).apply {
             setContent {
 
                 val state by profileViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(startIndex = startIndex,
-                        username = username,
+                    MainContent(
+                        startIndex = startIndex,
                         state = state,
                         onAction = { action, data ->
                             when (action) {
@@ -185,11 +198,11 @@ class ProfileFragment : Fragment() {
                                 }
 
                                 "isUserBlocked" -> {
-                                    profileViewModel.isUserBlocked(token, username)
+                                    profileViewModel.isUserBlocked(token, state.Username)
                                 }
 
                                 "block" -> {
-                                    profileViewModel.blockUser(token, username)
+                                    profileViewModel.blockUser(token, state.Username)
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
                                             if (it) {
@@ -209,7 +222,7 @@ class ProfileFragment : Fragment() {
                                 }
 
                                 "unblock" -> {
-                                    profileViewModel.unblockUser(token, username)
+                                    profileViewModel.unblockUser(token, state.Username)
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
                                             if (it) {
@@ -230,22 +243,24 @@ class ProfileFragment : Fragment() {
                             }
                         },
                         onNavigate = { dest, data ->
-                            when(dest){
-                                -1 -> { findNavController().popBackStack() }
+                            when (dest) {
+                                -1 -> {
+                                    findNavController().popBackStack()
+                                }
 
                                 R.id.action_profileFragment_self -> {
-                                    val bundle = bundleOf("home_data" to data)
+                                    val bundle = bundleOf("username" to data)
                                     findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_profileFragment_to_organisationsFragment -> {
-                                    val bundle = bundleOf("profile_data" to data)
+                                    val bundle = bundleOf("organisation" to data)
                                     findNavController().navigate(dest, bundle)
                                 }
                             }
                         },
                         onFollowClicked = {
-                            profileViewModel.followUser(token, username)
+                            profileViewModel.followUser(token, state.Username)
                                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                     if (it) {
                                         Toast.makeText(
@@ -263,7 +278,7 @@ class ProfileFragment : Fragment() {
                                 }.launchIn(lifecycleScope)
                         },
                         onUnfollowClicked = {
-                            profileViewModel.unfollowUser(token, username)
+                            profileViewModel.unfollowUser(token, state.Username)
                                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                     if (it) {
                                         Toast.makeText(
@@ -284,6 +299,7 @@ class ProfileFragment : Fragment() {
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -293,72 +309,71 @@ private fun MainContent(
     state: ProfileScreenState,
     onAction: (String, String) -> Unit,
     onNavigate: (Int, String?) -> Unit,
-    username: String,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     var showMenu by remember { mutableStateOf(false) }
-    val authUser = PreferenceHelper.getAuthenticatedUsername(LocalContext.current)
 
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
                 title = {
-                Text(
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    text = username,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            },
-                navigationIcon = { IconButton(onClick = {
-                    onNavigate(-1, null)
-                }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
-                } },
-                actions = {
-                IconButton(onClick = {
-                    onAction("share", username)
-                }) {
-                    Icon(Icons.Filled.Share, contentDescription = "Share")
-                }
-
-                if (username != authUser) {
+                    Text(
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                        text = state.Username,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                },
+                navigationIcon = {
                     IconButton(onClick = {
-                        onAction("isUserBlocked", username)
-                        showMenu = !showMenu
+                        onNavigate(-1, null)
                     }) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                     }
-                }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        onAction("share", state.Username)
+                    }) {
+                        Icon(Icons.Filled.Share, contentDescription = "Share")
+                    }
 
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-
-                    if (state.isUserBlocked) {
-                        DropdownMenuItem(onClick = {
-                            onAction("unblock", username)
-                            showMenu = false
+                    if (!state.isMe()) {
+                        IconButton(onClick = {
+                            onAction("isUserBlocked", state.Username)
+                            showMenu = !showMenu
                         }) {
-                            Text(text = "Unblock")
-                        }
-                    } else {
-                        DropdownMenuItem(onClick = {
-                            onAction("block", username)
-                            showMenu = false
-                        }) {
-                            Text(text = "Block")
+                            Icon(Icons.Filled.MoreVert, contentDescription = "more option")
                         }
                     }
 
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+
+                        if (state.isUserBlocked) {
+                            DropdownMenuItem(onClick = {
+                                onAction("unblock", state.Username)
+                                showMenu = false
+                            }) {
+                                Text(text = "Unblock")
+                            }
+                        } else {
+                            DropdownMenuItem(onClick = {
+                                onAction("block", state.Username)
+                                showMenu = false
+                            }) {
+                                Text(text = "Block")
+                            }
+                        }
+
+                    }
                 }
-            }
             )
         },
     ) { contentPadding ->
         TabScreen(
-            username = username,
             startIndex = startIndex,
             contentPaddingValues = contentPadding,
             state = state,
@@ -372,7 +387,6 @@ private fun MainContent(
 
 @Composable
 fun TabScreen(
-    username: String,
     startIndex: Int,
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
@@ -399,7 +413,12 @@ fun TabScreen(
                 if (title == "STARRED") {
                     val count = state.UserStarredRepositories.data?.size.toString()
                     Tab(
-                        text = { Text("$title ($count)", color = androidx.compose.material.MaterialTheme.colors.primary) },
+                        text = {
+                            Text(
+                                "$title ($count)",
+                                color = androidx.compose.material.MaterialTheme.colors.primary
+                            )
+                        },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
                         modifier = Modifier.background(MaterialTheme.colorScheme.background)
@@ -414,10 +433,10 @@ fun TabScreen(
                 }
             }
         }
+
         when (tabIndex) {
             0 -> OverviewScreen(
-                username = username,
-                overviewScreenState = state.OverviewScreenState,
+                state = state,
                 isFollowing = state.isFollowing,
                 organisation = state.UserOrganisations,
                 onFollowClicked = onFollowClicked,
@@ -428,27 +447,27 @@ fun TabScreen(
             )
 
             1 -> FeedScreen(
-                state.UserEvents, onFeedsItemClicked = onNavigate
+                state.UserEvents, onNavigate = onNavigate
             )
 
             2 -> RepositoriesScreen(
-                state.UserRepositories, onRepositoryItemClicked = onNavigate
+                state.UserRepositories, onNavigate = onNavigate
             )
 
             3 -> StarredScreen(
-                state.UserStarredRepositories, onStarredRepoItemClicked = onNavigate
+                state.UserStarredRepositories, onNavigate = onNavigate
             )
 
             4 -> GistsScreen(
-                state.UserGists, onGistItemClick = onNavigate
+                state.UserGists, onNavigate = onNavigate
             )
 
             5 -> FollowersScreen(
-                state.UserFollowers, onFollowersItemClicked = onNavigate
+                state.UserFollowers, onNavigate = onNavigate
             )
 
             6 -> FollowingScreen(
-                state.UserFollowings, onFollowingsItemClicked = onNavigate
+                state.UserFollowings, onNavigate = onNavigate
             )
 
         }
@@ -458,8 +477,7 @@ fun TabScreen(
 
 @Composable
 fun OverviewScreen(
-    username: String,
-    overviewScreenState: UserOverviewScreen,
+    state: ProfileScreenState,
     isFollowing: Boolean,
     organisation: Resource<OrgModel>,
     onFollowClicked: () -> Unit,
@@ -469,9 +487,7 @@ fun OverviewScreen(
     onAction: (String, String) -> Unit
 ) {
 
-    val authUser = PreferenceHelper.getAuthenticatedUsername(LocalContext.current)
-
-    when (overviewScreenState) {
+    when (state.OverviewScreenState) {
         is UserOverviewScreen.Loading -> {
             Column(
                 modifier = Modifier
@@ -486,7 +502,9 @@ fun OverviewScreen(
         }
 
         is UserOverviewScreen.Content -> {
+
             var offset by remember { mutableFloatStateOf(0f) }
+            val user = state.OverviewScreenState.user
 
             Column(
                 modifier = Modifier
@@ -511,7 +529,7 @@ fun OverviewScreen(
 
                     GlideImage(
                         imageModel = {
-                            overviewScreenState.user.avatar_url
+                            user.avatar_url
                         }, // loading a network image using an URL.
                         modifier = Modifier
                             .size(80.dp, 80.dp)
@@ -528,7 +546,7 @@ fun OverviewScreen(
                     Column(modifier = Modifier.align(Alignment.CenterVertically)) {
 
                         Text(
-                            text = overviewScreenState.user.name ?: "",
+                            text = user.name ?: "",
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
@@ -538,7 +556,7 @@ fun OverviewScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = overviewScreenState.user.login,
+                            text = user.login,
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                             color = Color.Black,
                             style = androidx.compose.material.MaterialTheme.typography.caption
@@ -547,9 +565,9 @@ fun OverviewScreen(
                     }
                 }
 
-                if (overviewScreenState.user.bio != null) {
+                if (user.bio != null) {
                     Text(
-                        text = overviewScreenState.user.bio,
+                        text = user.bio,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp),
@@ -569,7 +587,7 @@ fun OverviewScreen(
                         onTabChange(6)
                     }) {
                         Text(
-                            text = "Following - ${overviewScreenState.user.following}",
+                            text = "Following - ${user.following}",
                             modifier = Modifier.padding(8.dp)
                         )
                     }
@@ -585,12 +603,13 @@ fun OverviewScreen(
                         onTabChange(5)
                     }) {
                         Text(
-                            text = "Followers - ${overviewScreenState.user.followers}",
+                            text = "Followers - ${user.followers}",
                             modifier = Modifier.padding(12.dp)
                         )
                     }
                 }
-                if (authUser != username) {
+
+                if (!state.isMe()) {
                     if (isFollowing) {
                         Button(
                             onClick = { onUnfollowClicked() },
@@ -618,7 +637,7 @@ fun OverviewScreen(
                     }
                 }
 
-                if (overviewScreenState.user.company != null) {
+                if (user.company != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -631,7 +650,7 @@ fun OverviewScreen(
                             contentDescription = "Corporation"
                         )
                         Text(
-                            text = overviewScreenState.user.company,
+                            text = user.company,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
@@ -644,7 +663,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if (overviewScreenState.user.location != null) {
+                if (user.location != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -658,7 +677,7 @@ fun OverviewScreen(
                         )
 
                         Text(
-                            text = overviewScreenState.user.location,
+                            text = user.location,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
@@ -671,7 +690,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if (overviewScreenState.user.email != null) {
+                if (user.email != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -683,12 +702,12 @@ fun OverviewScreen(
                             painter = painterResource(id = R.drawable.ic_email),
                             contentDescription = "Email"
                         )
-                        Text(text = overviewScreenState.user.email.toString(),
+                        Text(text = user.email.toString(),
                             modifier = Modifier
                                 .padding(start = 16.dp)
                                 .clickable(indication = null,
                                     interactionSource = remember { MutableInteractionSource() }) {
-                                    onAction("share", overviewScreenState.user.email.toString())
+                                    onAction("share", user.email.toString())
                                 },
                             color = Color.Blue
                         )
@@ -702,7 +721,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if (overviewScreenState.user.blog != null && overviewScreenState.user.blog.toString()
+                if (user.blog != null && user.blog.toString()
                         .isNotEmpty()
                 ) {
                     Row(
@@ -716,12 +735,12 @@ fun OverviewScreen(
                             painter = painterResource(id = R.drawable.ic_insert_link),
                             contentDescription = "Corporation"
                         )
-                        Text(text = overviewScreenState.user.blog.toString(),
+                        Text(text = user.blog.toString(),
                             modifier = Modifier
                                 .padding(start = 16.dp)
                                 .clickable(indication = null,
                                     interactionSource = remember { MutableInteractionSource() }) {
-                                    onAction("browser", overviewScreenState.user.blog.toString())
+                                    onAction("browser", user.blog.toString())
                                 },
 
                             color = Color.Blue
@@ -736,7 +755,7 @@ fun OverviewScreen(
                     )
                 }
 
-                if (overviewScreenState.user.created_at != null) {
+                if (user.created_at != null) {
                     Row(
                         modifier = Modifier
                             .padding(16.dp)
@@ -749,7 +768,7 @@ fun OverviewScreen(
                             contentDescription = "Corporation"
                         )
                         Text(
-                            text = ParseDateFormat.getTimeAgo(overviewScreenState.user.created_at)
+                            text = ParseDateFormat.getTimeAgo(user.created_at)
                                 .toString(), modifier = Modifier.padding(start = 16.dp)
                         )
                     }
@@ -864,7 +883,7 @@ fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> U
 }
 
 @Composable
-fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (Int, String) -> Unit) {
+fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Unit) {
     when (userEvents) {
         is Resource.Loading -> {
             Column(
@@ -885,7 +904,7 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onFeedsItemClicked: (Int, Strin
                 verticalArrangement = Arrangement.Top
             ) {
                 itemsIndexed(userEvents.data!!) { index, UserEventsItem ->
-                    FeedsItem(onFeedsItemClicked = onFeedsItemClicked, UserEventsItem)
+                    FeedsItem(onFeedsItemClicked = onNavigate, UserEventsItem)
                     if (index < userEvents.data.lastIndex) {
                         Divider(
                             color = Color.Gray,
@@ -1003,7 +1022,7 @@ fun FeedsItem(
 
 @Composable
 fun RepositoriesScreen(
-    userRepositories: Resource<UserRepositoryModel>, onRepositoryItemClicked: (Int, String) -> Unit
+    userRepositories: Resource<UserRepositoryModel>, onNavigate: (Int, String) -> Unit
 ) {
     when (userRepositories) {
         is Resource.Loading -> {
@@ -1026,7 +1045,7 @@ fun RepositoriesScreen(
             ) {
                 itemsIndexed(userRepositories.data!!) { index, UserEventsItem ->
                     RepositoryItem(
-                        UserEventsItem, onRepositoryItemClicked = onRepositoryItemClicked
+                        UserEventsItem, onRepositoryItemClicked = onNavigate
                     )
                     if (index < userRepositories.data.lastIndex) {
                         Divider(
@@ -1154,7 +1173,7 @@ fun RepositoryItem(
 @Composable
 fun StarredScreen(
     userStarredRepoModel: Resource<StarredRepoModel>,
-    onStarredRepoItemClicked: (Int, String) -> Unit
+    onNavigate: (Int, String) -> Unit
 ) {
     when (userStarredRepoModel) {
         is Resource.Loading -> {
@@ -1177,7 +1196,7 @@ fun StarredScreen(
             ) {
                 itemsIndexed(userStarredRepoModel.data!!) { index, StarredUserRepo ->
                     StarredRepositoryItem(
-                        StarredUserRepo, onStarredRepositoryItemClicked = onStarredRepoItemClicked
+                        StarredUserRepo, onStarredRepositoryItemClicked = onNavigate
                     )
                     if (index < userStarredRepoModel.data.lastIndex) {
                         Divider(
@@ -1303,7 +1322,7 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen(gists: Resource<GistsModel>, onGistItemClick: (Int, String) -> Unit) {
+fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) {
     when (gists) {
         is Resource.Loading -> {
             Column(
@@ -1327,7 +1346,7 @@ fun GistsScreen(gists: Resource<GistsModel>, onGistItemClick: (Int, String) -> U
                     itemsIndexed(gists.data) { index, gist ->
                         GistItemCard(
                             gistModelItem = gist,
-                            onGistItemClick = onGistItemClick
+                            onGistItemClick = onNavigate
                         )
                         if (index < gists.data.lastIndex) {
                             Divider(
@@ -1373,9 +1392,9 @@ fun GistItemCard(
 //    val fileKeys = gistModelItem.files.keys
     val fileValues = gistModelItem.files.values
 
-    val fileName = if(gistModelItem.description == "" || gistModelItem.description == null){
+    val fileName = if (gistModelItem.description == "" || gistModelItem.description == null) {
         fileValues.elementAt(0).filename
-    }else{
+    } else {
         gistModelItem.description
     }
 
@@ -1397,7 +1416,7 @@ fun GistItemCard(
                 text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 color = Color.Black,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -1407,7 +1426,7 @@ fun GistItemCard(
             Text(
                 text = ParseDateFormat.getTimeAgo(gistModelItem.created_at).toString(),
                 color = Color.Black,
-                modifier = Modifier.padding(start = 2.dp)
+                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp)
             )
 
         }
@@ -1416,7 +1435,7 @@ fun GistItemCard(
 
 @Composable
 fun FollowersScreen(
-    userFollowers: Resource<FollowersModel>, onFollowersItemClicked: (Int, String) -> Unit
+    userFollowers: Resource<FollowersModel>, onNavigate: (Int, String) -> Unit
 ) {
     when (userFollowers) {
         is Resource.Loading -> {
@@ -1439,7 +1458,7 @@ fun FollowersScreen(
             ) {
                 itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
                     FollowersItemCard(
-                        StarredUserRepo, onItemClicked = onFollowersItemClicked
+                        StarredUserRepo, onItemClicked = onNavigate
                     )
                     if (index < userFollowers.data.lastIndex) {
                         Divider(
@@ -1471,7 +1490,7 @@ private fun FollowersItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(0, followersModelItem.login)
+                onItemClicked(R.id.action_profileFragment_self, followersModelItem.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {
@@ -1517,7 +1536,7 @@ private fun FollowersItemCard(
 
 @Composable
 fun FollowingScreen(
-    userFollowings: Resource<FollowingModel>, onFollowingsItemClicked: (Int, String) -> Unit
+    userFollowings: Resource<FollowingModel>, onNavigate: (Int, String) -> Unit
 ) {
     when (userFollowings) {
         is Resource.Loading -> {
@@ -1540,7 +1559,7 @@ fun FollowingScreen(
             ) {
                 itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
                     FollowingsItemCard(
-                        StarredUserRepo, onItemClicked = onFollowingsItemClicked
+                        StarredUserRepo, onNavigate = onNavigate
                     )
                     if (index < userFollowings.data.lastIndex) {
                         Divider(
@@ -1566,13 +1585,13 @@ fun FollowingScreen(
 
 @Composable
 fun FollowingsItemCard(
-    followingModelItem: FollowingModelItem, onItemClicked: (Int, String) -> Unit
+    followingModelItem: FollowingModelItem, onNavigate: (Int, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(0, followingModelItem.login)
+                onNavigate(R.id.action_profileFragment_self, followingModelItem.login)
             })
             .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
     ) {

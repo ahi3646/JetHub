@@ -443,11 +443,7 @@ fun DrawerProfileScreen(
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
-                    onNavigate(
-                        R.id.action_homeFragment_to_profileFragment,
-                        username,
-                        "3"
-                    )
+                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, "3")
                 }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_star_24),

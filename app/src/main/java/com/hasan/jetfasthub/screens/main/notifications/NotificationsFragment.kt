@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.notifications
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -31,7 +32,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,18 +58,21 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class NotificationsFragment : Fragment() {
 
     private val notificationsViewModel: NotificationsViewModel by viewModel()
+    private lateinit var token: String
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        token = PreferenceHelper.getToken(requireContext())
+
+        notificationsViewModel.getAllNotifications(token)
+        notificationsViewModel.getUnreadNotifications(token, "enter_preferred_date")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
-        val token = PreferenceHelper.getToken(requireContext())
-        Log.d("ahi3646", "onCreateView: token - $token")
-
-        notificationsViewModel.getAllNotifications(token)
-        notificationsViewModel.getUnreadNotifications(token, "enter_preferred_date")
 
         return ComposeView(requireContext()).apply {
             setContent {
@@ -79,7 +83,7 @@ class NotificationsFragment : Fragment() {
                         onNavigate = { dest ->
                             if (dest == -1) {
                                 findNavController().popBackStack()
-                            }else{
+                            } else {
                                 findNavController().navigate(dest)
                             }
                         },
@@ -153,7 +157,7 @@ fun TabScreen(
     onRecyclerItemClick: (String) -> Unit
 ) {
 
-    var tabIndex by remember { mutableStateOf(0) }
+    var tabIndex by remember { mutableIntStateOf(0) }
     val tabs =
         listOf("UNREAD", "ALL", "JETHUB")
 

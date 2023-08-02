@@ -153,7 +153,7 @@ class GistFragment : Fragment() {
                                 }
 
                                 R.id.action_gistFragment_to_profileFragment -> {
-                                    val bundle = bundleOf("home_date" to data)
+                                    val bundle = bundleOf("username" to data)
                                     findNavController().navigate(
                                         dest, bundle
                                     )

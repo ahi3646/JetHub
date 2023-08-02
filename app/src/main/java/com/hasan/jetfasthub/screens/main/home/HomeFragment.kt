@@ -159,8 +159,10 @@ class HomeFragment : Fragment() {
                                 }
 
                                 R.id.action_homeFragment_to_profileFragment -> {
-                                    Log.d("ahi3646", "onCreateView: $data ")
-                                    val bundle = bundleOf("home_data" to data)
+                                    Log.d("ahi3646", "onCreateView: $data -- $extra ")
+                                    val bundle = Bundle()
+                                    bundle.putString("username", data)
+                                    bundle.putString("start_index", extra)
                                     findNavController().navigate(dest, bundle)
                                 }
 

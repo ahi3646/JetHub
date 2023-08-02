@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.search
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -81,29 +82,33 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class SearchFragment : Fragment() {
 
     private val viewModel: SearchViewModel by viewModel()
+    private lateinit var token: String
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
 
-        val token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper.getToken(requireContext())
         val query = arguments?.getString("repo_topic")
-        var initialQuery = ""
 
-        if (!query.isNullOrEmpty()) {
-            initialQuery = "topic:\"$query\""
+        if (query !=null && query != "") {
+            val initialQuery = "topic:\"$query\""
+            viewModel.setInitialQuery(initialQuery)
             viewModel.searchRepositories(token, initialQuery, 1L)
             viewModel.searchUsers(token, initialQuery, 1L)
             viewModel.searchIssues(token, initialQuery, 1L)
             viewModel.searchCodes(token, initialQuery, 1L)
         }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
 
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by viewModel.state.collectAsState()
                 JetFastHubTheme {
                     MainContent(
-                        initialQuery = initialQuery,
                         state = state,
                         onListItemClick = { dest, data, extra ->
                             when (dest) {
@@ -112,7 +117,7 @@ class SearchFragment : Fragment() {
                                 }
 
                                 R.id.action_searchFragment_to_profileFragment -> {
-                                    val bundle = bundleOf("home_data" to data)
+                                    val bundle = bundleOf("username" to data)
                                     findNavController().navigate(dest, bundle)
                                 }
 
@@ -149,7 +154,7 @@ class SearchFragment : Fragment() {
 
 @Composable
 private fun MainContent(
-    initialQuery: String,
+    //initialQuery: String,
     state: SearchScreenState,
     onListItemClick: (Int, String, String?) -> Unit,
     onSearchClick: (String) -> Unit,
@@ -164,7 +169,7 @@ private fun MainContent(
                 elevation = 0.dp,
                 content = {
                     TopAppBarContent(
-                        initialQuery = initialQuery,
+                        initialQuery = state.InitialQuery,
                         onBackPressed = onBackPressed,
                         onSearchItemClick = onSearchClick
                     )
