@@ -304,21 +304,24 @@ fun BottomNav(
     modifier: Modifier,
     onBottomBarItemSelected: (AppScreens) -> Unit,
 ) {
-    Surface(elevation = 16.dp) {
+    Surface(
+        elevation = 16.dp,
+    ) {
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BottomAppBar(containerColor = Color.White) {
+            BottomAppBar(contentColor = MaterialTheme.colorScheme.surface) {
                 BottomNavigationItem(
                     icon = {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_github),
-                            contentDescription = "Feed Screen"
+                            contentDescription = "Feed Screen",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     },
-                    label = { Text("Feeds") },
+                    label = { Text("Feeds", color = MaterialTheme.colorScheme.onSurface) },
                     selected = false,
                     onClick = { onBottomBarItemSelected(AppScreens.Feeds) },
                 )
@@ -327,10 +330,11 @@ fun BottomNav(
                     icon = {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                            contentDescription = "Issues Screen"
+                            contentDescription = "Issues Screen",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     },
-                    label = { Text("Issues") },
+                    label = { Text("Issues", color = MaterialTheme.colorScheme.onSurface) },
                     selected = false,
                     onClick = { onBottomBarItemSelected(AppScreens.Issues) },
                 )
@@ -339,10 +343,11 @@ fun BottomNav(
                     icon = {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                            contentDescription = "PullRequest Screen"
+                            contentDescription = "PullRequest Screen",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     },
-                    label = { Text("Pull Requests") },
+                    label = { Text("Pull Requests", color = MaterialTheme.colorScheme.onSurface) },
                     selected = false,
                     onClick = { onBottomBarItemSelected(AppScreens.PullRequests) },
                 )
@@ -363,11 +368,11 @@ fun FeedsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -376,7 +381,7 @@ fun FeedsScreen(
                 modifier = Modifier
                     .padding(contentPaddingValues)
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -390,7 +395,7 @@ fun FeedsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -404,22 +409,26 @@ fun FeedsScreen(
 @Composable
 fun IssuesScreen() {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Issues Screen")
+        Text(text = "Issues Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 fun PullRequestScreen() {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "PullScreen Screen")
+        Text(text = "Pull Requests Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

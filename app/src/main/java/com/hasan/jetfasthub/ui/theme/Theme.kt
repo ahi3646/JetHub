@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -69,8 +70,8 @@ private val JetHubDarkColorScheme = darkColorScheme(
 )
 
 private val JetHubLightColorScheme = lightColorScheme(
-    primary = Blue40,
-    onPrimary = Color.White,
+    primary = Color.White,
+    onPrimary = Blue40,
     primaryContainer = Blue90,
     onPrimaryContainer = Blue10,
     inversePrimary = Blue80,
@@ -89,7 +90,7 @@ private val JetHubLightColorScheme = lightColorScheme(
     background = Grey99,
     onBackground = Grey10,
     surface = Grey99,
-    onSurface = Grey10,
+    onSurface = Color.Black,
     inverseSurface = Grey20,
     inverseOnSurface = Grey95,
     surfaceVariant = BlueGrey90,
@@ -130,8 +131,10 @@ fun JetFastHubTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = myColorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isDarkTheme
+            window.statusBarColor = myColorScheme.surface.toArgb()
+            //window.navigationBarColor = myColorScheme.secondaryContainer.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDarkTheme
+            //WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !isDarkTheme
         }
     }
 

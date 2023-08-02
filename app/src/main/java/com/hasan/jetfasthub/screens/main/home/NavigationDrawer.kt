@@ -1,8 +1,10 @@
 package com.hasan.jetfasthub.screens.main.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +17,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -45,7 +50,8 @@ fun DrawerHeader(user: Resource<GitHubUser>) {
         horizontalArrangement = Arrangement.Start,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
     ) {
 
         GlideImage(
@@ -66,8 +72,8 @@ fun DrawerHeader(user: Resource<GitHubUser>) {
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.padding(start = 24.dp)
         ) {
-            Text(user.data?.name.toString())
-            Text(user.data?.login.toString())
+            Text(user.data?.name.toString(), color = MaterialTheme.colorScheme.onSurface)
+            Text(user.data?.login.toString(), color = MaterialTheme.colorScheme.onSurface)
         }
     }
 
@@ -84,23 +90,29 @@ fun DrawerBody(
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
         TabRow(
             selectedTabIndex = tabIndex,
             backgroundColor = Color.Transparent,
-            contentColor = Color.Blue
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     text = {
                         if (tabIndex == index) {
-                            Text(title, color = Color.Blue)
+                            Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         } else {
-                            Text(title, color = Color.Black)
+                            Text(title, color = MaterialTheme.colorScheme.outline)
                         }
                     },
                     selected = tabIndex == index,
                     onClick = { tabIndex = index },
+                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                 )
             }
         }
@@ -119,53 +131,66 @@ fun DrawerMenuScreen(
     username: String,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
-                .fillMaxWidth(1F)
+                .fillMaxWidth()
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = Color.Red),
+                ) {
                     closeDrawer()
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_home_24),
                 contentDescription = "home icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Home",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
         Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
-                .fillMaxWidth(1F)
+                .fillMaxWidth()
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable {
                     closeDrawer()
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, null)
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_person_24),
                 contentDescription = "Profile icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Profile",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -179,10 +204,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_people_alt_24),
                 contentDescription = "Organizations icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Organizations",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -198,10 +225,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_notifications_24),
                 contentDescription = "Notifications icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Notifications",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -212,15 +241,18 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }) {
+                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_24),
                 contentDescription = "Pinned icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Pinned",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -234,10 +266,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_trending_up_24),
                 contentDescription = "Trending icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Trending",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -248,15 +282,18 @@ fun DrawerMenuScreen(
                 .padding(bottom = 4.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_gistsFragment, username, null)
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_code_24),
                 contentDescription = "Gists icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Gists",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -280,10 +317,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.ic_fasthub_mascot),
                 contentDescription = "JetHub icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "JetHub",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -297,10 +336,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "FAQ icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "FAQ",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -316,10 +357,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_settings_24),
                 contentDescription = "Setting icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Setting",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -333,10 +376,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.ic_money),
                 contentDescription = "Restore Purchases icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Restore Purchases",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -352,10 +397,12 @@ fun DrawerMenuScreen(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "About icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "About",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -377,16 +424,19 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onLogout() }) {
+                .clickable { onLogout() }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_logout),
                 contentDescription = "Logout icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Logout",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -405,11 +455,13 @@ fun DrawerProfileScreen(
                 painter = painterResource(id = R.drawable.ic_add),
                 contentDescription = "Add Account icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Add Account",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -422,16 +474,19 @@ fun DrawerProfileScreen(
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, "2")
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_book_24),
                 contentDescription = "Repositories icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Repositories",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -444,16 +499,19 @@ fun DrawerProfileScreen(
                 .padding(top = 4.dp, bottom = 2.dp)
                 .clickable {
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, "3")
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_star_24),
                 contentDescription = "Starred icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Starred",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -464,16 +522,19 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }) {
+                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
                 contentDescription = "Pinned icon",
                 modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = "Pinned",
                 modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

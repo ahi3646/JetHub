@@ -407,7 +407,7 @@ fun TabScreen(
     ) {
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
-            containerColor = androidx.compose.material.MaterialTheme.colors.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             tabs.forEachIndexed { index, title ->
                 if (title == "STARRED") {
@@ -416,7 +416,7 @@ fun TabScreen(
                         text = {
                             Text(
                                 "$title ($count)",
-                                color = androidx.compose.material.MaterialTheme.colors.primary
+                                color = MaterialTheme.colorScheme.error
                             )
                         },
                         selected = tabIndex == index,
