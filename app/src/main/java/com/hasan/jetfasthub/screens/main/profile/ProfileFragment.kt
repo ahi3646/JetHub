@@ -17,6 +17,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +47,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -321,7 +323,7 @@ private fun MainContent(
             TopAppBar(
                 title = {
                     Text(
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                         text = state.Username,
                         style = MaterialTheme.typography.titleLarge,
@@ -357,14 +359,14 @@ private fun MainContent(
                                 onAction("unblock", state.Username)
                                 showMenu = false
                             }) {
-                                Text(text = "Unblock")
+                                Text(text = "Unblock", color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         } else {
                             DropdownMenuItem(onClick = {
                                 onAction("block", state.Username)
                                 showMenu = false
                             }) {
-                                Text(text = "Block")
+                                Text(text = "Block", color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
                         }
 
@@ -404,31 +406,43 @@ fun TabScreen(
         modifier = Modifier
             .padding(contentPaddingValues)
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
-            containerColor = MaterialTheme.colorScheme.surface
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
             tabs.forEachIndexed { index, title ->
                 if (title == "STARRED") {
                     val count = state.UserStarredRepositories.data?.size.toString()
+                    val tabName =
+                        if (count.isNotEmpty() || count != "null") "$title ($count)" else title
                     Tab(
                         text = {
-                            Text(
-                                "$title ($count)",
-                                color = MaterialTheme.colorScheme.error
-                            )
+                            if (tabIndex == index) {
+                                Text(tabName, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            } else {
+                                Text(tabName, color = MaterialTheme.colorScheme.outline)
+                            }
                         },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                        selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                     )
                 } else {
                     Tab(
-                        text = { Text(title) },
+                        text = {
+                            if (tabIndex == index) {
+                                Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            } else {
+                                Text(title, color = MaterialTheme.colorScheme.outline)
+                            }
+                        },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
-                        modifier = Modifier.background(androidx.compose.material.MaterialTheme.colors.background)
+                        selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                     )
                 }
             }
@@ -493,30 +507,24 @@ fun OverviewScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
         is UserOverviewScreen.Content -> {
 
-            var offset by remember { mutableFloatStateOf(0f) }
+            //var offset by remember { mutableFloatStateOf(0f) }
             val user = state.OverviewScreenState.user
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .scrollable(orientation = Orientation.Vertical,
-                        // Scrollable state: describes how to consume
-                        // scrolling delta and update offset
-                        state = rememberScrollableState { delta ->
-                            offset += delta
-                            delta
-                        })
-                    .background(Color.White),
+                    .verticalScroll(rememberScrollState())
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -548,7 +556,7 @@ fun OverviewScreen(
                         Text(
                             text = user.name ?: "",
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                             fontWeight = FontWeight.Bold,
                             style = androidx.compose.material.MaterialTheme.typography.subtitle1
                         )
@@ -558,7 +566,7 @@ fun OverviewScreen(
                         Text(
                             text = user.login,
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                             style = androidx.compose.material.MaterialTheme.typography.caption
                         )
 
@@ -571,7 +579,8 @@ fun OverviewScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp),
-                        textAlign = TextAlign.Start
+                        textAlign = TextAlign.Start,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 }
 
@@ -588,7 +597,8 @@ fun OverviewScreen(
                     }) {
                         Text(
                             text = "Following - ${user.following}",
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(8.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
 
@@ -604,7 +614,8 @@ fun OverviewScreen(
                     }) {
                         Text(
                             text = "Followers - ${user.followers}",
-                            modifier = Modifier.padding(12.dp)
+                            modifier = Modifier.padding(12.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -613,14 +624,19 @@ fun OverviewScreen(
                     if (isFollowing) {
                         Button(
                             onClick = { onUnfollowClicked() },
-                            modifier = Modifier.padding(start = 24.dp, end = 24.dp)
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp),
+                            colors = ButtonDefaults.buttonColors(contentColor = MaterialTheme.colorScheme.secondaryContainer),
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_unfollow),
-                                contentDescription = "unfollow button"
+                                contentDescription = "unfollow button",
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Unfollow")
+                            Text(
+                                text = "Unfollow",
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
                         }
                     } else {
                         Button(
@@ -629,10 +645,14 @@ fun OverviewScreen(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_follow),
-                                contentDescription = "follow button"
+                                contentDescription = "follow button",
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Follow")
+                            Text(
+                                text = "Follow",
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
                         }
                     }
                 }
@@ -647,11 +667,13 @@ fun OverviewScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_group),
-                            contentDescription = "Corporation"
+                            contentDescription = "Corporation",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Text(
                             text = user.company,
-                            modifier = Modifier.padding(start = 16.dp)
+                            modifier = Modifier.padding(start = 16.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
 
@@ -673,12 +695,14 @@ fun OverviewScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.LocationOn,
-                            contentDescription = "Corporation"
+                            contentDescription = "Corporation",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
 
                         Text(
                             text = user.location,
-                            modifier = Modifier.padding(start = 16.dp)
+                            modifier = Modifier.padding(start = 16.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
 
@@ -700,7 +724,8 @@ fun OverviewScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_email),
-                            contentDescription = "Email"
+                            contentDescription = "Email",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Text(text = user.email.toString(),
                             modifier = Modifier
@@ -733,7 +758,8 @@ fun OverviewScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_insert_link),
-                            contentDescription = "Corporation"
+                            contentDescription = "Corporation",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Text(text = user.blog.toString(),
                             modifier = Modifier
@@ -765,11 +791,14 @@ fun OverviewScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_time),
-                            contentDescription = "Corporation"
+                            contentDescription = "Corporation",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                         Text(
                             text = ParseDateFormat.getTimeAgo(user.created_at)
-                                .toString(), modifier = Modifier.padding(start = 16.dp)
+                                .toString(),
+                            modifier = Modifier.padding(start = 16.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
                 }
@@ -782,14 +811,17 @@ fun OverviewScreen(
                                 modifier = Modifier
                                     .padding(start = 16.dp)
                                     .align(Alignment.Start),
-                                fontSize = 18.sp
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
 
                             LazyHorizontalGrid(
-                                rows = GridCells.Fixed(2),
+                                rows = GridCells.Fixed(1),
                                 modifier = Modifier
+                                    .padding(top = 6.dp)
                                     .fillMaxWidth()
-                                    .background(Color.White),
+                                    .height(100.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 horizontalArrangement = Arrangement.Start,
                                 verticalArrangement = Arrangement.Center
                             ) {
@@ -801,7 +833,10 @@ fun OverviewScreen(
                     }
 
                     else -> {
-                        Text(text = "Cannot load organisations!")
+                        Text(
+                            text = "Cannot load organisations!",
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
                     }
                 }
 
@@ -843,11 +878,11 @@ fun OverviewScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -878,7 +913,11 @@ fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> U
             )
         )
         Spacer(modifier = Modifier.height(9.dp))
-        Text(text = organisation.login, textAlign = TextAlign.Center)
+        Text(
+            text = organisation.login,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
@@ -887,11 +926,13 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Un
     when (userEvents) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -899,7 +940,7 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Un
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -917,11 +958,13 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Un
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -937,7 +980,9 @@ fun FeedsItem(
             .clickable(onClick = {
                 onFeedsItemClicked(0, userEventsItem.actor.login)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -960,7 +1005,7 @@ fun FeedsItem(
                         append(userEventsItem.repo.name)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -972,7 +1017,7 @@ fun FeedsItem(
                     Text(
                         text = userEventsItem.payload.commits.size.toString() + " commits",
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = androidx.compose.material.MaterialTheme.typography.caption,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -983,7 +1028,7 @@ fun FeedsItem(
                     Text(
                         text = userEventsItem.payload.commits[0].message,
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = androidx.compose.material.MaterialTheme.typography.caption,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -1001,7 +1046,8 @@ fun FeedsItem(
                         painter = painterResource(id = chooseFromEvents("eventItem.type").icon),
                         contentDescription = stringResource(
                             id = chooseFromEvents(userEventsItem.type).action
-                        )
+                        ),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
@@ -1009,7 +1055,7 @@ fun FeedsItem(
                     Text(
                         text = ParseDateFormat.getTimeAgo(userEventsItem.created_at).toString(),
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = androidx.compose.material.MaterialTheme.typography.caption,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -1027,11 +1073,13 @@ fun RepositoriesScreen(
     when (userRepositories) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1039,7 +1087,7 @@ fun RepositoriesScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -1059,11 +1107,13 @@ fun RepositoriesScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1079,7 +1129,10 @@ fun RepositoryItem(
             .clickable(onClick = {
                 onRepositoryItemClicked(0, repository.full_name)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+
     ) {
         Row(
             modifier = Modifier
@@ -1103,7 +1156,7 @@ fun RepositoryItem(
                         append(repository.name)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1117,51 +1170,55 @@ fun RepositoryItem(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_star_small),
-                        contentDescription = "star icon"
+                        contentDescription = "star icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = repository.stargazers_count.toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_fork_small),
-                        contentDescription = "star icon"
+                        contentDescription = "star icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = repository.forks_count.toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_time_small),
-                        contentDescription = "time icon"
+                        contentDescription = "time icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_storage_small),
-                        contentDescription = "storage icon"
+                        contentDescription = "storage icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Text(
                         text = repository.language ?: "",
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
                 }
@@ -1178,11 +1235,13 @@ fun StarredScreen(
     when (userStarredRepoModel) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1190,7 +1249,7 @@ fun StarredScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -1210,11 +1269,13 @@ fun StarredScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong!")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1230,7 +1291,9 @@ fun StarredRepositoryItem(
             .clickable(onClick = {
                 onStarredRepositoryItemClicked(0, repository.full_name)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -1254,7 +1317,7 @@ fun StarredRepositoryItem(
                         append(repository.name)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1268,51 +1331,55 @@ fun StarredRepositoryItem(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_star_small),
-                        contentDescription = "star icon"
+                        contentDescription = "star icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = repository.stargazers_count.toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_fork_small),
-                        contentDescription = "star icon"
+                        contentDescription = "star icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = repository.forks_count.toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_time_small),
-                        contentDescription = "time icon"
+                        contentDescription = "time icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = ParseDateFormat.getTimeAgo(repository.updated_at).toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_storage_small),
-                        contentDescription = "storage icon"
+                        contentDescription = "storage icon",
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
                         text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
                     Text(
                         text = repository.language ?: "",
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
                 }
@@ -1326,11 +1393,13 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
     when (gists) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1339,7 +1408,7 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -1360,12 +1429,13 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "No gists", textAlign = TextAlign.Center
+                        text = "Can't load data!",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1373,11 +1443,13 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1404,7 +1476,9 @@ fun GistItemCard(
             .clickable(onClick = {
                 onGistItemClick(0, gistModelItem.url)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
@@ -1415,7 +1489,7 @@ fun GistItemCard(
             Text(
                 text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontSize = 16.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -1425,7 +1499,7 @@ fun GistItemCard(
 
             Text(
                 text = ParseDateFormat.getTimeAgo(gistModelItem.created_at).toString(),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp)
             )
 
@@ -1440,11 +1514,13 @@ fun FollowersScreen(
     when (userFollowers) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1452,7 +1528,7 @@ fun FollowersScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -1472,11 +1548,13 @@ fun FollowersScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1492,7 +1570,9 @@ private fun FollowersItemCard(
             .clickable(onClick = {
                 onItemClicked(R.id.action_profileFragment_self, followersModelItem.login)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -1521,7 +1601,7 @@ private fun FollowersItemCard(
                 Text(
                     text = followersModelItem.login,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1541,11 +1621,13 @@ fun FollowingScreen(
     when (userFollowings) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1553,7 +1635,7 @@ fun FollowingScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -1573,11 +1655,13 @@ fun FollowingScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong!")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1593,7 +1677,9 @@ fun FollowingsItemCard(
             .clickable(onClick = {
                 onNavigate(R.id.action_profileFragment_self, followingModelItem.login)
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -1622,7 +1708,7 @@ fun FollowingsItemCard(
                 Text(
                     text = followingModelItem.login,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

@@ -68,6 +68,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -294,8 +295,6 @@ class CommitFragment : Fragment() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MainContent(
-//    owner: String,
-//    repo: String,
     state: CommitScreenState,
     onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
@@ -417,6 +416,7 @@ private fun MainContent(
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface
     ) { sheetPadding ->
         Scaffold(
             modifier = Modifier.padding(sheetPadding),
@@ -928,7 +928,6 @@ private fun TitleHeader(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
                     .padding(start = 12.dp, top = 16.dp, bottom = 16.dp)
             ) {
                 Row(
@@ -946,25 +945,10 @@ private fun TitleHeader(
                             .size(48.dp, 48.dp)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Row {
-
-                            Spacer(modifier = Modifier.width(6.dp))
-
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.width(24.dp).width(6.dp))
                 }
             }
         }

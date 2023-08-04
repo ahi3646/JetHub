@@ -6,11 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -77,7 +78,7 @@ private fun MainContent(
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
-                backgroundColor = Color.White,
+                backgroundColor = MaterialTheme.colorScheme.surface,
                 elevation = 10.dp,
                 content = {
                     TopAppBarContent(
@@ -87,8 +88,18 @@ private fun MainContent(
             )
         },
     ) { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)) {
-
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            androidx.compose.material3.Text(
+                text = "No files",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -110,16 +121,18 @@ private fun TopAppBarContent(
     }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
 
         IconButton(onClick = {
             onBackPressed()
         }) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+            Icon(
+                Icons.Filled.ArrowBack,
+                contentDescription = "Back button",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
 
         TextField(
@@ -130,21 +143,26 @@ private fun TopAppBarContent(
             textStyle = TextStyle(fontSize = 16.sp),
             label = null,
             placeholder = {
-                Text(text = "Search", fontSize = 16.sp)
+                Text(
+                    text = "Search here ...",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             },
             trailingIcon = {
                 if (text != "") {
                     IconButton(onClick = { text = "" }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
-                            contentDescription = "clear text icon"
+                            contentDescription = "clear text icon",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
             },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 disabledContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
@@ -160,7 +178,8 @@ private fun TopAppBarContent(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = "search icon"
+                contentDescription = "search icon",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -171,30 +190,51 @@ private fun TopAppBarContent(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = path, style = MaterialTheme.typography.titleSmall, fontSize = 16.sp)
+            Text(
+                text = path,
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
             IconButton(onClick = { isExpanded = !isExpanded }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             DropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
                 DropdownMenuItem(
-                    text = { Text(text = "In Paths") },
+                    text = {
+                        Text(
+                            text = "In Paths",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    },
                     onClick = {
                         path = "In Paths"
                         isExpanded = false
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "In Files") },
+                    text = {
+                        Text(
+                            text = "In Files",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    },
                     onClick = {
                         path = "In Files"
                         isExpanded = false
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "All") },
+                    text = {
+                        Text(
+                            text = "All",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    },
                     onClick = {
                         path = "All"
                         isExpanded = false

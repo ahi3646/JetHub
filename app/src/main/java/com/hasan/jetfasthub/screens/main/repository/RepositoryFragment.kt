@@ -62,6 +62,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -133,7 +135,7 @@ class RepositoryFragment : Fragment() {
         val owner = arguments?.getString("home_data")
         val repo = arguments?.getString("home_extra")
 
-        if(owner != null && repo != null){
+        if (owner != null && repo != null) {
 
             repositoryViewModel.setFields(owner, repo)
 
@@ -217,7 +219,7 @@ class RepositoryFragment : Fragment() {
             repositoryViewModel.getContributors(
                 token = token, owner = owner, repo = repo, page = 1
             )
-        }else{
+        } else {
             Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
         }
 
@@ -407,7 +409,9 @@ class RepositoryFragment : Fragment() {
                                     ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
                                         if (it) {
                                             repositoryViewModel.getRepo(
-                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                                token = token,
+                                                owner = state.RepoOwner,
+                                                repo = state.RepoName
                                             )
                                         }
                                     }.launchIn(lifecycleScope)
@@ -424,7 +428,9 @@ class RepositoryFragment : Fragment() {
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             repositoryViewModel.getRepo(
-                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                                token = token,
+                                                owner = state.RepoOwner,
+                                                repo = state.RepoName
                                             )
                                         } else {
                                             Toast.makeText(
@@ -447,7 +453,9 @@ class RepositoryFragment : Fragment() {
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             repositoryViewModel.getRepo(
-                                                token = token, owner = state.RepoOwner, repo = state.RepoName
+                                                token = token,
+                                                owner = state.RepoOwner,
+                                                repo = state.RepoName
                                             )
                                         } else {
                                             Toast.makeText(
@@ -460,7 +468,11 @@ class RepositoryFragment : Fragment() {
                                 }
 
                                 "fork_repo" -> {
-                                    repositoryViewModel.forkRepo(token, state.RepoOwner, state.RepoName)
+                                    repositoryViewModel.forkRepo(
+                                        token,
+                                        state.RepoOwner,
+                                        state.RepoName
+                                    )
                                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                         .onEach {
                                             if (it) {
@@ -470,7 +482,9 @@ class RepositoryFragment : Fragment() {
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 repositoryViewModel.getRepo(
-                                                    token = token, owner = state.RepoOwner, repo = state.RepoName
+                                                    token = token,
+                                                    owner = state.RepoOwner,
+                                                    repo = state.RepoName
                                                 )
                                             }
                                         }
@@ -545,6 +559,7 @@ class RepositoryFragment : Fragment() {
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -572,7 +587,7 @@ private fun MainContent(
         }
     }
 
-    val sheetStateX = androidx.compose.material3.rememberModalBottomSheetState()
+    val sheetStateX = rememberModalBottomSheetState()
     val scopeX = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -615,12 +630,14 @@ private fun MainContent(
 
                 BottomSheetScreens.ForkSheet -> {
                     Column(
-                        Modifier.padding(16.dp),
+                        Modifier
+                            .padding(16.dp)
+                            .background(MaterialTheme.colorScheme.inverseOnSurface),
                         horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = "Fork"
+                            text = "Fork", color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -629,7 +646,8 @@ private fun MainContent(
                                 append("Fork")
                                 append(" ")
                                 append(state.Repository.data?.full_name)
-                            }
+                            },
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
 
                         Row(
@@ -649,7 +667,7 @@ private fun MainContent(
                             Button(onClick = {
                                 closeSheet()
                             }) {
-                                Text(text = "NO")
+                                Text(text = "NO", color = Color.Red)
                             }
                         }
                     }
@@ -658,6 +676,8 @@ private fun MainContent(
             }
         },
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        sheetContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface
     ) { sheetPadding ->
         Scaffold(
             modifier = Modifier
@@ -764,18 +784,21 @@ private fun MainContent(
 @Composable
 private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> Unit) {
     Column(
-        Modifier.padding(16.dp),
+        Modifier
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.inverseOnSurface),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = releaseItem.name, style = MaterialTheme.typography.titleLarge
+            text = releaseItem.name, style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Spacer(modifier = Modifier.height(12.dp))
 
         if (releaseItem.body != null) {
             Text(
-                text = releaseItem.body.toString()
+                text = releaseItem.body.toString(), color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -812,13 +835,13 @@ private fun RepoDownloadSheet(
     ) {
 
         Text(
-            text = "Download", style = MaterialTheme.typography.titleLarge
+            text = "Download", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Are you sure ?"
+            text = "Are you sure ?", color = MaterialTheme.colorScheme.onPrimaryContainer
         )
 
         Row(
@@ -847,23 +870,27 @@ private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> 
     val repository = state.Repository
     if (repository.data != null) {
         Column(
-            Modifier.padding(16.dp),
+            Modifier
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.inverseOnSurface),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = repository.data.full_name, style = MaterialTheme.typography.titleLarge
+                text = repository.data.full_name, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             if (repository.data.description != null) {
                 Text(
-                    text = repository.data.description
+                    text = repository.data.description, color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
             Row(
-                Modifier.fillMaxWidth(),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -894,11 +921,12 @@ private fun CodeScreen(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
-            containerColor = Color.White,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -906,11 +934,19 @@ private fun CodeScreen(
                     onClick = { tabIndex = index },
                     text = {
                         if (tabIndex == index) {
-                            Text(title, color = Color.Blue)
+                            Text(
+                                title,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         } else {
-                            Text(title, color = Color.Black)
+                            Text(
+                                title,
+                                color = MaterialTheme.colorScheme.outline
+                            )
                         }
                     },
+                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                 )
             }
         }
@@ -947,45 +983,56 @@ private fun SwitchBranchDialog(
         modifier = Modifier
             .fillMaxWidth(0.95F)
             .fillMaxHeight(0.95F)
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Surface {
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(start = 8.dp)
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
                 ) {
                     IconButton(onClick = { onDialogShown() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
-                            contentDescription = "Switch branch"
+                            contentDescription = "Switch branch",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                     Text(
                         text = "Releases",
                         modifier = Modifier.padding(16.dp),
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
 
                 TabRow(
                     selectedTabIndex = tabIndex,
-                    containerColor = Color.White,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = tabIndex == index, onClick = { tabIndex = index },
                             text = {
                                 if (tabIndex == index) {
-                                    Text(title, color = Color.Blue)
+                                    Text(
+                                        title,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 } else {
-                                    Text(title, color = Color.Black)
+                                    Text(
+                                        title,
+                                        color = MaterialTheme.colorScheme.outline
+                                    )
                                 }
                             },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     }
                 }
@@ -1005,7 +1052,8 @@ private fun SwitchBranchDialog(
                                     onAction(branchActionName, branch)
                                     closeDialog()
                                 },
-                            elevation = 0.dp
+                            elevation = 0.dp,
+                            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -1014,7 +1062,8 @@ private fun SwitchBranchDialog(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_fork),
-                                    contentDescription = ""
+                                    contentDescription = "",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
                                     text = branch,
@@ -1024,7 +1073,8 @@ private fun SwitchBranchDialog(
                                         end = 16.dp,
                                         top = 12.dp,
                                         bottom = 12.dp
-                                    )
+                                    ),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -1055,7 +1105,8 @@ private fun SwitchBranchDialog(
                                         onAction(tagActionName, tag.name)
                                         closeDialog()
                                     },
-                                elevation = 0.dp
+                                elevation = 0.dp,
+                                backgroundColor = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -1064,7 +1115,8 @@ private fun SwitchBranchDialog(
                                 ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_label),
-                                        contentDescription = ""
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                     Text(
                                         text = tag.name,
@@ -1074,7 +1126,8 @@ private fun SwitchBranchDialog(
                                             end = 16.dp,
                                             top = 12.dp,
                                             bottom = 12.dp
-                                        )
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
@@ -1090,11 +1143,16 @@ private fun SwitchBranchDialog(
                     }
                 } else {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "Tags not found !")
+                        Text(
+                            text = "Tags not found !",
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 }
             }
@@ -1113,11 +1171,13 @@ private fun FilesScreen(
     when (state.RepositoryFiles) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1161,6 +1221,7 @@ private fun FilesScreen(
                 Modifier
                     .background(Color.White)
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
 
                 Row(
@@ -1171,7 +1232,8 @@ private fun FilesScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_branch),
-                        contentDescription = "branch icon"
+                        contentDescription = "branch icon",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1185,13 +1247,15 @@ private fun FilesScreen(
                         Text(
                             text = state.FilesRef,
                             textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
+                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(Modifier.weight(1F))
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dropdown_icon),
                             contentDescription = "dropdown",
-                            modifier = Modifier.padding(start = 4.dp)
+                            modifier = Modifier.padding(start = 4.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -1208,7 +1272,8 @@ private fun FilesScreen(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = "direction"
+                            contentDescription = "direction",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
 
@@ -1224,7 +1289,7 @@ private fun FilesScreen(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .padding(end = 8.dp),
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 strokeWidth = 4.dp
                             )
                         }
@@ -1241,7 +1306,8 @@ private fun FilesScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_download),
-                                    contentDescription = "download"
+                                    contentDescription = "download",
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         }
@@ -1255,7 +1321,8 @@ private fun FilesScreen(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_add),
-                                contentDescription = "add icon"
+                                contentDescription = "add icon",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
                     }
@@ -1269,7 +1336,8 @@ private fun FilesScreen(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
-                            contentDescription = "direction"
+                            contentDescription = "direction",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
 
@@ -1277,8 +1345,7 @@ private fun FilesScreen(
 
                 LazyColumn(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -1315,11 +1382,13 @@ private fun FilesScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1331,14 +1400,18 @@ private fun FilesScreen(
 private fun FilePathRowItemCard(path: String, onAction: (String, String?) -> Unit) {
     Row(
         modifier = Modifier
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(4.dp)
             .clickable {
                 onAction("on_path_change", path)
             }, verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = path.substring(path.lastIndexOf("/") + 1))
-        Icon(painter = painterResource(id = R.drawable.ic_right_arrow), contentDescription = "path")
+        Text(text = path.substring(path.lastIndexOf("/") + 1), color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Icon(
+            painter = painterResource(id = R.drawable.ic_right_arrow),
+            contentDescription = "path",
+            tint = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
@@ -1357,7 +1430,7 @@ private fun FileFolderItemCard(
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
-        backgroundColor = Color.White
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -1367,7 +1440,8 @@ private fun FileFolderItemCard(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_folder),
-                contentDescription = "folder icon"
+                contentDescription = "folder icon",
+                tint = Color.Blue
             )
 
             Text(
@@ -1376,7 +1450,8 @@ private fun FileFolderItemCard(
                     .padding(8.dp)
                     .weight(1F),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Box {
@@ -1385,22 +1460,41 @@ private fun FileFolderItemCard(
                         showMenu = !showMenu
                     },
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
 
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                 ) {
-                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Share",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("share", file.html_url)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Copy URL",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("copy", file.html_url)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "File History") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "File History",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("file_history", file.html_url)
                         showMenu = false
                     })
@@ -1425,18 +1519,18 @@ private fun FileDocumentItemCard(
                 onAction("on_path_change", file.path)
             },
         elevation = 0.dp,
-        backgroundColor = Color.White
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
-                .background(Color.White)
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_document),
-                contentDescription = "Document icon"
+                contentDescription = "Document icon",
+                tint = Color.Blue
             )
 
             Text(
@@ -1445,7 +1539,8 @@ private fun FileDocumentItemCard(
                     .padding(8.dp)
                     .weight(1F),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
 
             Box {
@@ -1454,26 +1549,50 @@ private fun FileDocumentItemCard(
                         showMenu = !showMenu
                     },
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
 
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                 ) {
-                    DropdownMenuItem(text = { Text(text = "Download") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Download",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("download_file", file.download_url)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Share",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("share", file.html_url)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Copy URL",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("copy", file.html_url)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "File History") }, onClick = {
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "File History",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }, onClick = {
                         onAction("file_history", file.html_url)
                         showMenu = false
                     })
@@ -1493,11 +1612,13 @@ private fun CommitsScreen(
 
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1542,6 +1663,7 @@ private fun CommitsScreen(
                 Modifier
                     .background(Color.White)
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
 
                 Row(
@@ -1566,7 +1688,8 @@ private fun CommitsScreen(
                         Text(
                             text = state.CommitsRef,
                             textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp)
+                            modifier = Modifier.padding(start = 8.dp, top = 10.dp, bottom = 10.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                         Spacer(Modifier.weight(1F))
                         Icon(
@@ -1576,10 +1699,19 @@ private fun CommitsScreen(
                     }
                 }
 
+                Divider(
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .height(0.5.dp)
+                        .padding(start = 6.dp, end = 6.dp)
+                        .fillMaxWidth()
+                        .align(Alignment.End)
+                )
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -1603,11 +1735,13 @@ private fun CommitsScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1626,7 +1760,9 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
                         null
                     )
                 })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -1677,7 +1813,7 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
                 Text(
                     text = commit.commit.message,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1697,22 +1833,24 @@ private fun CommitsItem(commit: CommitsModelItem, onItemClicked: (Int, String?, 
                             }
                             append(" ")
                             append(ParseDateFormat.getTimeAgo(commit.commit.author.date).toString())
-                        }
+                        },
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
 
                     Spacer(Modifier.weight(1F))
 
-                    if(commit.commit.comment_count != 0){
+                    if (commit.commit.comment_count != 0) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_comment_small),
                             contentDescription = null,
-                            modifier = Modifier.padding(end = 4.dp)
+                            modifier = Modifier.padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
                             text = commit.commit.comment_count.toString(),
                             fontSize = 14.sp,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
@@ -1730,13 +1868,16 @@ private fun ReleasesScreen(
     onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit
 ) {
     when (releases) {
+
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1745,7 +1886,7 @@ private fun ReleasesScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -1765,24 +1906,29 @@ private fun ReleasesScreen(
                 }
             } else {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "No releases !")
+                    Text(text = "No releases !", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Can't load data !")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+
     }
 }
 
@@ -1796,6 +1942,7 @@ private fun ReleaseItemCard(
     var isDialogShown by remember {
         mutableStateOf(false)
     }
+
     val releases = arrayListOf<ReleaseDownloadModel>()
 
     if (releasesModelItem.zipball_url.isNotEmpty()) {
@@ -1854,13 +2001,16 @@ private fun ReleaseItemCard(
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Text(
                         text = "Releases",
                         modifier = Modifier.padding(16.dp),
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     LazyColumn {
@@ -1871,15 +2021,20 @@ private fun ReleaseItemCard(
                                     .clickable {
                                         isDialogShown = false
                                         onDownload(release)
-                                    }, elevation = 0.dp
+                                    },
+                                elevation = 0.dp,
+                                backgroundColor = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 val title = if (release.downloadCount != 0) {
                                     "${release.title} (${release.downloadCount})"
                                 } else release.title
                                 Text(
-                                    text = title, fontSize = 18.sp, modifier = Modifier.padding(
+                                    text = title,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(
                                         start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp
-                                    )
+                                    ),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                             if (index < releases.lastIndex) {
@@ -1900,7 +2055,9 @@ private fun ReleaseItemCard(
             .clickable(onClick = {
                 onCurrentSheetChanged(BottomSheetScreens.ReleaseItemSheet(releasesModelItem))
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier.padding(6.dp),
@@ -1916,7 +2073,7 @@ private fun ReleaseItemCard(
                 Text(
                     text = releasesModelItem.tag_name,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -1937,7 +2094,10 @@ private fun ReleaseItemCard(
                         append(
                             ParseDateFormat.getTimeAgo(releasesModelItem.created_at).toString()
                         )
-                    }, maxLines = 1, overflow = TextOverflow.Ellipsis
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
             }
@@ -1955,15 +2115,26 @@ private fun ReleaseItemCard(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_download),
-                    contentDescription = "release download"
+                    contentDescription = "release download",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
+
     }
 }
 
 @Composable
 private fun ReadMe() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "ReadMe", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 //    val webViewState = rememberWebViewState(url = "")
 //    WebView(
 //        state = webViewState,
@@ -1982,11 +2153,13 @@ private fun ContributorsScreen(
 
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1994,7 +2167,7 @@ private fun ContributorsScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -2016,11 +2189,13 @@ private fun ContributorsScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Can't load data!")
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -2041,7 +2216,9 @@ private fun ContributorsItemCard(
                         null
                     )
                 })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -2072,7 +2249,7 @@ private fun ContributorsItemCard(
             ) {
                 Text(
                     text = contributorsItem.login,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -2080,7 +2257,10 @@ private fun ContributorsItemCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(text = "Commits (${contributorsItem.contributions})")
+                Text(
+                    text = "Commits (${contributorsItem.contributions})",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
 
             }
         }
@@ -2094,21 +2274,29 @@ private fun IssuesScreen(paddingValues: PaddingValues) {
 
     TabRow(
         selectedTabIndex = tabIndex,
-        containerColor = Color.White,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(paddingValues)
+            .padding(paddingValues),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         tabs.forEachIndexed { index, title ->
             Tab(
                 selected = tabIndex == index, onClick = { tabIndex = index },
                 text = {
                     if (tabIndex == index) {
-                        androidx.compose.material3.Text(title, color = Color.Blue)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     } else {
-                        androidx.compose.material3.Text(title, color = Color.Black)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.outline
+                        )
                     }
                 },
+                selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
             )
         }
     }
@@ -2125,19 +2313,25 @@ private fun PullRequestsScreen(paddingValues: PaddingValues) {
 
     TabRow(
         selectedTabIndex = tabIndex,
-        containerColor = Color.White,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(paddingValues)
+            .padding(paddingValues),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         tabs.forEachIndexed { index, title ->
             Tab(
                 selected = tabIndex == index, onClick = { tabIndex = index },
                 text = {
                     if (tabIndex == index) {
-                        Text(title, color = Color.Blue)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     } else {
-                        Text(title, color = Color.Black)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.outline
+                        )
                     }
                 },
             )
@@ -2156,21 +2350,29 @@ private fun ProjectsScreen(paddingValues: PaddingValues) {
 
     TabRow(
         selectedTabIndex = tabIndex,
-        containerColor = Color.White,
         modifier = Modifier
-            .fillMaxWidth(1F)
-            .padding(paddingValues)
+            .fillMaxWidth()
+            .padding(paddingValues),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
         tabs.forEachIndexed { index, title ->
             Tab(
                 selected = tabIndex == index, onClick = { tabIndex = index },
                 text = {
                     if (tabIndex == index) {
-                        Text(title, color = Color.Blue)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     } else {
-                        Text(title, color = Color.Black)
+                        androidx.compose.material3.Text(
+                            title,
+                            color = MaterialTheme.colorScheme.outline
+                        )
                     }
                 },
+                selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
             )
         }
     }
@@ -2190,12 +2392,13 @@ private fun BottomNav(
 
         is Resource.Loading -> {
             Surface(elevation = 16.dp) {
-                BottomAppBar(containerColor = Color.White) {
+                BottomAppBar(contentColor = MaterialTheme.colorScheme.surface) {
                     BottomNavigationItem(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
-                                contentDescription = "Code Screen"
+                                contentDescription = "Code Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2203,7 +2406,8 @@ private fun BottomNav(
                                 "Code",
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
-                                fontSize = 13.sp
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2214,10 +2418,11 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                                contentDescription = "Issues Screen"
+                                contentDescription = "Issues Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
-                        label = { Text("Issues") },
+                        label = { Text("Issues", color = MaterialTheme.colorScheme.onSurface) },
                         selected = false,
                         onClick = {},
                     )
@@ -2226,7 +2431,8 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                                contentDescription = "PullRequest Screen"
+                                contentDescription = "PullRequest Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2236,6 +2442,7 @@ private fun BottomNav(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 13.sp,
                                 softWrap = false,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2262,13 +2469,14 @@ private fun BottomNav(
             }
 
             Surface(elevation = 16.dp) {
-                BottomAppBar(containerColor = Color.White) {
+                BottomAppBar(contentColor = MaterialTheme.colorScheme.surface) {
                     BottomNavigationItem(
                         alwaysShowLabel = isCodeCurrent,
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
-                                contentDescription = "Code Screen"
+                                contentDescription = "Code Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2276,7 +2484,8 @@ private fun BottomNav(
                                 "Code",
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
-                                fontSize = 13.sp
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2294,10 +2503,11 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                                contentDescription = "Issues Screen"
+                                contentDescription = "Issues Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
-                        label = { Text("Issues") },
+                        label = { Text("Issues", color = MaterialTheme.colorScheme.onSurface) },
                         selected = false,
                         onClick = {
                             if (repository.has_issues) {
@@ -2320,7 +2530,8 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                                contentDescription = "PullRequest Screen"
+                                contentDescription = "PullRequest Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2330,6 +2541,7 @@ private fun BottomNav(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 13.sp,
                                 softWrap = false,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2347,10 +2559,11 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_project),
-                                contentDescription = "PullRequest Screen"
+                                contentDescription = "PullRequest Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
-                        label = { Text("Projects") },
+                        label = { Text("Projects", color = MaterialTheme.colorScheme.onSurface) },
                         selected = false,
                         onClick = {
                             isCodeCurrent = false
@@ -2365,15 +2578,14 @@ private fun BottomNav(
         }
 
         is Resource.Failure -> {
-            Toast.makeText(context, "Can't load data !", Toast.LENGTH_SHORT).show()
-
             Surface(elevation = 16.dp) {
-                BottomAppBar(containerColor = Color.White) {
+                BottomAppBar(contentColor = MaterialTheme.colorScheme.surface) {
                     BottomNavigationItem(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.baseline_code_24),
-                                contentDescription = "Code Screen"
+                                contentDescription = "Code Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2381,7 +2593,8 @@ private fun BottomNav(
                                 "Code",
                                 fontFamily = FontFamily.SansSerif,
                                 fontWeight = FontWeight.Normal,
-                                fontSize = 13.sp
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2392,10 +2605,11 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_issues),
-                                contentDescription = "Issues Screen"
+                                contentDescription = "Issues Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
-                        label = { Text("Issues") },
+                        label = { Text("Issues", color = MaterialTheme.colorScheme.onSurface) },
                         selected = false,
                         onClick = {},
                     )
@@ -2404,7 +2618,8 @@ private fun BottomNav(
                         icon = {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_pull_requests),
-                                contentDescription = "PullRequest Screen"
+                                contentDescription = "PullRequest Screen",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
@@ -2414,6 +2629,7 @@ private fun BottomNav(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 13.sp,
                                 softWrap = false,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         selected = false,
@@ -2432,6 +2648,7 @@ private fun TitleHeader(
     onCurrentSheetChanged: () -> Unit
 ) {
     when (state) {
+
         is Resource.Loading -> {
             Row(
                 modifier = Modifier
@@ -2449,6 +2666,7 @@ private fun TitleHeader(
                         .size(48.dp, 48.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
@@ -2467,10 +2685,9 @@ private fun TitleHeader(
                     .padding(start = 16.dp, top = 16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     GlideImage(
                         failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
@@ -2498,13 +2715,14 @@ private fun TitleHeader(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(
+                        Modifier.weight(1F),
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = repository.full_name,
                             modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -2513,13 +2731,13 @@ private fun TitleHeader(
                             Text(
                                 text = ParseDateFormat.getTimeAgo(repository.pushed_at).toString(),
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = FileSizeCalculator.humanReadableByteCountBin(repository.size.toLong()),
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             if (repository.language != null) {
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -2538,7 +2756,8 @@ private fun TitleHeader(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_label),
-                                contentDescription = "label"
+                                contentDescription = "label",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2548,7 +2767,8 @@ private fun TitleHeader(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_info_outline),
-                            contentDescription = "info"
+                            contentDescription = "info",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -2576,7 +2796,7 @@ private fun TitleHeader(
                                 Text(
                                     text = topic, Modifier.padding(
                                         top = 4.dp, bottom = 4.dp, start = 6.dp, end = 6.dp
-                                    ), color = Color.Blue
+                                    ), color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -2602,10 +2822,12 @@ private fun TitleHeader(
                         .size(48.dp, 48.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onSurface)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
+
     }
 }
 
@@ -2629,7 +2851,11 @@ private fun Toolbar(
             ) {
 
                 IconButton(onClick = { onItemClicked(-1, null, null) }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -2644,7 +2870,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Watch"
+                                contentDescription = "Watch",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2656,7 +2883,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_star),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2670,7 +2898,8 @@ private fun Toolbar(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2682,7 +2911,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_pin),
-                                contentDescription = "Pin"
+                                contentDescription = "Pin",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2694,20 +2924,39 @@ private fun Toolbar(
                             showMenu = !showMenu
                         },
                     ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            contentDescription = "more option",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Open in browser",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy URL",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
                     }
@@ -2725,7 +2974,11 @@ private fun Toolbar(
             ) {
 
                 IconButton(onClick = { onItemClicked(-1, null, null) }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -2748,10 +3001,13 @@ private fun Toolbar(
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
                                 contentDescription = "Watch",
-                                tint = if (state.isWatching) Color.Blue else Color.Black
+                                tint = if (state.isWatching) Color.Blue else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Text(text = repository.subscribers_count.toString())
+                        Text(
+                            text = repository.subscribers_count.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     Column(
@@ -2768,10 +3024,13 @@ private fun Toolbar(
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_star_filled),
                                 contentDescription = "Star",
-                                tint = if (state.isStarring) Color.Blue else Color.Black
+                                tint = if (state.isStarring) Color.Blue else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Text(text = repository.stargazers_count.toString())
+                        Text(
+                            text = repository.stargazers_count.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     Column(
@@ -2784,10 +3043,13 @@ private fun Toolbar(
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
                                 contentDescription = "Star",
-                                tint = if (state.HasForked) Color.Blue else Color.Black
+                                tint = if (state.HasForked) Color.Blue else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Text(text = repository.forks_count.toString())
+                        Text(
+                            text = repository.forks_count.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     if (repository.has_wiki) {
@@ -2798,10 +3060,11 @@ private fun Toolbar(
                             IconButton(onClick = { /*TODO*/ }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_book),
-                                    contentDescription = "Star"
+                                    contentDescription = "Star",
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                            Text(text = "Wiki")
+                            Text(text = "Wiki", color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
 
@@ -2812,10 +3075,11 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_pin),
-                                contentDescription = "Pin"
+                                contentDescription = "Pin",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Text(text = "Pin")
+                        Text(text = "Pin", color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     if (repository.license != null) {
@@ -2826,10 +3090,16 @@ private fun Toolbar(
                             IconButton(onClick = { onLicenseClicked() }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_license),
-                                    contentDescription = "License"
+                                    contentDescription = "License",
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                            Text(text = repository.license.spdx_id, maxLines = 1)
+                            Text(
+                                text = repository.license.spdx_id,
+                                maxLines = 1,
+                                color = MaterialTheme.colorScheme.onSurface
+
+                            )
                         }
                     }
                 }
@@ -2847,15 +3117,30 @@ private fun Toolbar(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             onAction("share", repository.html_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Open in browser",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             onAction("browser", repository.html_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy URL",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             onAction("copy", repository.html_url)
                             showMenu = false
                         })
@@ -2884,7 +3169,11 @@ private fun Toolbar(
             ) {
 
                 IconButton(onClick = { onItemClicked(-1, null, null) }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -2899,7 +3188,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Watch"
+                                contentDescription = "Watch",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2911,7 +3201,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_star),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2923,7 +3214,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_fork),
-                                contentDescription = "Star"
+                                contentDescription = "Star",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2935,7 +3227,8 @@ private fun Toolbar(
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_pin),
-                                contentDescription = "Pin"
+                                contentDescription = "Pin",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -2947,20 +3240,39 @@ private fun Toolbar(
                             showMenu = !showMenu
                         },
                     ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            contentDescription = "more option",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Open in browser") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Open in browser",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Copy URL") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy URL",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
                             showMenu = false
                         })
                     }

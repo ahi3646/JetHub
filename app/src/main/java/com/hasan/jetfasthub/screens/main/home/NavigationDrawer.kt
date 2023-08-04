@@ -33,10 +33,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.Constants
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
@@ -85,7 +87,7 @@ fun DrawerBody(
     username: String,
     onLogout: () -> Unit,
     onNavigate: (Int, String?, String?) -> Unit
-){
+) {
 
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
@@ -127,9 +129,7 @@ fun DrawerBody(
 
 @Composable
 fun DrawerMenuScreen(
-    closeDrawer: () -> Unit,
-    username: String,
-    onNavigate: (Int, String?, String?) -> Unit
+    closeDrawer: () -> Unit, username: String, onNavigate: (Int, String?, String?) -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -140,19 +140,17 @@ fun DrawerMenuScreen(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 2.dp, bottom = 2.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = Color.Red),
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
                 ) {
                     closeDrawer()
-                }
-        ) {
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_home_24),
                 contentDescription = "home icon",
@@ -169,17 +167,18 @@ fun DrawerMenuScreen(
 
         Divider()
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface)
+                ) {
                     closeDrawer()
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, null)
-                }
-        ) {
+                }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_person_24),
                 contentDescription = "Profile icon",
@@ -199,7 +198,10 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable { }) {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { }) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_people_alt_24),
                 contentDescription = "Organizations icon",
@@ -218,7 +220,10 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null)
                 }) {
             Image(
@@ -241,7 +246,12 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
+                    onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null)
+                }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_24),
@@ -256,12 +266,17 @@ fun DrawerMenuScreen(
             )
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable { }) {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_trending_up_24),
                 contentDescription = "Trending icon",
@@ -280,7 +295,10 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 4.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_gistsFragment, username, null)
                 }
         ) {
@@ -299,13 +317,15 @@ fun DrawerMenuScreen(
 
         Divider()
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 2.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(
                         R.id.action_homeFragment_to_repositoryFragment,
                         Constants.JetHubOwner,
@@ -331,7 +351,11 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) }) {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "FAQ icon",
@@ -350,9 +374,13 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_settingsFragment, null, null)
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_settings_24),
                 contentDescription = "Setting icon",
@@ -371,7 +399,11 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable { }) {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_money),
                 contentDescription = "Restore Purchases icon",
@@ -390,9 +422,13 @@ fun DrawerMenuScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_aboutFragment, null, null)
-                }) {
+                }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_info_24),
                 contentDescription = "About icon",
@@ -410,9 +446,7 @@ fun DrawerMenuScreen(
 
 @Composable
 fun DrawerProfileScreen(
-    username: String,
-    onNavigate: (Int, String?, String?) -> Unit,
-    onLogout: () -> Unit
+    username: String, onNavigate: (Int, String?, String?) -> Unit, onLogout: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -424,7 +458,10 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onLogout() }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { onLogout() }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_logout),
@@ -447,7 +484,10 @@ fun DrawerProfileScreen(
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     //implement action
                 }
         ) {
@@ -467,12 +507,16 @@ fun DrawerProfileScreen(
 
         Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, "2")
                 }
         ) {
@@ -492,12 +536,16 @@ fun DrawerProfileScreen(
 
         Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) {
                     onNavigate(R.id.action_homeFragment_to_profileFragment, username, "3")
                 }
         ) {
@@ -517,12 +565,16 @@ fun DrawerProfileScreen(
 
         Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
                 .fillMaxWidth(1F)
                 .padding(top = 4.dp, bottom = 2.dp)
-                .clickable { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
+                ) { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
@@ -539,3 +591,44 @@ fun DrawerProfileScreen(
         }
     }
 }
+
+@Preview
+@Composable
+fun Tests() {
+    JetFastHubTheme(isDarkTheme = true) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .background(Color.White),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp, bottom = 2.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(color = Color.Red),
+                    ) {
+                        //closeDrawer()
+                    }) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_home_24),
+                    contentDescription = "home icon",
+                    modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
+                )
+                Text(
+                    text = "Home",
+                    modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+

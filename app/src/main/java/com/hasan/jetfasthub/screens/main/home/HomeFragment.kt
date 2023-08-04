@@ -51,7 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -248,7 +247,8 @@ private fun MainContent(
             }
         },
         sheetPeekHeight = 0.dp,
-        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface
     ) { paddingValues ->
 
         Scaffold(
@@ -432,6 +432,7 @@ fun PullRequestScreen() {
     }
 }
 
+
 @Composable
 private fun ItemEventCard(
     eventItem: ReceivedEventsModelItem,
@@ -472,7 +473,7 @@ private fun ItemEventCard(
                 }
             },
         elevation = 0.dp,
-        backgroundColor = Color.White
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -523,11 +524,12 @@ private fun ItemEventCard(
                         append(eventItem.repo.name)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -538,14 +540,15 @@ private fun ItemEventCard(
                         painter = painterResource(id = chooseFromEvents(eventItem.type).icon),
                         contentDescription = stringResource(
                             id = chooseFromEvents(eventItem.type).action
-                        )
+                        ),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = ParseDateFormat.getTimeAgo(eventItem.created_at).toString(),
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         style = androidx.compose.material.MaterialTheme.typography.caption,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
