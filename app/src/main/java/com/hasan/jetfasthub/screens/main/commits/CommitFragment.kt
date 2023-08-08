@@ -456,20 +456,21 @@ private fun MainContent(
             ) {
                 TabRow(
                     selectedTabIndex = tabIndex,
-                    containerColor = Color.White,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = tabIndex == index, onClick = { tabIndex = index },
                             text = {
                                 if (tabIndex == index) {
-                                    Text(title, color = Color.Blue)
+                                    Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                 } else {
-                                    Text(title, color = Color.Black)
+                                    Text(title, color = MaterialTheme.colorScheme.outline)
                                 }
                             },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     }
                 }
