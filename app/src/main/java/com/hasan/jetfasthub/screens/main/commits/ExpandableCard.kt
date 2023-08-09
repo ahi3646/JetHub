@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,7 +61,7 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
             )
             .clickable { expandableState = !expandableState },
         shadowElevation = 10.dp,
-    ){
+    ) {
         Column {
 
             Row(
@@ -72,7 +74,8 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                     text = file.filename,
                     modifier = Modifier.weight(1F),
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 IconButton(
@@ -83,7 +86,8 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                        contentDescription = "dropdown icon"
+                        contentDescription = "dropdown icon",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -93,27 +97,51 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                             showMenu = !showMenu
                         },
                     ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = "more option",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Open") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Open",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }, onClick = {
                             onAction("browser", file.blob_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Download") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Download",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }, onClick = {
                             onAction("download", file.blob_url)
                             showMenu = false
                         })
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }, onClick = {
                             onAction("share", file.blob_url)
                             showMenu = false
                         })
 
-                        DropdownMenuItem(text = { Text(text = "Copy URL") },
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy URL",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        },
                             onClick = {
                                 onAction("copy", file.blob_url)
                                 showMenu = false
@@ -128,6 +156,7 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                 Column(
                     modifier = Modifier
                         .height(72.dp)
+                        .background(MaterialTheme.colorScheme.surface)
                         .fillMaxWidth()
                 ) {
 
@@ -154,32 +183,45 @@ fun ExpandableCard(file: File, onAction: (String, String?) -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Changes")
-                    Text(text = file.changes.toString())
+                    Text(text = "Changes", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = file.changes.toString(),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Addition")
-                    Text(text = file.additions.toString())
+                    Text(text = "Addition", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = file.additions.toString(),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Deletion")
-                    Text(text = file.deletions.toString())
+                    Text(text = "Deletion", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = file.deletions.toString(),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
                 Column(
                     modifier = Modifier.padding(6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Status")
-                    Text(text = file.status, fontWeight = FontWeight.Bold)
+                    Text(text = "Status", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = file.status,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
 

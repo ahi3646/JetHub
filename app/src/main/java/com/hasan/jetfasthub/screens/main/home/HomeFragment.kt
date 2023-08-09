@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
@@ -228,9 +230,17 @@ private fun MainContent(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Logout", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Logout",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = "Are you sure ?", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Are you sure ?",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -248,7 +258,19 @@ private fun MainContent(
         },
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface
+        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
+        modifier =
+        Modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onTap = {
+                    sheetScope.launch {
+                        if(sheetState.isExpanded){
+                            sheetState.collapse()
+                        }
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
 
         Scaffold(

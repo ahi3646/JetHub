@@ -96,7 +96,7 @@ private fun MainContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            androidx.compose.material3.Text(
+            Text(
                 text = "No files",
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

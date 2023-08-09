@@ -2689,6 +2689,7 @@ private fun TitleHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
+
                     GlideImage(
                         failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                         imageModel = {

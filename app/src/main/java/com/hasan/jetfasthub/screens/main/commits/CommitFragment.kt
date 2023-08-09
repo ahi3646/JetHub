@@ -115,25 +115,19 @@ class CommitFragment : Fragment() {
         // Consider using safe args plugin
         token = PreferenceHelper.getToken(requireContext())
         val owner = arguments?.getString("owner")
-        val repo = arguments?.getString("repo" )
-        val sha = arguments?.getString("sha" )
+        val repo = arguments?.getString("repo")
+        val sha = arguments?.getString("sha")
 
         if (!owner.isNullOrEmpty() && !repo.isNullOrEmpty() && !sha.isNullOrEmpty()) {
 
             commitViewModel.init(owner, repo, sha)
 
             commitViewModel.getCommit(
-                token = token,
-                owner = owner,
-                repo = repo,
-                branch = sha
+                token = token, owner = owner, repo = repo, branch = sha
             )
 
             commitViewModel.getCommitComments(
-                token = token,
-                owner = owner,
-                repo = repo,
-                branch = sha
+                token = token, owner = owner, repo = repo, branch = sha
             )
 
         } else {
@@ -143,149 +137,137 @@ class CommitFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by commitViewModel.state.collectAsState()
                 JetFastHubTheme {
-                    MainContent(
-                        state = state,
-                        onNavigate = { dest, data, id ->
-                            when (dest) {
-                                -1 -> {
-                                    findNavController().popBackStack()
-                                }
-
-                                R.id.action_commitFragment_to_editCommentFragment -> {
-                                    val bundle = Bundle()
-                                    bundle.putString("owner", state.CommitOwner)
-                                    bundle.putString("repo", state.CommitRepo)
-                                    bundle.putString("edit_comment", data)
-                                    bundle.putInt("comment_id", id!!)
-                                    findNavController().navigate(dest, bundle)
-                                }
-
-                                R.id.action_commitFragment_to_profileFragment -> {
-                                    val bundle = bundleOf("username" to data)
-                                    findNavController().navigate(dest, bundle)
-                                }
+                    MainContent(state = state, onNavigate = { dest, data, id ->
+                        when (dest) {
+                            -1 -> {
+                                findNavController().popBackStack()
                             }
-                        },
-                        onAction = { action, data ->
-                            when (action) {
 
-                                "post_comment" -> {
-                                    commitViewModel.postCommitComment(
-                                        token = token,
-                                        owner = state.CommitOwner,
-                                        repo = state.CommitRepo,
-                                        branch = state.CommitSha,
-                                        body = data!!
-                                    )
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach { response ->
-                                            if (response) {
-                                                commitViewModel.getCommitComments(
-                                                    token = token,
-                                                    owner = state.CommitOwner,
-                                                    repo = state.CommitRepo,
-                                                    branch = state.CommitSha
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't post comment",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                        .launchIn(lifecycleScope)
-                                }
-
-                                "share" -> {
-                                    val context = requireContext()
-                                    val type = "text/plain"
-                                    val subject = "Your subject"
-                                    val shareWith = "ShareWith"
-
-                                    val intent = Intent(Intent.ACTION_SEND)
-                                    intent.type = type
-                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                    intent.putExtra(Intent.EXTRA_TEXT, data)
-
-                                    ContextCompat.startActivity(
-                                        context, Intent.createChooser(intent, shareWith), null
-                                    )
-                                }
-
-                                "browser" -> {
-                                    var webpage = Uri.parse(data)
-
-                                    if (!data!!.startsWith("http://") && !data.startsWith("https://")) {
-                                        webpage = Uri.parse("http://$data")
-                                    }
-                                    val urlIntent = Intent(
-                                        Intent.ACTION_VIEW, webpage
-                                    )
-                                    requireContext().startActivity(urlIntent)
-                                }
-
-                                "copy" -> {
-                                    val clipboardManager =
-                                        requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clipData = ClipData.newPlainText("text", data)
-                                    clipboardManager.setPrimaryClip(clipData)
-                                    Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-
-                                "download" -> {
-                                    val message = Uri.parse(
-                                        data!!
-                                    ).lastPathSegment
-                                    commitViewModel.downloadCommit(
-                                        data,
-                                        message ?: "jethub_download"
-                                    )
-                                }
-
-                                "delete_comment" -> {
-                                    commitViewModel.deleteComment(
-                                        token = token,
-                                        owner = state.CommitOwner,
-                                        repo = state.CommitRepo,
-                                        commentId = data!!.toInt()
-                                    )
-                                        .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                                        .onEach { response ->
-                                            if (response) {
-                                                commitViewModel.getCommitComments(
-                                                    token = token,
-                                                    owner = state.CommitOwner,
-                                                    repo = state.CommitRepo,
-                                                    branch = state.CommitSha
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    "Can't delete comment now !",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                        .launchIn(lifecycleScope)
-                                }
-
+                            R.id.action_commitFragment_to_editCommentFragment -> {
+                                val bundle = Bundle()
+                                bundle.putString("owner", state.CommitOwner)
+                                bundle.putString("repo", state.CommitRepo)
+                                bundle.putString("edit_comment", data)
+                                bundle.putInt("comment_id", id!!)
+                                findNavController().navigate(dest, bundle)
                             }
-                        },
-                        onCurrentSheetChanged = { currentSheet ->
-                            commitViewModel.onBottomSheetChanged(currentSheet)
+
+                            R.id.action_commitFragment_to_profileFragment -> {
+                                val bundle = bundleOf("username" to data)
+                                findNavController().navigate(dest, bundle)
+                            }
                         }
-                    )
+                    }, onAction = { action, data ->
+                        when (action) {
+
+                            "post_comment" -> {
+                                commitViewModel.postCommitComment(
+                                    token = token,
+                                    owner = state.CommitOwner,
+                                    repo = state.CommitRepo,
+                                    branch = state.CommitSha,
+                                    body = data!!
+                                ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                    .onEach { response ->
+                                        if (response) {
+                                            commitViewModel.getCommitComments(
+                                                token = token,
+                                                owner = state.CommitOwner,
+                                                repo = state.CommitRepo,
+                                                branch = state.CommitSha
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't post comment",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
+                            }
+
+                            "share" -> {
+                                val context = requireContext()
+                                val type = "text/plain"
+                                val subject = "Your subject"
+                                val shareWith = "ShareWith"
+
+                                val intent = Intent(Intent.ACTION_SEND)
+                                intent.type = type
+                                intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                intent.putExtra(Intent.EXTRA_TEXT, data)
+
+                                ContextCompat.startActivity(
+                                    context, Intent.createChooser(intent, shareWith), null
+                                )
+                            }
+
+                            "browser" -> {
+                                var webpage = Uri.parse(data)
+
+                                if (!data!!.startsWith("http://") && !data.startsWith("https://")) {
+                                    webpage = Uri.parse("http://$data")
+                                }
+                                val urlIntent = Intent(
+                                    Intent.ACTION_VIEW, webpage
+                                )
+                                requireContext().startActivity(urlIntent)
+                            }
+
+                            "copy" -> {
+                                val clipboardManager =
+                                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clipData = ClipData.newPlainText("text", data)
+                                clipboardManager.setPrimaryClip(clipData)
+                                Toast.makeText(requireContext(), "Copied", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+
+                            "download" -> {
+                                val message = Uri.parse(
+                                    data!!
+                                ).lastPathSegment
+                                commitViewModel.downloadCommit(
+                                    data, message ?: "jethub_download"
+                                )
+                            }
+
+                            "delete_comment" -> {
+                                commitViewModel.deleteComment(
+                                    token = token,
+                                    owner = state.CommitOwner,
+                                    repo = state.CommitRepo,
+                                    commentId = data!!.toInt()
+                                ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                    .onEach { response ->
+                                        if (response) {
+                                            commitViewModel.getCommitComments(
+                                                token = token,
+                                                owner = state.CommitOwner,
+                                                repo = state.CommitRepo,
+                                                branch = state.CommitSha
+                                            )
+                                        } else {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                "Can't delete comment now !",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.launchIn(lifecycleScope)
+                            }
+
+                        }
+                    }, onCurrentSheetChanged = { currentSheet ->
+                        commitViewModel.onBottomSheetChanged(currentSheet)
+                    })
                 }
             }
         }
@@ -341,12 +323,14 @@ private fun MainContent(
                             ) {
                                 Text(
                                     text = commit.commit.message,
-                                    style = MaterialTheme.typography.titleLarge
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Text(
-                                    text = "${state.CommitOwner} / ${state.CommitRepo}"
+                                    text = "${state.CommitOwner} / ${state.CommitRepo}",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
 
                                 Row(
@@ -422,8 +406,7 @@ private fun MainContent(
             modifier = Modifier.padding(sheetPadding),
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
-                    TitleHeader(
-                        repo = state.CommitRepo,
+                    TitleHeader(repo = state.CommitRepo,
                         state = state.Commit,
                         onNavigate = onNavigate,
                         onCurrentSheetChanged = {
@@ -435,8 +418,7 @@ private fun MainContent(
                                     sheetScaffoldState.bottomSheetState.collapse()
                                 }
                             }
-                        }
-                    )
+                        })
                     Toolbar(
                         state = state.Commit,
                         onNavigate = onNavigate,
@@ -453,18 +435,22 @@ private fun MainContent(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 TabRow(
                     selectedTabIndex = tabIndex,
-                    containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
-                            selected = tabIndex == index, onClick = { tabIndex = index },
+                            selected = tabIndex == index,
+                            onClick = { tabIndex = index },
                             text = {
                                 if (tabIndex == index) {
-                                    Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text(
+                                        title, color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 } else {
                                     Text(title, color = MaterialTheme.colorScheme.outline)
                                 }
@@ -485,6 +471,7 @@ private fun MainContent(
 
                     1 -> CommentsScreen(
                         state = state.CommitComments,
+                        onNavigate = onNavigate,
                         onAction = onAction,
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(it)
@@ -495,8 +482,7 @@ private fun MainContent(
                                     sheetScaffoldState.bottomSheetState.collapse()
                                 }
                             }
-                        },
-                        onNavigate = onNavigate
+                        }
                     )
                 }
             }
@@ -507,17 +493,18 @@ private fun MainContent(
 
 @Composable
 private fun FilesScreen(
-    state: Resource<CommitModel>,
-    onAction: (String, String?) -> Unit
+    state: Resource<CommitModel>, onAction: (String, String?) -> Unit
 ) {
     when (state) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = (MaterialTheme.colorScheme.onSurfaceVariant))
             }
         }
 
@@ -527,7 +514,7 @@ private fun FilesScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -539,11 +526,16 @@ private fun FilesScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(
+                    text = "Something went wrong !",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -558,13 +550,16 @@ private fun CommentsScreen(
     onNavigate: (Int, String?, Int?) -> Unit
 ) {
     when (state) {
+
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -586,12 +581,13 @@ private fun CommentsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 ) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1F)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         itemsIndexed(comments) { index, comment ->
                             CommentItem(
@@ -601,16 +597,13 @@ private fun CommentsScreen(
                                     if (userLogin != "N/A") {
                                         val newValue = textFieldValueState.text.plus("@$userLogin")
                                         textFieldValueState = TextFieldValue(
-                                            text = newValue,
-                                            selection = TextRange(newValue.length)
+                                            text = newValue, selection = TextRange(newValue.length)
                                         )
                                         focusRequester.requestFocus()
                                         keyboardController?.show()
                                     } else {
                                         Toast.makeText(
-                                            context,
-                                            "Can't identify user !",
-                                            Toast.LENGTH_SHORT
+                                            context, "Can't identify user !", Toast.LENGTH_SHORT
                                         ).show()
                                     }
                                 },
@@ -657,24 +650,19 @@ private fun CommentsScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        IconButton(
-                            onClick = {
-                                if (textFieldValueState.text.length >= 2) {
-                                    onAction(
-                                        "post_comment",
-                                        textFieldValueState.text
-                                    )
-                                    textFieldValueState = TextFieldValue("")
-                                    keyboardController?.hide()
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Min length for comment is 2 !",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                        IconButton(onClick = {
+                            if (textFieldValueState.text.length >= 2) {
+                                onAction(
+                                    "post_comment", textFieldValueState.text
+                                )
+                                textFieldValueState = TextFieldValue("")
+                                keyboardController?.hide()
+                            } else {
+                                Toast.makeText(
+                                    context, "Min length for comment is 2 !", Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        ) {
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_send),
                                 tint = Color.Blue,
@@ -687,16 +675,20 @@ private fun CommentsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .weight(1F),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "No comments so far ")
+                        Text(
+                            text = "No comments so far ",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Row(
                         modifier = Modifier
@@ -726,24 +718,19 @@ private fun CommentsScreen(
                             keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
                         )
 
-                        IconButton(
-                            onClick = {
-                                if (textFieldValueState.text.length >= 2) {
-                                    onAction(
-                                        "post_comment",
-                                        textFieldValueState.text
-                                    )
-                                    textFieldValueState = TextFieldValue("")
-                                    keyboardController?.hide()
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Min length for comment is 2 !",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                        IconButton(onClick = {
+                            if (textFieldValueState.text.length >= 2) {
+                                onAction(
+                                    "post_comment", textFieldValueState.text
+                                )
+                                textFieldValueState = TextFieldValue("")
+                                keyboardController?.hide()
+                            } else {
+                                Toast.makeText(
+                                    context, "Min length for comment is 2 !", Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        ) {
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_send),
                                 tint = Color.Blue,
@@ -757,11 +744,16 @@ private fun CommentsScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(
+                    text = "Something went wrong !",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -781,7 +773,7 @@ private fun CommentItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -823,13 +815,13 @@ private fun CommentItem(
                     Text(
                         text = comment.user?.login ?: "N/A",
                         fontSize = 14.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.weight(1F))
                     Text(
                         text = ParseDateFormat.getTimeAgo(comment.created_at).toString(),
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -838,7 +830,7 @@ private fun CommentItem(
                 if (comment.author_association.lowercase(Locale.ROOT) != "none") {
                     Text(
                         text = comment.author_association.lowercase(Locale.ROOT),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -848,7 +840,8 @@ private fun CommentItem(
             IconButton(onClick = { }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add_emoji),
-                    contentDescription = "emoji"
+                    contentDescription = "emoji",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -860,7 +853,8 @@ private fun CommentItem(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_overflow),
-                        contentDescription = "more option"
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -868,8 +862,12 @@ private fun CommentItem(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Edit") },
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Edit",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
                         onClick = {
                             onNavigate(
                                 R.id.action_commitFragment_to_editCommentFragment,
@@ -877,41 +875,47 @@ private fun CommentItem(
                                 comment.id
                             )
                             showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Delete") },
-                        onClick = {
-                            onCurrentSheetChanged(
-                                CommitScreenSheets.CommitDeleteRequestSheet(
-                                    comment.id
-                                )
+                        })
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Delete",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }, onClick = {
+                        onCurrentSheetChanged(
+                            CommitScreenSheets.CommitDeleteRequestSheet(
+                                comment.id
                             )
-                            onAction("delete", "")
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Reply") },
-                        onClick = {
-                            onReply(comment.user?.login ?: "N/A")
-                            showMenu = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Share") },
-                        onClick = {
-                            onAction("share", comment.html_url)
-                            showMenu = false
-                        }
-                    )
+                        )
+                        onAction("delete", "")
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Reply",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }, onClick = {
+                        onReply(comment.user?.login ?: "N/A")
+                        showMenu = false
+                    })
+                    DropdownMenuItem(text = {
+                        Text(
+                            text = "Share",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }, onClick = {
+                        onAction("share", comment.html_url)
+                        showMenu = false
+                    })
                 }
             }
         }
 
         Text(
             text = comment.body,
-            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
@@ -932,8 +936,7 @@ private fun TitleHeader(
                     .padding(start = 12.dp, top = 16.dp, bottom = 16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -946,10 +949,14 @@ private fun TitleHeader(
                             .size(48.dp, 48.dp)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                     )
 
-                    Spacer(modifier = Modifier.width(24.dp).width(6.dp))
+                    Spacer(
+                        modifier = Modifier
+                            .width(24.dp)
+                            .width(6.dp)
+                    )
                 }
             }
         }
@@ -1006,7 +1013,7 @@ private fun TitleHeader(
                     ) {
                         Text(
                             text = commit.commit.message,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1017,28 +1024,27 @@ private fun TitleHeader(
                             Text(
                                 text = repo,
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = ParseDateFormat.getTimeAgo(commit.commit.committer.date)
                                     .toString(),
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
 
                     IconButton(
                         onClick = {
-                            onCurrentSheetChanged(
-                                CommitScreenSheets.CommitInfoSheet
-                            )
+                            onCurrentSheetChanged(CommitScreenSheets.CommitInfoSheet)
                         }
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_info_outline),
-                            contentDescription = "info"
+                            contentDescription = "info",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1050,12 +1056,11 @@ private fun TitleHeader(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(start = 12.dp, top = 16.dp, bottom = 16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1107,12 +1112,16 @@ private fun Toolbar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(top = 4.dp)
             ) {
 
                 IconButton(onClick = { }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -1128,7 +1137,7 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_document),
                             contentDescription = "changes",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1140,6 +1149,7 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "add",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1151,7 +1161,8 @@ private fun Toolbar(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
-                            contentDescription = "clear"
+                            contentDescription = "clear",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1160,7 +1171,11 @@ private fun Toolbar(
                 IconButton(
                     onClick = { },
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
@@ -1179,7 +1194,11 @@ private fun Toolbar(
             ) {
 
                 IconButton(onClick = { onNavigate(-1, null, null) }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -1195,9 +1214,12 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_document),
                             contentDescription = "changes",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(text = commit.files.size.toString())
+                        Text(
+                            text = commit.files.size.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     Column(
@@ -1208,8 +1230,12 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "add",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(text = commit.stats.additions.toString())
+                        Text(
+                            text = commit.stats.additions.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     Column(
@@ -1219,9 +1245,13 @@ private fun Toolbar(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
-                            contentDescription = "clear"
+                            contentDescription = "clear",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(text = commit.stats.deletions.toString())
+                        Text(
+                            text = commit.stats.deletions.toString(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                 }
@@ -1232,37 +1262,54 @@ private fun Toolbar(
                             showMenu = !showMenu
                         },
                     ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = "more option",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(text = "Share") },
-                            onClick = {
-                                onAction("share", commit.html_url)
-                                showMenu = false
-                            })
-                        DropdownMenuItem(
-                            text = { Text(text = "Open in browser") },
-                            onClick = {
-                                onAction("browser", commit.html_url)
-                                showMenu = false
-                            })
-                        DropdownMenuItem(
-                            text = { Text(text = "Copy URL") },
-                            onClick = {
-                                onAction("copy", commit.html_url)
-                                showMenu = false
-                            })
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
+                            onAction("share", commit.html_url)
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Open in browser",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
+                            onAction("browser", commit.html_url)
+                            showMenu = false
+                        })
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy URL",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
+                            onAction("copy", commit.html_url)
+                            showMenu = false
+                        })
 
-                        DropdownMenuItem(text = { Text(text = "Copy SHA-1") },
-                            onClick = {
-                                onAction("copy", commit.sha)
-                                showMenu = false
-                            })
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Copy SHA-1",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }, onClick = {
+                            onAction("copy", commit.sha)
+                            showMenu = false
+                        })
 
                     }
                 }
@@ -1276,12 +1323,16 @@ private fun Toolbar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(top = 4.dp)
             ) {
 
                 IconButton(onClick = { }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(
@@ -1297,7 +1348,7 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_document),
                             contentDescription = "changes",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1309,9 +1360,9 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "add",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-
 
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -1320,7 +1371,8 @@ private fun Toolbar(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_clear),
-                            contentDescription = "clear"
+                            contentDescription = "clear",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1329,7 +1381,11 @@ private fun Toolbar(
                 IconButton(
                     onClick = { },
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
