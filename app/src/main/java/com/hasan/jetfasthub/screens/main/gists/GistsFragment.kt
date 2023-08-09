@@ -1,7 +1,6 @@
 package com.hasan.jetfasthub.screens.main.gists
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -98,6 +97,7 @@ class GistsFragment : Fragment() {
                                 -1 -> {
                                     findNavController().popBackStack()
                                 }
+
                                 R.id.action_gistsFragment_to_gistFragment -> {
                                     val bundle = Bundle()
                                     bundle.putString("gist_id", data)
@@ -269,13 +269,17 @@ private fun GistItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onGistItemClick(
-                    R.id.action_gistsFragment_to_gistFragment,
-                    gistModelItem.id
-                )
-            })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .clickable(
+                onClick = {
+                    onGistItemClick(
+                        R.id.action_gistsFragment_to_gistFragment,
+                        gistModelItem.id
+                    )
+                }
+            )
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
@@ -286,7 +290,7 @@ private fun GistItemCard(
             Text(
                 text = fileName,
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontSize = 16.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -296,7 +300,7 @@ private fun GistItemCard(
 
             Text(
                 text = ParseDateFormat.getTimeAgo(gistModelItem.updated_at).toString(),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(start = 2.dp)
             )
 
@@ -392,7 +396,9 @@ private fun StarredGistsItem(
                     gist.id
                 )
             })
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -419,18 +425,18 @@ private fun StarredGistsItem(
 
             val fileValues = gist.files.values
 
-            val fileName = if(gist.description == "" || gist.description == null){
+            val fileName = if (gist.description == "" || gist.description == null) {
                 fileValues.elementAt(0).filename
-            }else{
+            } else {
                 gist.description
             }
 
             Column(modifier = Modifier.align(Alignment.CenterVertically)) {
 
-                androidx.compose.material.Text(
+                Text(
                     text = fileName,
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -445,12 +451,13 @@ private fun StarredGistsItem(
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_time_small),
-                        contentDescription = "time icon"
+                        contentDescription = "time icon",
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
 
-                    androidx.compose.material.Text(
+                    Text(
                         text = ParseDateFormat.getTimeAgo(gist.updated_at).toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
@@ -550,7 +557,9 @@ private fun PublicGistsItem(
                     )
                 }
             )
-            .padding(4.dp), elevation = 0.dp, backgroundColor = Color.White
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
@@ -587,7 +596,7 @@ private fun PublicGistsItem(
                         append(fileName)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = androidx.compose.material.MaterialTheme.typography.subtitle1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -602,12 +611,13 @@ private fun PublicGistsItem(
 
                     Icon(
                         painter = painterResource(id = R.drawable.ic_time_small),
-                        contentDescription = "time icon"
+                        contentDescription = "time icon",
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
 
-                    androidx.compose.material.Text(
+                    Text(
                         text = ParseDateFormat.getTimeAgo(gist.updated_at).toString(),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(start = 2.dp)
                     )
 
@@ -632,7 +642,7 @@ private fun TopAppBarContent(
                 .padding(top = 4.dp, bottom = 4.dp)
                 .fillMaxWidth()
 
-            ) {
+        ) {
             IconButton(onClick = {
                 onBackPressed(-1, null)
             }) {

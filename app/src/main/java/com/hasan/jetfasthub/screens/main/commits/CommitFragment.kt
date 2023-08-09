@@ -352,11 +352,9 @@ private fun MainContent(
                                 }
                             }
                         }
-
                         is Resource.Failure -> {}
                     }
                 }
-
                 is CommitScreenSheets.CommitDeleteRequestSheet -> {
                     val commentId = state.CurrentSheet.commentId
 
@@ -406,7 +404,8 @@ private fun MainContent(
             modifier = Modifier.padding(sheetPadding),
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
-                    TitleHeader(repo = state.CommitRepo,
+                    TitleHeader(
+                        repo = state.CommitRepo,
                         state = state.Commit,
                         onNavigate = onNavigate,
                         onCurrentSheetChanged = {
@@ -435,7 +434,7 @@ private fun MainContent(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 TabRow(
                     selectedTabIndex = tabIndex,
@@ -686,7 +685,7 @@ private fun CommentsScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "No comments so far ",
+                            text = "No comments",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -751,7 +750,7 @@ private fun CommentsScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Something went wrong !",
+                    text = "Can't load data!",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

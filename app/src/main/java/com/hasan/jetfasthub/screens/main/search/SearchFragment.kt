@@ -126,8 +126,8 @@ class SearchFragment : Fragment() {
 
                                 R.id.action_searchFragment_to_repositoryFragment -> {
                                     val bundle = Bundle()
-                                    bundle.putString("home_data", data)
-                                    bundle.putString("home_extra", extra)
+                                    bundle.putString("repository_owner", data)
+                                    bundle.putString("repository_name", extra)
                                     findNavController().navigate(dest, bundle)
                                 }
 

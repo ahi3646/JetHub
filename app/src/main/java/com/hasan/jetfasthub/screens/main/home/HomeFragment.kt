@@ -154,8 +154,8 @@ class HomeFragment : Fragment() {
 
                                 R.id.action_homeFragment_to_repositoryFragment -> {
                                     val bundle = Bundle()
-                                    bundle.putString("home_data", data)
-                                    bundle.putString("home_extra", extra)
+                                    bundle.putString("repository_owner", data)
+                                    bundle.putString("repository_name", extra)
                                     findNavController().navigate(dest, bundle)
                                 }
 
@@ -259,12 +259,11 @@ private fun MainContent(
         sheetPeekHeight = 0.dp,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
-        modifier =
-        Modifier.pointerInput(Unit) {
+        modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(
                 onTap = {
                     sheetScope.launch {
-                        if(sheetState.isExpanded){
+                        if (sheetState.isExpanded) {
                             sheetState.collapse()
                         }
                     }
@@ -274,7 +273,19 @@ private fun MainContent(
     ) { paddingValues ->
 
         Scaffold(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier
+                .padding(paddingValues)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            if (sheetState.isExpanded) {
+                                sheetScope.launch {
+                                    sheetState.collapse()
+                                }
+                            }
+                        }
+                    )
+                },
             scaffoldState = scaffoldState,
             topBar = { AppBar(onNavigationClick, onNavigate) },
             drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
@@ -399,16 +410,29 @@ fun FeedsScreen(
         }
 
         is ReceivedEventsState.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(contentPaddingValues)
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                items(receivedEventsState.events) { eventItem ->
-                    ItemEventCard(eventItem, onNavigate)
+            val events = receivedEventsState.events
+            if (events.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(contentPaddingValues)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    items(events) { eventItem ->
+                        ItemEventCard(eventItem, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No feeds")
                 }
             }
         }

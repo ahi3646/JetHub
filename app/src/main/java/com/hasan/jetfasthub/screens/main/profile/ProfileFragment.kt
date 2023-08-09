@@ -10,14 +10,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -60,7 +56,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -244,10 +239,24 @@ class ProfileFragment : Fragment() {
                                 }
                             }
                         },
-                        onNavigate = { dest, data ->
+                        onNavigate = { dest, data, extra ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
+                                }
+
+                                R.id.action_profileFragment_to_gistFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("gist_id", data)
+                                    bundle.putString("gist_owner", extra)
+                                    findNavController().navigate(dest, bundle)
+                                }
+
+                                R.id.action_profileFragment_to_repositoryFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("repository_name", data)
+                                    bundle.putString("repository_owner", extra)
+                                    findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_profileFragment_self -> {
@@ -296,7 +305,8 @@ class ProfileFragment : Fragment() {
                                         ).show()
                                     }
                                 }.launchIn(lifecycleScope)
-                        })
+                        }
+                    )
                 }
             }
         }
@@ -310,7 +320,7 @@ private fun MainContent(
     startIndex: Int,
     state: ProfileScreenState,
     onAction: (String, String) -> Unit,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit
 ) {
@@ -331,7 +341,7 @@ private fun MainContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        onNavigate(-1, null)
+                        onNavigate(-1, null, null)
                     }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
                     }
@@ -359,14 +369,20 @@ private fun MainContent(
                                 onAction("unblock", state.Username)
                                 showMenu = false
                             }) {
-                                Text(text = "Unblock", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(
+                                    text = "Unblock",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
                         } else {
                             DropdownMenuItem(onClick = {
                                 onAction("block", state.Username)
                                 showMenu = false
                             }) {
-                                Text(text = "Block", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(
+                                    text = "Block",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
                         }
 
@@ -393,7 +409,7 @@ fun TabScreen(
     contentPaddingValues: PaddingValues,
     state: ProfileScreenState,
     onAction: (String, String) -> Unit,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
 ) {
@@ -497,7 +513,7 @@ fun OverviewScreen(
     onFollowClicked: () -> Unit,
     onUnfollowClicked: () -> Unit,
     onTabChange: (Int) -> Unit,
-    onNavigate: (Int, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onAction: (String, String) -> Unit
 ) {
 
@@ -889,14 +905,17 @@ fun OverviewScreen(
 }
 
 @Composable
-fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> Unit) {
-    Column(verticalArrangement = Arrangement.Center,
+fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?, String?) -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(4.dp)
             .clickable {
                 onNavigate(
-                    R.id.action_profileFragment_to_organisationsFragment, organisation.login
+                    R.id.action_profileFragment_to_organisationsFragment,
+                    organisation.login,
+                    null
                 )
             }) {
 
@@ -922,7 +941,7 @@ fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?) -> U
 }
 
 @Composable
-fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Unit) {
+fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String, String?) -> Unit) {
     when (userEvents) {
         is Resource.Loading -> {
             Column(
@@ -972,13 +991,13 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String) -> Un
 
 @Composable
 fun FeedsItem(
-    onFeedsItemClicked: (Int, String) -> Unit, userEventsItem: UserEventsItem
+    onFeedsItemClicked: (Int, String, String?) -> Unit, userEventsItem: UserEventsItem
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onFeedsItemClicked(0, userEventsItem.actor.login)
+                onFeedsItemClicked(0, userEventsItem.actor.login, null)
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -1068,7 +1087,7 @@ fun FeedsItem(
 
 @Composable
 fun RepositoriesScreen(
-    userRepositories: Resource<UserRepositoryModel>, onNavigate: (Int, String) -> Unit
+    userRepositories: Resource<UserRepositoryModel>, onNavigate: (Int, String, String?) -> Unit
 ) {
     when (userRepositories) {
         is Resource.Loading -> {
@@ -1084,23 +1103,39 @@ fun RepositoriesScreen(
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userRepositories.data!!) { index, UserEventsItem ->
-                    RepositoryItem(
-                        UserEventsItem, onRepositoryItemClicked = onNavigate
-                    )
-                    if (index < userRepositories.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            val repositories = userRepositories.data!!
+            if (repositories.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(repositories) { index, UserEventsItem ->
+                        RepositoryItem(
+                            UserEventsItem, onRepositoryItemClicked = onNavigate
                         )
+                        if (index < repositories.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No repositories found",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -1121,14 +1156,20 @@ fun RepositoriesScreen(
 
 @Composable
 fun RepositoryItem(
-    repository: RepositoryModelItem, onRepositoryItemClicked: (Int, String) -> Unit
+    repository: RepositoryModelItem, onRepositoryItemClicked: (Int, String, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                onRepositoryItemClicked(0, repository.full_name)
-            })
+            .clickable(
+                onClick = {
+                    onRepositoryItemClicked(
+                        R.id.action_profileFragment_to_repositoryFragment,
+                        repository.name,
+                        repository.owner.login
+                    )
+                }
+            )
             .padding(4.dp),
         elevation = 0.dp,
         backgroundColor = MaterialTheme.colorScheme.surfaceVariant
@@ -1230,7 +1271,7 @@ fun RepositoryItem(
 @Composable
 fun StarredScreen(
     userStarredRepoModel: Resource<StarredRepoModel>,
-    onNavigate: (Int, String) -> Unit
+    onNavigate: (Int, String, String?) -> Unit
 ) {
     when (userStarredRepoModel) {
         is Resource.Loading -> {
@@ -1246,23 +1287,40 @@ fun StarredScreen(
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userStarredRepoModel.data!!) { index, StarredUserRepo ->
-                    StarredRepositoryItem(
-                        StarredUserRepo, onStarredRepositoryItemClicked = onNavigate
-                    )
-                    if (index < userStarredRepoModel.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            val starredRepos = userStarredRepoModel.data!!
+
+            if (starredRepos.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(starredRepos) { index, StarredUserRepo ->
+                        StarredRepositoryItem(
+                            StarredUserRepo, onStarredRepositoryItemClicked = onNavigate
                         )
+                        if (index < starredRepos.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No starred repositories found",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -1283,13 +1341,17 @@ fun StarredScreen(
 
 @Composable
 fun StarredRepositoryItem(
-    repository: StarredRepoModelItem, onStarredRepositoryItemClicked: (Int, String) -> Unit
+    repository: StarredRepoModelItem, onStarredRepositoryItemClicked: (Int, String, String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onStarredRepositoryItemClicked(0, repository.full_name)
+                onStarredRepositoryItemClicked(
+                    R.id.action_profileFragment_to_repositoryFragment,
+                    repository.name,
+                    repository.owner.login
+                )
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -1389,8 +1451,8 @@ fun StarredRepositoryItem(
 }
 
 @Composable
-fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) {
-    when (gists) {
+fun GistsScreen(userGists: Resource<GistsModel>, onNavigate: (Int, String, String?) -> Unit) {
+    when (userGists) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier
@@ -1404,7 +1466,8 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
         }
 
         is Resource.Success -> {
-            if (!gists.data!!.isEmpty()) {
+            val gists = userGists.data!!
+            if (gists.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1412,12 +1475,12 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(gists.data) { index, gist ->
+                    itemsIndexed(gists) { index, gist ->
                         GistItemCard(
                             gistModelItem = gist,
                             onGistItemClick = onNavigate
                         )
-                        if (index < gists.data.lastIndex) {
+                        if (index < gists.lastIndex) {
                             Divider(
                                 color = Color.Gray,
                                 modifier = Modifier.padding(start = 6.dp, end = 6.dp)
@@ -1434,7 +1497,7 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Can't load data!",
+                        text = "No gists",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -1458,7 +1521,7 @@ fun GistsScreen(gists: Resource<GistsModel>, onNavigate: (Int, String) -> Unit) 
 @Composable
 fun GistItemCard(
     gistModelItem: GistModelItem,
-    onGistItemClick: (Int, String) -> Unit
+    onGistItemClick: (Int, String, String?) -> Unit
 ) {
 
 //    val fileKeys = gistModelItem.files.keys
@@ -1474,7 +1537,11 @@ fun GistItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onGistItemClick(0, gistModelItem.url)
+                onGistItemClick(
+                    R.id.action_profileFragment_to_gistFragment,
+                    gistModelItem.id,
+                    gistModelItem.owner.login
+                )
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -1509,7 +1576,7 @@ fun GistItemCard(
 
 @Composable
 fun FollowersScreen(
-    userFollowers: Resource<FollowersModel>, onNavigate: (Int, String) -> Unit
+    userFollowers: Resource<FollowersModel>, onNavigate: (Int, String, String?) -> Unit
 ) {
     when (userFollowers) {
         is Resource.Loading -> {
@@ -1525,23 +1592,36 @@ fun FollowersScreen(
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userFollowers.data!!) { index, StarredUserRepo ->
-                    FollowersItemCard(
-                        StarredUserRepo, onItemClicked = onNavigate
-                    )
-                    if (index < userFollowers.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            val followers = userFollowers.data!!
+            if (followers.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(followers) { index, StarredUserRepo ->
+                        FollowersItemCard(
+                            StarredUserRepo, onItemClicked = onNavigate
                         )
+                        if (index < followers.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No followers", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -1562,13 +1642,17 @@ fun FollowersScreen(
 
 @Composable
 private fun FollowersItemCard(
-    followersModelItem: FollowersModelItem, onItemClicked: (Int, String) -> Unit
+    followersModelItem: FollowersModelItem, onItemClicked: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onItemClicked(R.id.action_profileFragment_self, followersModelItem.login)
+                onItemClicked(
+                    R.id.action_profileFragment_self,
+                    followersModelItem.login,
+                    null
+                )
             })
             .padding(4.dp),
         elevation = 0.dp,
@@ -1616,7 +1700,7 @@ private fun FollowersItemCard(
 
 @Composable
 fun FollowingScreen(
-    userFollowings: Resource<FollowingModel>, onNavigate: (Int, String) -> Unit
+    userFollowings: Resource<FollowingModel>, onNavigate: (Int, String, String?) -> Unit
 ) {
     when (userFollowings) {
         is Resource.Loading -> {
@@ -1632,23 +1716,36 @@ fun FollowingScreen(
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userFollowings.data!!) { index, StarredUserRepo ->
-                    FollowingsItemCard(
-                        StarredUserRepo, onNavigate = onNavigate
-                    )
-                    if (index < userFollowings.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            val followings = userFollowings.data!!
+            if (followings.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(followings) { index, StarredUserRepo ->
+                        FollowingsItemCard(
+                            StarredUserRepo, onNavigate = onNavigate
                         )
+                        if (index < followings.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No followings", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -1669,13 +1766,17 @@ fun FollowingScreen(
 
 @Composable
 fun FollowingsItemCard(
-    followingModelItem: FollowingModelItem, onNavigate: (Int, String) -> Unit
+    followingModelItem: FollowingModelItem, onNavigate: (Int, String, String?) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = {
-                onNavigate(R.id.action_profileFragment_self, followingModelItem.login)
+                onNavigate(
+                    R.id.action_profileFragment_self,
+                    followingModelItem.login,
+                    null
+                )
             })
             .padding(4.dp),
         elevation = 0.dp,

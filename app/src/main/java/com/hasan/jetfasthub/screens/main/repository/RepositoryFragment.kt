@@ -132,8 +132,8 @@ class RepositoryFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         token = PreferenceHelper.getToken(requireContext())
-        val owner = arguments?.getString("home_data")
-        val repo = arguments?.getString("home_extra")
+        val owner = arguments?.getString("repository_owner")
+        val repo = arguments?.getString("repository_name")
 
         if (owner != null && repo != null) {
 
@@ -270,10 +270,10 @@ class RepositoryFragment : Fragment() {
                                 R.id.action_repositoryFragment_self -> {
                                     val bundle = Bundle()
                                     if (data != null) {
-                                        bundle.putString("home_data", data)
+                                        bundle.putString("repository_owner", data)
                                     }
                                     if (extra != null) {
-                                        bundle.putString("home_extra", extra)
+                                        bundle.putString("repository_name", extra)
                                     }
                                     findNavController().navigate(dest, bundle)
 

@@ -69,6 +69,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -340,9 +341,10 @@ private fun MainContent(
         },
         scaffoldState = sheetScaffoldState,
         sheetPeekHeight = 0.dp,
+        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        sheetBackgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
         sheetContent = {
             when (state.CurrentSheet) {
-
                 GistScreenSheets.DeleteGistSheet -> {
                     Column(
                         Modifier.padding(16.dp),
@@ -413,12 +415,11 @@ private fun MainContent(
                         }
                     }
                 }
-
             }
-        },
-        sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        }
     ) { sheetPadding ->
         Scaffold(
+            modifier = Modifier.padding(sheetPadding),
             topBar = {
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
@@ -441,7 +442,7 @@ private fun MainContent(
                         }
                     )
                 }
-            }, modifier = Modifier.padding(sheetPadding)
+            }
         ) { paddingValues ->
 
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -451,22 +452,28 @@ private fun MainContent(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 TabRow(
                     selectedTabIndex = tabIndex,
-                    containerColor = Color.White,
-                    modifier = Modifier.fillMaxWidth()
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
-                            selected = tabIndex == index, onClick = { tabIndex = index },
+                            selected = tabIndex == index,
+                            onClick = { tabIndex = index },
                             text = {
                                 if (tabIndex == index) {
-                                    Text(title, color = Color.Blue)
+                                    Text(
+                                        title, color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 } else {
-                                    Text(title, color = Color.Black)
+                                    Text(title, color = MaterialTheme.colorScheme.outline)
                                 }
                             },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     }
                 }
@@ -507,11 +514,13 @@ private fun FilesScreen(
     when (state) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -525,7 +534,7 @@ private fun FilesScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -537,11 +546,16 @@ private fun FilesScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(
+                    text = "Can't load data!",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -558,11 +572,13 @@ private fun CommentsScreen(
     when (state) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Loading ...")
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -584,11 +600,12 @@ private fun CommentsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .weight(1F)
                     ) {
                         itemsIndexed(comments) { index, comment ->
@@ -674,7 +691,7 @@ private fun CommentsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                 ) {
                     Column(
                         modifier = Modifier
@@ -683,7 +700,7 @@ private fun CommentsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "No comments so far ")
+                        Text(text = "No comments")
                     }
                     Row(
                         modifier = Modifier
@@ -744,11 +761,16 @@ private fun CommentsScreen(
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(
+                    text = "Can't load data!",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -781,6 +803,7 @@ private fun TitleHeader(
                             .size(48.dp, 48.dp)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -790,14 +813,6 @@ private fun TitleHeader(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.weight(1F)
                     ) {
-                        Text(
-                            text = "",
-                            color = Color.Black,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
 
                     }
                 }
@@ -805,7 +820,6 @@ private fun TitleHeader(
         }
 
         is Resource.Success -> {
-
             val gist = state.data!!
 
             Column(
@@ -865,7 +879,10 @@ private fun TitleHeader(
                                 append(" / ")
                                 append(fileName)
 
-                            }, color = Color.Black, maxLines = 2, overflow = TextOverflow.Ellipsis
+                            },
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -874,12 +891,14 @@ private fun TitleHeader(
                             Text(
                                 text = ParseDateFormat.getTimeAgo(gist.created_at).toString(),
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             if (gist.history.size != 1) {
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "edited", fontSize = 14.sp, color = Color.Gray
+                                    text = "edited",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
 
@@ -890,7 +909,7 @@ private fun TitleHeader(
                             Text(
                                 text = FileSizeCalculator.humanReadableByteCountBin(fileSize.toLong()),
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -902,6 +921,7 @@ private fun TitleHeader(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(start = 12.dp, top = 16.dp)
             ) {
                 Row(
@@ -927,14 +947,6 @@ private fun TitleHeader(
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.weight(1F)
                     ) {
-                        Text(
-                            text = "",
-                            color = Color.Black,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
 
                     }
                 }
@@ -958,17 +970,24 @@ private fun Toolbar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(top = 4.dp)
             ) {
 
                 IconButton(onClick = {
                     onNavigate(-1, null, null)
                 }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Text(
-                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
+                    text = "Gist",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -982,7 +1001,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser icon"
+                            contentDescription = "browser icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -991,7 +1011,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin icon"
+                            contentDescription = "pin icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1001,7 +1022,11 @@ private fun Toolbar(
                 IconButton(
                     onClick = {},
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
             }
@@ -1022,11 +1047,17 @@ private fun Toolbar(
                 IconButton(onClick = {
                     onNavigate(-1, null, null)
                 }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Text(
-                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
+                    text = "Gist",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -1041,7 +1072,8 @@ private fun Toolbar(
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_edit),
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -1064,7 +1096,7 @@ private fun Toolbar(
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_fork),
                                     contentDescription = null,
-                                    tint = Color.Black
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -1080,7 +1112,7 @@ private fun Toolbar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_star_filled),
                             contentDescription = null,
-                            tint = if (state.HasGistStarred) Color.Blue else Color.Black
+                            tint = if (state.HasGistStarred) Color.Blue else MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1089,7 +1121,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser icon"
+                            contentDescription = "browser icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1098,7 +1131,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin icon"
+                            contentDescription = "pin icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1110,20 +1144,34 @@ private fun Toolbar(
                             showMenu = !showMenu
                         },
                     ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            contentDescription = "more option",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
                     ) {
-                        DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                        DropdownMenuItem(text = {
+                            Text(
+                                text = "Share",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }, onClick = {
                             onAction("share", gist.html_url)
                             showMenu = false
                         })
 
                         if (gist.owner.login == gistOwner) {
-                            DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
+                            DropdownMenuItem(text = {
+                                Text(
+                                    text = "Delete",
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }, onClick = {
                                 onDelete()
                                 showMenu = false
                             })
@@ -1141,17 +1189,24 @@ private fun Toolbar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(top = 4.dp)
             ) {
 
                 IconButton(onClick = {
                     onNavigate(-1, null, null)
                 }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back button")
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back button",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Text(
-                    text = "Gist", style = MaterialTheme.typography.titleLarge, color = Color.Black
+                    text = "Gist",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Row(
@@ -1165,7 +1220,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_browser),
-                            contentDescription = "browser icon"
+                            contentDescription = "browser icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1174,7 +1230,8 @@ private fun Toolbar(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = "pin icon"
+                            contentDescription = "pin icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -1184,9 +1241,12 @@ private fun Toolbar(
                 IconButton(
                     onClick = {},
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "more option")
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
-
             }
         }
     }
@@ -1197,10 +1257,10 @@ private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -
     Surface(
         shadowElevation = 10.dp,
         modifier = Modifier
-        .padding(4.dp)
-        .clickable {
-            onAction("browser", fileModel.raw_url)
-        }
+            .padding(4.dp)
+            .clickable {
+                onAction("browser", fileModel.raw_url)
+            }
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -1208,7 +1268,7 @@ private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -
             modifier = Modifier.padding(12.dp)
         ) {
             Row(Modifier.fillMaxWidth()) {
-                Text(text = fileModel.fileName)
+                Text(text = fileModel.fileName, color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Divider(
                 modifier = Modifier
@@ -1221,7 +1281,7 @@ private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.height(IntrinsicSize.Min),
             ) {
-                Text(text = fileModel.textType)
+                Text(text = fileModel.textType, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 Spacer(modifier = Modifier.weight(1F))
                 Divider(
                     color = Color.Gray,
@@ -1232,7 +1292,7 @@ private fun GistFileItem(fileModel: GistFileModel, onAction: (String, String?) -
                 )
                 Text(
                     text = FileSizeCalculator.humanReadableByteCountBin(fileModel.fileSize.toLong()),
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Divider(
                     color = Color.Gray,
@@ -1285,7 +1345,7 @@ private fun GistCommentItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -1319,11 +1379,11 @@ private fun GistCommentItem(
                 modifier = Modifier.weight(1F)
             ) {
                 Text(
-                    text = comment.user.login, fontSize = 14.sp, color = Color.Black
+                    text = comment.user.login, fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 Text(
-                    text = comment.created_at, fontSize = 12.sp, color = Color.Gray
+                    text = comment.created_at, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -1335,7 +1395,8 @@ private fun GistCommentItem(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_overflow),
-                        contentDescription = "more option"
+                        contentDescription = "more option",
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -1343,7 +1404,7 @@ private fun GistCommentItem(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                 ) {
-                    DropdownMenuItem(text = { Text(text = "Edit") }, onClick = {
+                    DropdownMenuItem(text = { Text(text = "Edit", color = MaterialTheme.colorScheme.onPrimaryContainer) }, onClick = {
                         onNavigate(
                             R.id.action_gistFragment_to_editCommentFragment,
                             comment.body,
@@ -1351,7 +1412,7 @@ private fun GistCommentItem(
                         )
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
+                    DropdownMenuItem(text = { Text(text = "Delete", color = MaterialTheme.colorScheme.onPrimaryContainer) }, onClick = {
                         onCurrentSheetChanged(
                             GistScreenSheets.DeleteGistCommentSheet(
                                 comment.id
@@ -1359,11 +1420,11 @@ private fun GistCommentItem(
                         )
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Reply") }, onClick = {
+                    DropdownMenuItem(text = { Text(text = "Reply", color = MaterialTheme.colorScheme.onPrimaryContainer) }, onClick = {
                         onReply(comment.user.login)
                         showMenu = false
                     })
-                    DropdownMenuItem(text = { Text(text = "Share") }, onClick = {
+                    DropdownMenuItem(text = { Text(text = "Share", color = MaterialTheme.colorScheme.onPrimaryContainer) }, onClick = {
                         showMenu = false
                     })
                 }
@@ -1372,7 +1433,8 @@ private fun GistCommentItem(
 
         Text(
             text = comment.body,
-            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp, end = 8.dp),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
