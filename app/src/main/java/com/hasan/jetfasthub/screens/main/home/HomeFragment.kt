@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
 import androidx.compose.material.DrawerValue
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
@@ -41,21 +43,33 @@ import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material.rememberDrawerState
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -75,6 +89,7 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.ui.theme.RippleCustomTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.skydoves.landscapist.ImageOptions
@@ -315,7 +330,7 @@ private fun MainContent(
                         onNavigate
                     )
 
-                    AppScreens.Issues -> IssuesScreen()
+                    AppScreens.Issues -> IssuesScreen(contentPadding)
                     AppScreens.PullRequests -> PullRequestScreen()
                 }
             },
@@ -453,33 +468,6 @@ fun FeedsScreen(
 }
 
 @Composable
-fun IssuesScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Issues Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-fun PullRequestScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Pull Requests Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-
-@Composable
 private fun ItemEventCard(
     eventItem: ReceivedEventsModelItem,
     onNavigate: (Int, String?, String?) -> Unit
@@ -602,5 +590,204 @@ private fun ItemEventCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun IssuesScreen(paddingValues: PaddingValues) {
+    var tabIndex by remember { mutableIntStateOf(0) }
+    val tabs =
+        listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
+
+    Column(
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+
+        ScrollableTabRow(
+            selectedTabIndex = tabIndex,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index,
+                    onClick = { tabIndex = index },
+                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                ) {
+                    CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
+                        TabItem(
+                            tabIndex = tabIndex,
+                            index = index,
+                            tabName = title,
+                            closedData = listOf(),
+                            openedData = listOf(),
+                        ) {
+                            tabIndex = index
+                        }
+                    }
+                }
+            }
+        }
+
+        when (tabIndex) {
+            0 -> IssuesCreated()
+            1 -> IssuesAssigned()
+            2 -> IssuesMentioned()
+            3 -> IssuesParticipated()
+        }
+    }
+}
+
+@Composable
+fun TabItem(
+    tabIndex: Int,
+    index: Int,
+    tabName: String,
+    closedData: List<String>,
+    openedData: List<String>,
+    onItemClick: () -> Unit
+) {
+    var isContextMenuVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var itemHeight by remember {
+        mutableStateOf(0.dp)
+    }
+    val density = LocalDensity.current
+
+    Column(
+        modifier = Modifier.onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onItemClick()
+                    isContextMenuVisible = !isContextMenuVisible
+                }
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+//                use this to handle long click, swipe, double tap and many other
+//                .pointerInput( -- your state -- ){}
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_issue_opened_small),
+                    contentDescription = null,
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = "$tabName (0)",
+                    color = if (tabIndex == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_dropdown_icon),
+                    contentDescription = null,
+                    tint = if (tabIndex == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline
+                )
+
+            }
+
+            DropdownMenu(
+                expanded = isContextMenuVisible,
+                onDismissRequest = { isContextMenuVisible = false }
+            ) {
+                DropdownMenuItem(
+                    onClick = {
+                        isContextMenuVisible = false
+                    }
+                ) {
+                    Text(text = "Opened", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                DropdownMenuItem(
+                    onClick = {
+                        isContextMenuVisible = false
+                    }
+                ) {
+                    Text(text = "Closed", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+            }
+
+        }
+    }
+
+}
+
+
+@Composable
+fun PullRequestScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Pull Requests Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+
+@Composable
+private fun IssuesCreated() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "IssuesCreated")
+    }
+}
+
+@Composable
+private fun IssuesAssigned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "IssuesAssigned")
+    }
+}
+
+@Composable
+private fun IssuesMentioned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "IssuesMentioned")
+    }
+}
+
+@Composable
+private fun IssuesParticipated() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "IssuesParticipated")
     }
 }

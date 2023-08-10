@@ -424,6 +424,7 @@ fun TabScreen(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
+
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
