@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
@@ -19,9 +20,28 @@ interface HomeRepository {
         username: String,
     ): Response<ReceivedEventsModel>
 
+    suspend fun getIssuesWithCount(
+        token: String,
+        query: String,
+        page: Int
+    ): Response<IssuesModel>
+
 }
 
 class HomeRepositoryImpl(private val context: Context) : HomeRepository {
+
+    override suspend fun getIssuesWithCount(
+        token: String,
+        query: String,
+        page: Int
+    ): Response<IssuesModel> {
+        return RestClient(context).homeService.getIssuesWithCount(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            query = query,
+            page = page,
+        )
+    }
+
 
     override suspend fun getAuthenticatedUser(token: String): Response<AuthenticatedUser> {
         return RestClient(context = context).homeService.getAuthenticatedUser(

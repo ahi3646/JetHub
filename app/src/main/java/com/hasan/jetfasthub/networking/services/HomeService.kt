@@ -3,11 +3,13 @@ package com.hasan.jetfasthub.networking.services
 import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface HomeService {
 
@@ -30,5 +32,13 @@ interface HomeService {
         @Header("Authorization") authToken: String,
         @Path("username") username: String
     ): Response<GitHubUser>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("search/issues")
+    suspend fun getIssuesWithCount(
+        @Header("Authorization") authToken: String,
+        @Query(value = "q", encoded = true) query: String,
+        @Query("page") page: Int
+    ): Response<IssuesModel>
 
 }

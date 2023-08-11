@@ -79,6 +79,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -88,10 +89,16 @@ import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.ui.theme.RippleCustomTheme
 import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
+import com.hasan.jetfasthub.utility.IssueState
+import com.hasan.jetfasthub.utility.MyIssuesType
 import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.utility.RepoQueryProvider
+import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.flow.launchIn
@@ -116,6 +123,8 @@ class HomeFragment : Fragment() {
 
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
+
+                homeViewModel.getIssuesWithCount(token, getUrl(IssueState.Closed), 1)
             }
             .launchIn(lifecycleScope)
     }
@@ -220,6 +229,30 @@ class HomeFragment : Fragment() {
             }
         }
     }
+
+    private val issuesType = MyIssuesType.CREATED
+    val login = "HasanAnorov"
+    private fun getUrl(parameter: IssueState): String {
+        when (issuesType) {
+            MyIssuesType.CREATED -> return RepoQueryProvider.getMyIssuesPullRequestQuery(
+                login,
+                parameter,
+                false
+            )
+
+            MyIssuesType.ASSIGNED -> return RepoQueryProvider.getAssigned(login, parameter, false)
+            MyIssuesType.MENTIONED -> return RepoQueryProvider.getMentioned(login, parameter, false)
+            MyIssuesType.PARTICIPATED -> return RepoQueryProvider.getParticipated(
+                login,
+                parameter,
+                false
+            )
+
+            else -> {}
+        }
+        return RepoQueryProvider.getMyIssuesPullRequestQuery(login, parameter, false)
+    }
+
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -322,18 +355,6 @@ private fun MainContent(
                     onNavigate = onNavigate
                 )
             },
-            content = { contentPadding ->
-                when (state.selectedBottomBarItem) {
-                    AppScreens.Feeds -> FeedsScreen(
-                        contentPadding,
-                        state.receivedEventsState,
-                        onNavigate
-                    )
-
-                    AppScreens.Issues -> IssuesScreen(contentPadding)
-                    AppScreens.PullRequests -> PullRequestScreen()
-                }
-            },
             bottomBar = {
                 BottomNav(
                     modifier = Modifier
@@ -343,7 +364,23 @@ private fun MainContent(
                     onBottomBarItemSelected = onBottomBarItemSelected,
                 )
             },
-        )
+        ) {
+            when (state.selectedBottomBarItem) {
+                AppScreens.Feeds -> FeedsScreen(
+                    contentPaddingValues = it,
+                    receivedEventsState = state.receivedEventsState,
+                    onNavigate = onNavigate
+                )
+
+                AppScreens.Issues -> IssuesScreen(
+                    contentPaddingValues = it,
+                    issuesState = state.IssuesCreated,
+                    onNavigate = onNavigate
+                )
+
+                AppScreens.PullRequests -> PullRequestScreen(it)
+            }
+        }
     }
 }
 
@@ -594,28 +631,28 @@ private fun ItemEventCard(
 }
 
 @Composable
-fun IssuesScreen(paddingValues: PaddingValues) {
+fun IssuesScreen(
+    contentPaddingValues: PaddingValues,
+    issuesState: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
     var tabIndex by remember { mutableIntStateOf(0) }
-    val tabs =
-        listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
+    val tabs = listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
 
     Column(
         modifier = Modifier
-            .padding(paddingValues)
+            .padding(contentPaddingValues)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
 
         ScrollableTabRow(
-            selectedTabIndex = tabIndex,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedTabIndex = tabIndex
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = tabIndex == index,
-                    onClick = { tabIndex = index },
-                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                    onClick = { tabIndex = index }
                 ) {
                     CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
                         TabItem(
@@ -633,10 +670,92 @@ fun IssuesScreen(paddingValues: PaddingValues) {
         }
 
         when (tabIndex) {
-            0 -> IssuesCreated()
+            0 -> IssuesCreated(issuesState, contentPaddingValues, onNavigate)
             1 -> IssuesAssigned()
             2 -> IssuesMentioned()
             3 -> IssuesParticipated()
+        }
+    }
+
+}
+
+@Composable
+private fun IssuesItem(
+    issue: IssuesItem,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = {
+
+                }
+            )
+            .padding(4.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1F)
+            ) {
+                Text(
+                    text = issue.title,
+                    modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                val repo = Uri.parse(issue.repository_url).lastPathSegment
+
+                Row {
+                    Text(
+                        text = buildAnnotatedString {
+                            append(repo)
+                            append("#${issue.number}")
+                            append(" ")
+                            append(issue.state)
+                            append(" ")
+                            append(ParseDateFormat.getTimeAgo(issue.closed_at.toString()).toString())
+                        },
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1F),
+                    )
+
+                    if (issue.comments != 0) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_comment_small),
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 4.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = issue.comments.toString(),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    }
+                }
+
+            }
         }
     }
 }
@@ -725,31 +844,66 @@ fun TabItem(
 
 }
 
-
 @Composable
-fun PullRequestScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Pull Requests Screen", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
+private fun IssuesCreated(
+    issuesState: Resource<IssuesModel>,
+    contentPaddingValues: PaddingValues,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    when (issuesState) {
 
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
 
-@Composable
-private fun IssuesCreated() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "IssuesCreated")
+        is Resource.Success -> {
+            val issues = issuesState.data!!.items
+            if (issues.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(contentPaddingValues)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    items(issues) { issue ->
+                        IssuesItem(issue, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No feeds")
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Something went wrong !")
+            }
+        }
+
     }
 }
 
@@ -789,5 +943,104 @@ private fun IssuesParticipated() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "IssuesParticipated")
+    }
+}
+
+
+@Composable
+fun PullRequestScreen(paddingValues: PaddingValues) {
+    var tabIndex by remember { mutableIntStateOf(0) }
+    val tabs =
+        listOf("CREATED", "ASSIGNED", "MENTIONED", "REVIEW REQUESTS")
+
+    Column(
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+
+        ScrollableTabRow(
+            selectedTabIndex = tabIndex
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index,
+                    onClick = { tabIndex = index }
+                ) {
+                    CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
+                        TabItem(
+                            tabIndex = tabIndex,
+                            index = index,
+                            tabName = title,
+                            closedData = listOf(),
+                            openedData = listOf(),
+                        ) {
+                            tabIndex = index
+                        }
+                    }
+                }
+            }
+        }
+
+        when (tabIndex) {
+            0 -> PullRequestsCreated()
+            1 -> PullRequestsAssigned()
+            2 -> PullRequestsMentioned()
+            3 -> PullRequestsReviewedRequests()
+        }
+    }
+}
+
+
+@Composable
+private fun PullRequestsCreated() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PullRequestsCreated")
+    }
+}
+
+@Composable
+private fun PullRequestsAssigned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PullRequestsAssigned")
+    }
+}
+
+@Composable
+private fun PullRequestsMentioned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PullRequestsMentioned")
+    }
+}
+
+@Composable
+private fun PullRequestsReviewedRequests() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "PullRequestsReviewedRequests")
     }
 }

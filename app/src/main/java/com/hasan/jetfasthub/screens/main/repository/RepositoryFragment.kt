@@ -798,7 +798,8 @@ private fun ReleaseInfoSheet(releaseItem: ReleasesModelItem, closeSheet: () -> U
 
         if (releaseItem.body != null) {
             Text(
-                text = releaseItem.body.toString(), color = MaterialTheme.colorScheme.onPrimaryContainer
+                text = releaseItem.body.toString(),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -835,7 +836,9 @@ private fun RepoDownloadSheet(
     ) {
 
         Text(
-            text = "Download", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer
+            text = "Download",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -877,13 +880,16 @@ private fun RepositoryInfoSheet(state: RepositoryScreenState, closeSheet: () -> 
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = repository.data.full_name, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer
+                text = repository.data.full_name,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             if (repository.data.description != null) {
                 Text(
-                    text = repository.data.description, color = MaterialTheme.colorScheme.onPrimaryContainer
+                    text = repository.data.description,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
@@ -1406,7 +1412,10 @@ private fun FilePathRowItemCard(path: String, onAction: (String, String?) -> Uni
                 onAction("on_path_change", path)
             }, verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = path.substring(path.lastIndexOf("/") + 1), color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text(
+            text = path.substring(path.lastIndexOf("/") + 1),
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
         Icon(
             painter = painterResource(id = R.drawable.ic_right_arrow),
             contentDescription = "path",
