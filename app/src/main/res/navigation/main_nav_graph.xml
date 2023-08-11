@@ -20,6 +20,16 @@
             app:destination="@id/repositoryFragment" />
 
         <action
+            android:id="@+id/action_homeFragment_to_issueFragment"
+            app:launchSingleTop="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@id/homeFragment"
+            app:destination="@id/issueFragment" />
+
+        <action
             android:id="@+id/action_homeFragment_to_profileFragment"
             app:launchSingleTop="true"
             app:enterAnim="@anim/fade_in"
@@ -415,5 +425,9 @@
             app:popUpToInclusive="false"/>
 
     </fragment>
+    <fragment
+        android:id="@+id/issueFragment"
+        android:name="com.hasan.jetfasthub.screens.main.issue.IssueFragment"
+        android:label="IssueFragment" />
 
 </navigation>

@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.Authentic
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.utility.MyIssuesType
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -31,34 +32,141 @@ class HomeViewModel(
         }
     }
 
-    fun getIssuesWithCount(token: String, query: String, page: Int) {
-        Log.d("ahi3646", "getIssuesWithCount: query -  $query")
+    fun getIssuesWithCount(token: String, query: String, page: Int, issuesType: MyIssuesType) {
+
         viewModelScope.launch {
             try {
                 repository.getIssuesWithCount(token, query, page).let { issuesResponse ->
                     if (issuesResponse.isSuccessful) {
-                        _state.update {
-                            it.copy(IssuesCreated = Resource.Success(issuesResponse.body()!!))
+                        when (issuesType) {
+                            MyIssuesType.CREATED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesCreated = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.ASSIGNED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesAssigned = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.MENTIONED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesMentioned = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.PARTICIPATED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesParticipated = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            else -> {}
                         }
                     } else {
-                        _state.update {
-                            it.copy(
-                                IssuesCreated = Resource.Failure(
-                                    issuesResponse.errorBody().toString()
-                                )
-                            )
+                        when (issuesType) {
+                            MyIssuesType.CREATED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesCreated = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.ASSIGNED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesAssigned = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.MENTIONED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesMentioned = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.PARTICIPATED -> {
+                                _state.update {
+                                    it.copy(
+                                        IssuesParticipated = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            else -> {}
                         }
                     }
                 }
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        IssuesCreated = Resource.Failure(
-                            e.message.toString()
-                        )
-                    )
+                when (issuesType) {
+                    MyIssuesType.CREATED -> {
+                        _state.update {
+                            it.copy(
+                                IssuesCreated = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getIssuesWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.ASSIGNED -> {
+                        _state.update {
+                            it.copy(
+                                IssuesAssigned = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getIssuesWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.MENTIONED -> {
+                        _state.update {
+                            it.copy(
+                                IssuesMentioned = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getIssuesWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.PARTICIPATED -> {
+                        _state.update {
+                            it.copy(
+                                IssuesParticipated = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getIssuesWithCount: ${e.message} ")
+                    }
+
+                    else -> {}
                 }
-                Log.d("ahi3646", "getIssuesWithCount: ${e.message} ")
             }
         }
     }
@@ -152,7 +260,10 @@ data class HomeScreenState(
     val user: Resource<GitHubUser> = Resource.Loading(),
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
     val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading,
-    val IssuesCreated: Resource<IssuesModel> = Resource.Loading()
+    val IssuesCreated: Resource<IssuesModel> = Resource.Loading(),
+    val IssuesAssigned: Resource<IssuesModel> = Resource.Loading(),
+    val IssuesMentioned: Resource<IssuesModel> = Resource.Loading(),
+    val IssuesParticipated: Resource<IssuesModel> = Resource.Loading()
 )
 
 sealed interface AppScreens {

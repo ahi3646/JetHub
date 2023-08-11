@@ -70,6 +70,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -110,11 +111,12 @@ import java.util.Locale
 class HomeFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by viewModel()
+    private lateinit var token: String
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        val token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper.getToken(requireContext())
 
         homeViewModel.getAuthenticatedUser(token)
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -124,7 +126,33 @@ class HomeFragment : Fragment() {
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
 
-                homeViewModel.getIssuesWithCount(token, getUrl(IssueState.Closed), 1)
+                homeViewModel.getIssuesWithCount(
+                    token = token,
+                    query = getUrl(MyIssuesType.CREATED, IssueState.Open, authenticatedUser.login),
+                    page = 1,
+                    issuesType = MyIssuesType.CREATED
+                )
+
+                homeViewModel.getIssuesWithCount(
+                    token = token,
+                    query = getUrl(MyIssuesType.ASSIGNED, IssueState.Open, authenticatedUser.login),
+                    page = 1,
+                    issuesType = MyIssuesType.ASSIGNED
+                )
+
+                homeViewModel.getIssuesWithCount(
+                    token = token,
+                    query = getUrl(MyIssuesType.MENTIONED, IssueState.Open, authenticatedUser.login),
+                    page = 1,
+                    issuesType = MyIssuesType.MENTIONED
+                )
+
+                homeViewModel.getIssuesWithCount(
+                    token = token,
+                    query = getUrl(MyIssuesType.PARTICIPATED, IssueState.Open, authenticatedUser.login),
+                    page = 1,
+                    issuesType = MyIssuesType.PARTICIPATED
+                )
             }
             .launchIn(lifecycleScope)
     }
@@ -214,6 +242,14 @@ class HomeFragment : Fragment() {
 
                             }
                         },
+                        onAction = { issuesType, issueState ->
+                            homeViewModel.getIssuesWithCount(
+                                token = token,
+                                query = getUrl(issuesType, issueState, state.user.data!!.login),
+                                page = 1,
+                                issuesType = issuesType
+                            )
+                        },
                         scaffoldState = scaffoldState,
                         onNavigationClick = {
                             drawerScope.launch {
@@ -230,27 +266,30 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private val issuesType = MyIssuesType.CREATED
-    val login = "HasanAnorov"
-    private fun getUrl(parameter: IssueState): String {
-        when (issuesType) {
+    private fun getUrl(issueType: MyIssuesType, issueState: IssueState, login: String): String {
+        when (issueType) {
             MyIssuesType.CREATED -> return RepoQueryProvider.getMyIssuesPullRequestQuery(
                 login,
-                parameter,
+                issueState,
                 false
             )
 
-            MyIssuesType.ASSIGNED -> return RepoQueryProvider.getAssigned(login, parameter, false)
-            MyIssuesType.MENTIONED -> return RepoQueryProvider.getMentioned(login, parameter, false)
+            MyIssuesType.ASSIGNED -> return RepoQueryProvider.getAssigned(login, issueState, false)
+            MyIssuesType.MENTIONED -> return RepoQueryProvider.getMentioned(
+                login,
+                issueState,
+                false
+            )
+
             MyIssuesType.PARTICIPATED -> return RepoQueryProvider.getParticipated(
                 login,
-                parameter,
+                issueState,
                 false
             )
 
             else -> {}
         }
-        return RepoQueryProvider.getMyIssuesPullRequestQuery(login, parameter, false)
+        return RepoQueryProvider.getMyIssuesPullRequestQuery(login, issueState, false)
     }
 
 }
@@ -261,6 +300,7 @@ private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
+    onAction: (MyIssuesType, IssueState) -> Unit,
     scaffoldState: ScaffoldState,
     onNavigationClick: () -> Unit
 ) {
@@ -374,11 +414,19 @@ private fun MainContent(
 
                 AppScreens.Issues -> IssuesScreen(
                     contentPaddingValues = it,
-                    issuesState = state.IssuesCreated,
-                    onNavigate = onNavigate
+                    issuesCreated = state.IssuesCreated,
+                    issuesAssigned = state.IssuesAssigned,
+                    issuesMentioned = state.IssuesMentioned,
+                    issuesParticipated = state.IssuesParticipated,
+                    onNavigate = onNavigate,
+                    onAction = onAction
                 )
 
-                AppScreens.PullRequests -> PullRequestScreen(it)
+                AppScreens.PullRequests -> PullRequestScreen(
+                    contentPaddingValues = it,
+                    onNavigate = onNavigate,
+                    onAction = onAction
+                )
             }
         }
     }
@@ -633,50 +681,216 @@ private fun ItemEventCard(
 @Composable
 fun IssuesScreen(
     contentPaddingValues: PaddingValues,
-    issuesState: Resource<IssuesModel>,
-    onNavigate: (Int, String?, String?) -> Unit
+    issuesCreated: Resource<IssuesModel>,
+    issuesAssigned: Resource<IssuesModel>,
+    issuesMentioned: Resource<IssuesModel>,
+    issuesParticipated: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit,
+    onAction: (MyIssuesType, IssueState) -> Unit
 ) {
-    var tabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
 
-    Column(
-        modifier = Modifier
-            .padding(contentPaddingValues)
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-    ) {
+    when (issuesCreated) {
 
-        ScrollableTabRow(
-            selectedTabIndex = tabIndex
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = tabIndex == index,
-                    onClick = { tabIndex = index }
+        is Resource.Loading -> {
+            var tabIndex by remember { mutableIntStateOf(0) }
+            val tabs = listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
+
+            Column(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                ScrollableTabRow(
+                    selectedTabIndex = tabIndex
                 ) {
-                    CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
-                        TabItem(
-                            tabIndex = tabIndex,
-                            index = index,
-                            tabName = title,
-                            closedData = listOf(),
-                            openedData = listOf(),
-                        ) {
-                            tabIndex = index
-                        }
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            text = {
+                                if (tabIndex == index) {
+                                    Text(
+                                        title,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                } else {
+                                    Text(title, color = MaterialTheme.colorScheme.outline)
+                                }
+                            },
+                            selected = tabIndex == index,
+                            onClick = { tabIndex = index },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                        )
                     }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
 
-        when (tabIndex) {
-            0 -> IssuesCreated(issuesState, contentPaddingValues, onNavigate)
-            1 -> IssuesAssigned()
-            2 -> IssuesMentioned()
-            3 -> IssuesParticipated()
-        }
-    }
+        is Resource.Success -> {
+            var tabIndex by remember { mutableIntStateOf(0) }
+            val issuesCreatedData = issuesCreated.data!!
+            val issuesAssignedData = issuesAssigned.data!!
+            val issuesMentionedData = issuesMentioned.data!!
+            val issuesParticipatedData = issuesParticipated.data!!
 
+            Column(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
+                    ScrollableTabRow(
+                        selectedTabIndex = tabIndex
+                    ) {
+                        Tab(
+                            selected = tabIndex == 0,
+                            onClick = { tabIndex = 0 }
+                        ) {
+                            TabItem(
+                                issuesCount = issuesCreatedData.total_count ?: 0,
+                                tabIndex = tabIndex,
+                                index = 0,
+                                tabName = "CREATED",
+                                onItemClick = {
+                                    tabIndex = 0
+                                },
+                                onStateChanged = { state ->
+                                    onAction(MyIssuesType.CREATED, state)
+                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                },
+                            )
+                        }
+
+                        Tab(
+                            selected = tabIndex == 0,
+                            onClick = { tabIndex = 0 }
+                        ) {
+                            TabItem(
+                                issuesCount = issuesAssignedData.total_count ?: 0,
+                                tabIndex = tabIndex,
+                                index = 1,
+                                tabName = "ASSIGNED",
+                                onItemClick = {
+                                    tabIndex = 1
+                                },
+                                onStateChanged = { state ->
+                                    onAction(MyIssuesType.ASSIGNED, state)
+                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                },
+                            )
+                        }
+
+                        Tab(
+                            selected = tabIndex == 0,
+                            onClick = { tabIndex = 0 }
+                        ) {
+                            TabItem(
+                                issuesCount = issuesMentionedData.total_count ?: 0,
+                                tabIndex = tabIndex,
+                                index = 2,
+                                tabName = "MENTIONED",
+                                onItemClick = {
+                                    tabIndex = 2
+                                },
+                                onStateChanged = { state ->
+                                    onAction(MyIssuesType.MENTIONED, state)
+                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                },
+                            )
+                        }
+
+                        Tab(
+                            selected = tabIndex == 0,
+                            onClick = { tabIndex = 0 }
+                        ) {
+                            TabItem(
+                                issuesCount = issuesParticipatedData.total_count ?: 0,
+                                tabIndex = tabIndex,
+                                index = 3,
+                                tabName = "PARTICIPATED",
+                                onItemClick = {
+                                    tabIndex = 3
+                                },
+                                onStateChanged = { state ->
+                                    onAction(MyIssuesType.PARTICIPATED, state)
+                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                },
+                            )
+                        }
+
+                    }
+                }
+
+                when (tabIndex) {
+                    0 -> IssuesCreated(issuesCreatedData, onNavigate)
+                    1 -> IssuesAssigned(issuesAssignedData, onNavigate)
+                    2 -> IssuesMentioned(issuesMentionedData, onNavigate)
+                    3 -> IssuesParticipated(issuesParticipatedData, onNavigate)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            var tabIndex by remember { mutableIntStateOf(0) }
+            val tabs = listOf("CREATED", "ASSIGNED", "MENTIONED", "PARTICIPATED")
+
+            Column(
+                modifier = Modifier
+                    .padding(contentPaddingValues)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+
+                ScrollableTabRow(
+                    selectedTabIndex = tabIndex
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            text = {
+                                if (tabIndex == index) {
+                                    Text(
+                                        title,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                } else {
+                                    Text(title, color = MaterialTheme.colorScheme.outline)
+                                }
+                            },
+                            selected = tabIndex == index,
+                            onClick = { tabIndex = index },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Can't load data!",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+    }
 }
 
 @Composable
@@ -689,20 +903,21 @@ private fun IssuesItem(
             .fillMaxWidth()
             .clickable(
                 onClick = {
-
+                    onNavigate(
+                        R.id.action_homeFragment_to_issueFragment,
+                        null,
+                        null
+                    )
                 }
             )
-            .padding(4.dp),
+            .padding(8.dp),
         elevation = 0.dp,
         backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
         ) {
-
-            Spacer(modifier = Modifier.width(16.dp))
 
             Column(
                 horizontalAlignment = Alignment.Start,
@@ -720,38 +935,44 @@ private fun IssuesItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                val repo = Uri.parse(issue.repository_url).lastPathSegment
+                val repoUrl = Uri.parse(issue.repository_url).pathSegments
+                val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
 
                 Row {
                     Text(
                         text = buildAnnotatedString {
-                            append(repo)
+                            append(repoName)
                             append("#${issue.number}")
                             append(" ")
                             append(issue.state)
                             append(" ")
-                            append(ParseDateFormat.getTimeAgo(issue.closed_at.toString()).toString())
+                            if(issue.closed_at != null){
+                                append(
+                                    ParseDateFormat.getTimeAgo(issue.closed_at.toString()).toString()
+                                )
+                            }
                         },
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
                         modifier = Modifier.weight(1F),
+                        fontSize = 12.sp
                     )
 
                     if (issue.comments != 0) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_comment_small),
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = 4.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_comment_small),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
-                    Text(
-                        text = issue.comments.toString(),
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
+                        Text(
+                            text = issue.comments.toString(),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
                     }
                 }
 
@@ -762,15 +983,19 @@ private fun IssuesItem(
 
 @Composable
 fun TabItem(
+    issuesCount: Int,
     tabIndex: Int,
     index: Int,
     tabName: String,
-    closedData: List<String>,
-    openedData: List<String>,
-    onItemClick: () -> Unit
+    onItemClick: () -> Unit,
+    onStateChanged: (IssueState) -> Unit,
 ) {
     var isContextMenuVisible by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    var isOpened by rememberSaveable {
+        mutableStateOf(true)
     }
 
     var itemHeight by remember {
@@ -800,12 +1025,16 @@ fun TabItem(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_issue_opened_small),
                     contentDescription = null,
+                    tint = if (isOpened) colorResource(id = R.color.material_green_700) else colorResource(
+                        id = R.color.material_red_700
+                    )
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
 
+                Log.d("ahi3646", "TabItem: $issuesCount ")
                 Text(
-                    text = "$tabName (0)",
+                    text = "$tabName ($issuesCount)",
                     color = if (tabIndex == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline
                 )
 
@@ -825,6 +1054,8 @@ fun TabItem(
             ) {
                 DropdownMenuItem(
                     onClick = {
+                        onStateChanged(IssueState.Open)
+                        isOpened = true
                         isContextMenuVisible = false
                     }
                 ) {
@@ -832,6 +1063,8 @@ fun TabItem(
                 }
                 DropdownMenuItem(
                     onClick = {
+                        onStateChanged(IssueState.Closed)
+                        isOpened = false
                         isContextMenuVisible = false
                     }
                 ) {
@@ -846,116 +1079,140 @@ fun TabItem(
 
 @Composable
 private fun IssuesCreated(
-    issuesState: Resource<IssuesModel>,
-    contentPaddingValues: PaddingValues,
+    issuesModel: IssuesModel,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    when (issuesState) {
-
-        is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val issues = issuesModel.items
+    if (issues.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            items(issues) { issue ->
+                IssuesItem(issue, onNavigate)
             }
         }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No issues", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
-        is Resource.Success -> {
-            val issues = issuesState.data!!.items
-            if (issues.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(contentPaddingValues)
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    items(issues) { issue ->
-                        IssuesItem(issue, onNavigate)
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "No feeds")
-                }
+@Composable
+private fun IssuesAssigned(
+    issuesModel: IssuesModel,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    val issues = issuesModel.items
+    if (issues.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            items(issues) { issue ->
+                IssuesItem(issue, onNavigate)
             }
         }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No issues", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
-        is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Something went wrong !")
+@Composable
+private fun IssuesMentioned(
+    issuesModel: IssuesModel,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    val issues = issuesModel.items
+    if (issues.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            items(issues) { issue ->
+                IssuesItem(issue, onNavigate)
             }
         }
-
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No issues", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
 @Composable
-private fun IssuesAssigned() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "IssuesAssigned")
-    }
-}
-
-@Composable
-private fun IssuesMentioned() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "IssuesMentioned")
-    }
-}
-
-@Composable
-private fun IssuesParticipated() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "IssuesParticipated")
+private fun IssuesParticipated(
+    issuesModel: IssuesModel,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    val issues = issuesModel.items
+    if (issues.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            items(issues) { issue ->
+                IssuesItem(issue, onNavigate)
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No issues, color = MaterialTheme.colorScheme.onSurfaceVariant")
+        }
     }
 }
 
 
 @Composable
-fun PullRequestScreen(paddingValues: PaddingValues) {
+fun PullRequestScreen(
+    contentPaddingValues: PaddingValues,
+    onNavigate: (Int, String?, String?) -> Unit,
+    onAction: (MyIssuesType, IssueState) -> Unit
+) {
     var tabIndex by remember { mutableIntStateOf(0) }
-    val tabs =
-        listOf("CREATED", "ASSIGNED", "MENTIONED", "REVIEW REQUESTS")
 
     Column(
         modifier = Modifier
-            .padding(paddingValues)
+            .padding(contentPaddingValues)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
@@ -963,23 +1220,80 @@ fun PullRequestScreen(paddingValues: PaddingValues) {
         ScrollableTabRow(
             selectedTabIndex = tabIndex
         ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = tabIndex == index,
-                    onClick = { tabIndex = index }
-                ) {
-                    CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
-                        TabItem(
-                            tabIndex = tabIndex,
-                            index = index,
-                            tabName = title,
-                            closedData = listOf(),
-                            openedData = listOf(),
-                        ) {
-                            tabIndex = index
-                        }
-                    }
-                }
+            Tab(
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 }
+            ) {
+                TabItem(
+                    issuesCount = issuesCreatedData.total_count ?: 0,
+                    tabIndex = tabIndex,
+                    index = 0,
+                    tabName = "CREATED",
+                    onItemClick = {
+                        tabIndex = 0
+                    },
+                    onStateChanged = { state ->
+                        onAction(MyIssuesType.CREATED, state)
+                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    },
+                )
+            }
+
+            Tab(
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 }
+            ) {
+                TabItem(
+                    issuesCount = issuesAssignedData.total_count ?: 0,
+                    tabIndex = tabIndex,
+                    index = 1,
+                    tabName = "ASSIGNED",
+                    onItemClick = {
+                        tabIndex = 1
+                    },
+                    onStateChanged = { state ->
+                        onAction(MyIssuesType.ASSIGNED, state)
+                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    },
+                )
+            }
+
+            Tab(
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 }
+            ) {
+                TabItem(
+                    issuesCount = issuesMentionedData.total_count ?: 0,
+                    tabIndex = tabIndex,
+                    index = 2,
+                    tabName = "MENTIONED",
+                    onItemClick = {
+                        tabIndex = 2
+                    },
+                    onStateChanged = { state ->
+                        onAction(MyIssuesType.MENTIONED, state)
+                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    },
+                )
+            }
+
+            Tab(
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 }
+            ) {
+                TabItem(
+                    issuesCount = issuesParticipatedData.total_count ?: 0,
+                    tabIndex = tabIndex,
+                    index = 3,
+                    tabName = "PARTICIPATED",
+                    onItemClick = {
+                        tabIndex = 3
+                    },
+                    onStateChanged = { state ->
+                        onAction(MyIssuesType.PARTICIPATED, state)
+                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    },
+                )
             }
         }
 
