@@ -24,8 +24,8 @@ data class IssueModel(
     val repository_url: String,
     val state: String,
     val state_reason: String,
-    val title: String,
+    val title: String?,
     val updated_at: String,
     val url: String,
-    val user: User
+    val user: User?
 )

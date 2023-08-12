@@ -425,9 +425,22 @@
             app:popUpToInclusive="false"/>
 
     </fragment>
+
     <fragment
         android:id="@+id/issueFragment"
         android:name="com.hasan.jetfasthub.screens.main.issue.IssueFragment"
-        android:label="IssueFragment" />
+        android:label="IssueFragment" >
+
+        <action
+            android:id="@+id/action_issueFragment_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:popUpTo="@id/issueFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpToInclusive="false"/>
+
+    </fragment>
 
 </navigation>

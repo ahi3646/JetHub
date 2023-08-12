@@ -166,7 +166,8 @@ class CommitFragment : Fragment() {
                                     findNavController().navigate(dest, bundle)
                                 }
                             }
-                        }, onAction = { action, data ->
+                        },
+                        onAction = { action, data ->
                             when (action) {
 
                                 "post_comment" -> {
@@ -267,9 +268,11 @@ class CommitFragment : Fragment() {
                                 }
 
                             }
-                        }, onCurrentSheetChanged = { currentSheet ->
+                        },
+                        onCurrentSheetChanged = { currentSheet ->
                             commitViewModel.onBottomSheetChanged(currentSheet)
-                        })
+                        }
+                    )
                 }
             }
         }
@@ -354,7 +357,6 @@ private fun MainContent(
                                 }
                             }
                         }
-
                         is Resource.Failure -> {}
                     }
                 }
