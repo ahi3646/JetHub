@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.di.commitModule
 import com.hasan.jetfasthub.di.homeModule
 import com.hasan.jetfasthub.di.gistModule
 import com.hasan.jetfasthub.di.gistsModule
+import com.hasan.jetfasthub.di.issueModule
 import com.hasan.jetfasthub.di.notificationsModule
 import com.hasan.jetfasthub.di.organisationModule
 import com.hasan.jetfasthub.di.profileModule
@@ -29,6 +30,7 @@ class JetHubApp: Application() {
             modules(
                 appModule,
                 homeModule,
+                issueModule,
                 repositoryModule,
                 commitModule,
                 commentEditModule,

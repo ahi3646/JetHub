@@ -9,6 +9,7 @@ import com.hasan.jetfasthub.networking.services.CommentService
 import com.hasan.jetfasthub.networking.services.CommitService
 import com.hasan.jetfasthub.networking.services.GistService
 import com.hasan.jetfasthub.networking.services.HomeService
+import com.hasan.jetfasthub.networking.services.IssueService
 import com.hasan.jetfasthub.networking.services.NotificationsService
 import com.hasan.jetfasthub.networking.services.OrganisationService
 import com.hasan.jetfasthub.networking.services.ProfileService
@@ -76,6 +77,10 @@ class RestClient(context: Context) {
 
     val homeService: HomeService by lazy {
         retrofit.create(HomeService::class.java)
+    }
+
+    val issueService: IssueService by lazy {
+        retrofit.create(IssueService::class.java)
     }
 
     val profileService: ProfileService by lazy {

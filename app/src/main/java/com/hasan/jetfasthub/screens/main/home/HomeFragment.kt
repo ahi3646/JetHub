@@ -126,33 +126,96 @@ class HomeFragment : Fragment() {
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
 
+
                 homeViewModel.getIssuesWithCount(
                     token = token,
-                    query = getUrl(MyIssuesType.CREATED, IssueState.Open, authenticatedUser.login),
+                    query = getUrlForIssues(
+                        MyIssuesType.CREATED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
                     page = 1,
                     issuesType = MyIssuesType.CREATED
                 )
 
                 homeViewModel.getIssuesWithCount(
                     token = token,
-                    query = getUrl(MyIssuesType.ASSIGNED, IssueState.Open, authenticatedUser.login),
+                    query = getUrlForIssues(
+                        MyIssuesType.ASSIGNED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
                     page = 1,
                     issuesType = MyIssuesType.ASSIGNED
                 )
 
                 homeViewModel.getIssuesWithCount(
                     token = token,
-                    query = getUrl(MyIssuesType.MENTIONED, IssueState.Open, authenticatedUser.login),
+                    query = getUrlForIssues(
+                        MyIssuesType.MENTIONED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
                     page = 1,
                     issuesType = MyIssuesType.MENTIONED
                 )
 
                 homeViewModel.getIssuesWithCount(
                     token = token,
-                    query = getUrl(MyIssuesType.PARTICIPATED, IssueState.Open, authenticatedUser.login),
+                    query = getUrlForIssues(
+                        MyIssuesType.PARTICIPATED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
                     page = 1,
                     issuesType = MyIssuesType.PARTICIPATED
                 )
+
+
+                homeViewModel.getPullsWithCount(
+                    token = token,
+                    query = getUrlForPulls(
+                        MyIssuesType.CREATED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
+                    page = 1,
+                    issuesType = MyIssuesType.CREATED
+                )
+
+                homeViewModel.getPullsWithCount(
+                    token = token,
+                    query = getUrlForPulls(
+                        MyIssuesType.ASSIGNED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
+                    page = 1,
+                    issuesType = MyIssuesType.ASSIGNED
+                )
+
+                homeViewModel.getPullsWithCount(
+                    token = token,
+                    query = getUrlForPulls(
+                        MyIssuesType.MENTIONED,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
+                    page = 1,
+                    issuesType = MyIssuesType.MENTIONED
+                )
+
+                homeViewModel.getPullsWithCount(
+                    token = token,
+                    query = getUrlForPulls(
+                        MyIssuesType.REVIEW,
+                        IssueState.Open,
+                        authenticatedUser.login
+                    ),
+                    page = 1,
+                    issuesType = MyIssuesType.REVIEW
+                )
+
             }
             .launchIn(lifecycleScope)
     }
@@ -242,12 +305,36 @@ class HomeFragment : Fragment() {
 
                             }
                         },
-                        onAction = { issuesType, issueState ->
+                        onIssueItemClicked = {dest, owner, repo, issueNumber ->
+                            Log.d("ahi3646", "onCreateView: $owner  $repo  $issueNumber ")
+                            val bundle = Bundle()
+                            bundle.putString("issue_owner", owner)
+                            bundle.putString("issue_repo", repo)
+                            bundle.putString("issue_number", issueNumber)
+                            findNavController().navigate(dest, bundle)
+                        },
+                        onIssuesStateChanged = { issuesType, issueState ->
                             homeViewModel.getIssuesWithCount(
                                 token = token,
-                                query = getUrl(issuesType, issueState, state.user.data!!.login),
+                                query = getUrlForIssues(
+                                    issuesType,
+                                    issueState,
+                                    state.user.data!!.login
+                                ),
                                 page = 1,
                                 issuesType = issuesType
+                            )
+                        },
+                        onPullsStateChanged = { myIssuesType, issueState ->
+                            homeViewModel.getPullsWithCount(
+                                token = token,
+                                query = getUrlForPulls(
+                                    myIssuesType,
+                                    issueState,
+                                    state.user.data!!.login
+                                ),
+                                page = 1,
+                                issuesType = myIssuesType
                             )
                         },
                         scaffoldState = scaffoldState,
@@ -266,7 +353,31 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun getUrl(issueType: MyIssuesType, issueState: IssueState, login: String): String {
+    private fun getUrlForPulls(
+        issueType: MyIssuesType,
+        issueState: IssueState,
+        login: String
+    ): String {
+        when (issueType) {
+            MyIssuesType.CREATED -> return RepoQueryProvider.getMyIssuesPullRequestQuery(
+                login,
+                issueState,
+                true
+            )
+
+            MyIssuesType.ASSIGNED -> return RepoQueryProvider.getAssigned(login, issueState, true)
+            MyIssuesType.MENTIONED -> return RepoQueryProvider.getMentioned(login, issueState, true)
+            MyIssuesType.REVIEW -> return RepoQueryProvider.getReviewRequests(login, issueState)
+            else -> {}
+        }
+        return RepoQueryProvider.getMyIssuesPullRequestQuery(login, issueState, false)
+    }
+
+    private fun getUrlForIssues(
+        issueType: MyIssuesType,
+        issueState: IssueState,
+        login: String
+    ): String {
         when (issueType) {
             MyIssuesType.CREATED -> return RepoQueryProvider.getMyIssuesPullRequestQuery(
                 login,
@@ -300,7 +411,9 @@ private fun MainContent(
     state: HomeScreenState,
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
-    onAction: (MyIssuesType, IssueState) -> Unit,
+    onIssueItemClicked: (Int, String, String, String) -> Unit,
+    onIssuesStateChanged: (MyIssuesType, IssueState) -> Unit,
+    onPullsStateChanged: (MyIssuesType, IssueState) -> Unit,
     scaffoldState: ScaffoldState,
     onNavigationClick: () -> Unit
 ) {
@@ -359,7 +472,6 @@ private fun MainContent(
             )
         }
     ) { paddingValues ->
-
         Scaffold(
             modifier = Modifier
                 .padding(paddingValues)
@@ -418,14 +530,18 @@ private fun MainContent(
                     issuesAssigned = state.IssuesAssigned,
                     issuesMentioned = state.IssuesMentioned,
                     issuesParticipated = state.IssuesParticipated,
-                    onNavigate = onNavigate,
-                    onAction = onAction
+                    onIssueItemClicked = onIssueItemClicked,
+                    onIssuesStateChanged = onIssuesStateChanged
                 )
 
                 AppScreens.PullRequests -> PullRequestScreen(
                     contentPaddingValues = it,
+                    PullsCreated = state.PullsCreated,
+                    PullsAssigned = state.PullsAssigned,
+                    PullsMentioned = state.PullsMentioned,
+                    PullsReview = state.PullsReview,
                     onNavigate = onNavigate,
-                    onAction = onAction
+                    onPullsStateChanges = onPullsStateChanged
                 )
             }
         }
@@ -685,8 +801,8 @@ fun IssuesScreen(
     issuesAssigned: Resource<IssuesModel>,
     issuesMentioned: Resource<IssuesModel>,
     issuesParticipated: Resource<IssuesModel>,
-    onNavigate: (Int, String?, String?) -> Unit,
-    onAction: (MyIssuesType, IssueState) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit,
+    onIssuesStateChanged: (MyIssuesType, IssueState) -> Unit
 ) {
 
     when (issuesCreated) {
@@ -766,7 +882,7 @@ fun IssuesScreen(
                                     tabIndex = 0
                                 },
                                 onStateChanged = { state ->
-                                    onAction(MyIssuesType.CREATED, state)
+                                    onIssuesStateChanged(MyIssuesType.CREATED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -785,7 +901,7 @@ fun IssuesScreen(
                                     tabIndex = 1
                                 },
                                 onStateChanged = { state ->
-                                    onAction(MyIssuesType.ASSIGNED, state)
+                                    onIssuesStateChanged(MyIssuesType.ASSIGNED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -804,7 +920,7 @@ fun IssuesScreen(
                                     tabIndex = 2
                                 },
                                 onStateChanged = { state ->
-                                    onAction(MyIssuesType.MENTIONED, state)
+                                    onIssuesStateChanged(MyIssuesType.MENTIONED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -823,7 +939,7 @@ fun IssuesScreen(
                                     tabIndex = 3
                                 },
                                 onStateChanged = { state ->
-                                    onAction(MyIssuesType.PARTICIPATED, state)
+                                    onIssuesStateChanged(MyIssuesType.PARTICIPATED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -833,10 +949,10 @@ fun IssuesScreen(
                 }
 
                 when (tabIndex) {
-                    0 -> IssuesCreated(issuesCreatedData, onNavigate)
-                    1 -> IssuesAssigned(issuesAssignedData, onNavigate)
-                    2 -> IssuesMentioned(issuesMentionedData, onNavigate)
-                    3 -> IssuesParticipated(issuesParticipatedData, onNavigate)
+                    0 -> IssuesCreated(issuesCreatedData, onIssueItemClicked)
+                    1 -> IssuesAssigned(issuesAssignedData, onIssueItemClicked)
+                    2 -> IssuesMentioned(issuesMentionedData, onIssueItemClicked)
+                    3 -> IssuesParticipated(issuesParticipatedData, onIssueItemClicked)
                 }
             }
         }
@@ -896,17 +1012,21 @@ fun IssuesScreen(
 @Composable
 private fun IssuesItem(
     issue: IssuesItem,
-    onNavigate: (Int, String?, String?) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
+    val repoUrl = Uri.parse(issue.repository_url).pathSegments
+    val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
                 onClick = {
-                    onNavigate(
+                    onIssueItemClicked(
                         R.id.action_homeFragment_to_issueFragment,
-                        null,
-                        null
+                        repoUrl[repoUrl.lastIndex - 1],
+                        repoUrl[repoUrl.lastIndex],
+                        issue.number.toString()
                     )
                 }
             )
@@ -935,9 +1055,6 @@ private fun IssuesItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                val repoUrl = Uri.parse(issue.repository_url).pathSegments
-                val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
-
                 Row {
                     Text(
                         text = buildAnnotatedString {
@@ -946,9 +1063,10 @@ private fun IssuesItem(
                             append(" ")
                             append(issue.state)
                             append(" ")
-                            if(issue.closed_at != null){
+                            if (issue.closed_at != null) {
                                 append(
-                                    ParseDateFormat.getTimeAgo(issue.closed_at.toString()).toString()
+                                    ParseDateFormat.getTimeAgo(issue.closed_at.toString())
+                                        .toString()
                                 )
                             }
                         },
@@ -1032,7 +1150,6 @@ fun TabItem(
 
                 Spacer(modifier = Modifier.width(6.dp))
 
-                Log.d("ahi3646", "TabItem: $issuesCount ")
                 Text(
                     text = "$tabName ($issuesCount)",
                     color = if (tabIndex == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.outline
@@ -1080,7 +1197,7 @@ fun TabItem(
 @Composable
 private fun IssuesCreated(
     issuesModel: IssuesModel,
-    onNavigate: (Int, String?, String?) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
     val issues = issuesModel.items
     if (issues.isNotEmpty()) {
@@ -1092,7 +1209,7 @@ private fun IssuesCreated(
             verticalArrangement = Arrangement.Top
         ) {
             items(issues) { issue ->
-                IssuesItem(issue, onNavigate)
+                IssuesItem(issue, onIssueItemClicked)
             }
         }
     } else {
@@ -1111,7 +1228,7 @@ private fun IssuesCreated(
 @Composable
 private fun IssuesAssigned(
     issuesModel: IssuesModel,
-    onNavigate: (Int, String?, String?) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
     val issues = issuesModel.items
     if (issues.isNotEmpty()) {
@@ -1123,7 +1240,7 @@ private fun IssuesAssigned(
             verticalArrangement = Arrangement.Top
         ) {
             items(issues) { issue ->
-                IssuesItem(issue, onNavigate)
+                IssuesItem(issue, onIssueItemClicked)
             }
         }
     } else {
@@ -1142,7 +1259,7 @@ private fun IssuesAssigned(
 @Composable
 private fun IssuesMentioned(
     issuesModel: IssuesModel,
-    onNavigate: (Int, String?, String?) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
     val issues = issuesModel.items
     if (issues.isNotEmpty()) {
@@ -1154,7 +1271,7 @@ private fun IssuesMentioned(
             verticalArrangement = Arrangement.Top
         ) {
             items(issues) { issue ->
-                IssuesItem(issue, onNavigate)
+                IssuesItem(issue, onIssueItemClicked)
             }
         }
     } else {
@@ -1173,7 +1290,7 @@ private fun IssuesMentioned(
 @Composable
 private fun IssuesParticipated(
     issuesModel: IssuesModel,
-    onNavigate: (Int, String?, String?) -> Unit
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
     val issues = issuesModel.items
     if (issues.isNotEmpty()) {
@@ -1185,7 +1302,7 @@ private fun IssuesParticipated(
             verticalArrangement = Arrangement.Top
         ) {
             items(issues) { issue ->
-                IssuesItem(issue, onNavigate)
+                IssuesItem(issue, onIssueItemClicked)
             }
         }
     } else {
@@ -1205,8 +1322,12 @@ private fun IssuesParticipated(
 @Composable
 fun PullRequestScreen(
     contentPaddingValues: PaddingValues,
+    PullsCreated: Resource<IssuesModel>,
+    PullsAssigned: Resource<IssuesModel>,
+    PullsMentioned: Resource<IssuesModel>,
+    PullsReview: Resource<IssuesModel>,
     onNavigate: (Int, String?, String?) -> Unit,
-    onAction: (MyIssuesType, IssueState) -> Unit
+    onPullsStateChanges: (MyIssuesType, IssueState) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
@@ -1225,7 +1346,7 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = issuesCreatedData.total_count ?: 0,
+                    issuesCount = 0,
                     tabIndex = tabIndex,
                     index = 0,
                     tabName = "CREATED",
@@ -1233,7 +1354,7 @@ fun PullRequestScreen(
                         tabIndex = 0
                     },
                     onStateChanged = { state ->
-                        onAction(MyIssuesType.CREATED, state)
+                        onPullsStateChanges(MyIssuesType.CREATED, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1244,7 +1365,7 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = issuesAssignedData.total_count ?: 0,
+                    issuesCount = 0,
                     tabIndex = tabIndex,
                     index = 1,
                     tabName = "ASSIGNED",
@@ -1252,7 +1373,7 @@ fun PullRequestScreen(
                         tabIndex = 1
                     },
                     onStateChanged = { state ->
-                        onAction(MyIssuesType.ASSIGNED, state)
+                        onPullsStateChanges(MyIssuesType.ASSIGNED, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1263,7 +1384,7 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = issuesMentionedData.total_count ?: 0,
+                    issuesCount = 0,
                     tabIndex = tabIndex,
                     index = 2,
                     tabName = "MENTIONED",
@@ -1271,7 +1392,7 @@ fun PullRequestScreen(
                         tabIndex = 2
                     },
                     onStateChanged = { state ->
-                        onAction(MyIssuesType.MENTIONED, state)
+                        onPullsStateChanges(MyIssuesType.MENTIONED, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1282,15 +1403,15 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = issuesParticipatedData.total_count ?: 0,
+                    issuesCount = 0,
                     tabIndex = tabIndex,
                     index = 3,
-                    tabName = "PARTICIPATED",
+                    tabName = "REVIEW REQUESTS",
                     onItemClick = {
                         tabIndex = 3
                     },
                     onStateChanged = { state ->
-                        onAction(MyIssuesType.PARTICIPATED, state)
+                        onPullsStateChanges(MyIssuesType.REVIEW, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1298,63 +1419,310 @@ fun PullRequestScreen(
         }
 
         when (tabIndex) {
-            0 -> PullRequestsCreated()
-            1 -> PullRequestsAssigned()
-            2 -> PullRequestsMentioned()
-            3 -> PullRequestsReviewedRequests()
+            0 -> PullRequestsCreated(PullsCreated, onNavigate)
+            1 -> PullRequestsAssigned(PullsAssigned, onNavigate)
+            2 -> PullRequestsMentioned(PullsMentioned, onNavigate)
+            3 -> PullRequestsReviewedRequests(PullsReview, onNavigate)
         }
     }
 }
 
-
 @Composable
-private fun PullRequestsCreated() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "PullRequestsCreated")
+private fun PullRequestsCreated(
+    issuesModel: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    when (issuesModel) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val pulls = issuesModel.data!!.items
+            if (pulls.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(pulls) { pull ->
+                        PullsItem(pull, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No pulls", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 
 @Composable
-private fun PullRequestsAssigned() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "PullRequestsAssigned")
+private fun PullRequestsAssigned(
+    issuesModel: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    when (issuesModel) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val pulls = issuesModel.data!!.items
+            if (pulls.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(pulls) { pull ->
+                        PullsItem(pull, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No pulls", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 
 @Composable
-private fun PullRequestsMentioned() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "PullRequestsMentioned")
+private fun PullRequestsMentioned(
+    issuesModel: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    when (issuesModel) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val pulls = issuesModel.data!!.items
+            if (pulls.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(pulls) { pull ->
+                        PullsItem(pull, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No pulls", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 
 @Composable
-private fun PullRequestsReviewedRequests() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "PullRequestsReviewedRequests")
+private fun PullRequestsReviewedRequests(
+    issuesModel: Resource<IssuesModel>,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    when (issuesModel) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val pulls = issuesModel.data!!.items
+            if (pulls.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(pulls) { pull ->
+                        PullsItem(pull, onNavigate)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No pulls", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
+
+@Composable
+private fun PullsItem(
+    pull: IssuesItem,
+    onNavigate: (Int, String?, String?) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = {
+                    onNavigate(R.id.action_homeFragment_to_issueFragment, null, null)
+                }
+            )
+            .padding(8.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            Text(
+                text = pull.title,
+                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val repoUrl = Uri.parse(pull.repository_url).pathSegments
+            val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
+
+            Row {
+                Text(
+                    text = buildAnnotatedString {
+                        append(repoName)
+                        append("#${pull.number}")
+                        append(" ")
+                        if (pull.state == "closed") {
+                            append(pull.state)
+                            append(ParseDateFormat.getTimeAgo(pull.closed_at.toString()).toString())
+                        } else {
+                            append("${pull.state}ed")
+                            append(ParseDateFormat.getTimeAgo(pull.created_at).toString())
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1F),
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+

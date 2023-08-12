@@ -41,4 +41,12 @@ interface HomeService {
         @Query("page") page: Int
     ): Response<IssuesModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @GET("search/issues")
+    suspend fun getPullsWithCount(
+        @Header("Authorization") authToken: String,
+        @Query(value = "q", encoded = true) query: String,
+        @Query("page") page: Int
+    ): Response<IssuesModel>
+
 }

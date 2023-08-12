@@ -171,6 +171,144 @@ class HomeViewModel(
         }
     }
 
+    fun getPullsWithCount(token: String, query: String, page: Int, issuesType: MyIssuesType) {
+        viewModelScope.launch {
+            try {
+                repository.getIssuesWithCount(token, query, page).let { pullResponse ->
+                    if (pullResponse.isSuccessful) {
+                        when (issuesType) {
+                            MyIssuesType.CREATED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsCreated = Resource.Success(pullResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.ASSIGNED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsAssigned = Resource.Success(pullResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.MENTIONED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsMentioned = Resource.Success(pullResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.REVIEW -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsReview = Resource.Success(pullResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    } else {
+                        when (issuesType) {
+                            MyIssuesType.CREATED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsCreated = Resource.Failure(
+                                            pullResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.ASSIGNED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsAssigned = Resource.Failure(
+                                            pullResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.MENTIONED -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsMentioned = Resource.Failure(
+                                            pullResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            MyIssuesType.REVIEW -> {
+                                _state.update {
+                                    it.copy(
+                                        PullsReview = Resource.Failure(
+                                            pullResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                when (issuesType) {
+                    MyIssuesType.CREATED -> {
+                        _state.update {
+                            it.copy(
+                                PullsCreated = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getPullsWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.ASSIGNED -> {
+                        _state.update {
+                            it.copy(
+                                PullsAssigned = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getPullsWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.MENTIONED -> {
+                        _state.update {
+                            it.copy(
+                                PullsMentioned = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getPullsWithCount: ${e.message} ")
+                    }
+
+                    MyIssuesType.REVIEW -> {
+                        _state.update {
+                            it.copy(
+                                PullsReview = Resource.Failure(
+                                    e.message.toString()
+                                )
+                            )
+                        }
+                        Log.d("ahi3646", "getPullsWithCount: ${e.message} ")
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+
     fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
         viewModelScope.launch {
             try {
@@ -254,6 +392,7 @@ class HomeViewModel(
             }
         }
     }
+
 }
 
 data class HomeScreenState(
@@ -263,7 +402,11 @@ data class HomeScreenState(
     val IssuesCreated: Resource<IssuesModel> = Resource.Loading(),
     val IssuesAssigned: Resource<IssuesModel> = Resource.Loading(),
     val IssuesMentioned: Resource<IssuesModel> = Resource.Loading(),
-    val IssuesParticipated: Resource<IssuesModel> = Resource.Loading()
+    val IssuesParticipated: Resource<IssuesModel> = Resource.Loading(),
+    val PullsCreated: Resource<IssuesModel> = Resource.Loading(),
+    val PullsAssigned: Resource<IssuesModel> = Resource.Loading(),
+    val PullsMentioned: Resource<IssuesModel> = Resource.Loading(),
+    val PullsReview: Resource<IssuesModel> = Resource.Loading()
 )
 
 sealed interface AppScreens {

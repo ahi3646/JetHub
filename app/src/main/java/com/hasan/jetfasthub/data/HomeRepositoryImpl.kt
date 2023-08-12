@@ -26,9 +26,27 @@ interface HomeRepository {
         page: Int
     ): Response<IssuesModel>
 
+    suspend fun getPullsWithCount(
+        token: String,
+        query: String,
+        page: Int
+    ): Response<IssuesModel>
+
 }
 
 class HomeRepositoryImpl(private val context: Context) : HomeRepository {
+
+    override suspend fun getPullsWithCount(
+        token: String,
+        query: String,
+        page: Int
+    ): Response<IssuesModel> {
+        return RestClient(context).homeService.getPullsWithCount(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            query = query,
+            page = page,
+        )
+    }
 
     override suspend fun getIssuesWithCount(
         token: String,
