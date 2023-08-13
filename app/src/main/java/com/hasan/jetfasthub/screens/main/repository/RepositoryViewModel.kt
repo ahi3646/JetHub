@@ -1,7 +1,6 @@
 package com.hasan.jetfasthub.screens.main.repository
 
 import android.util.Log
-import androidx.compose.animation.core.updateTransition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.Repository
@@ -150,6 +149,7 @@ class RepositoryViewModel(
         viewModelScope.launch {
             try {
                 repository.getReadmeAsHtml(token, url).let { readmeAsHtml ->
+                    Log.d("ahi3646", "getReadmeAsHtml: $readmeAsHtml ")
                     if (readmeAsHtml.isSuccessful) {
                         _state.update {
                             it.copy(ReadmeHtml = Resource.Success(readmeAsHtml.body()!!))
@@ -369,6 +369,9 @@ class RepositoryViewModel(
             }
         }
 
+    /**
+    Will implement these later :)
+
     fun getWatchers(token: String, owner: String, repo: String) {
         viewModelScope.launch {
             try {
@@ -392,6 +395,32 @@ class RepositoryViewModel(
                     it.copy(
                         Watchers = Resource.Failure(e.message.toString())
                     )
+                }
+            }
+        }
+    }
+
+    fun getLicense(token: String, owner: String, repo: String) {
+        viewModelScope.launch {
+            try {
+                repository.getLicense(token, owner, repo).let { licenseResponse ->
+                    if (licenseResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(License = Resource.Success(licenseResponse.body()!!))
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                License = Resource.Failure(
+                                    licenseResponse.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(License = Resource.Failure(e.message.toString()))
                 }
             }
         }
@@ -426,6 +455,38 @@ class RepositoryViewModel(
             }
         }
     }
+
+    fun getForks(token: String, owner: String, repo: String) {
+        viewModelScope.launch {
+            try {
+                repository.getForks(token, owner, repo).let { forksModelResponse ->
+                    if (forksModelResponse.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                Forks = Resource.Success(forksModelResponse.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                Forks = Resource.Failure(
+                                    forksModelResponse.errorBody().toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        Forks = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
+    */
 
     fun isStarringRepo(token: String, owner: String, repo: String) {
         viewModelScope.launch {
@@ -498,36 +559,6 @@ class RepositoryViewModel(
         }
     }
 
-    fun getForks(token: String, owner: String, repo: String) {
-        viewModelScope.launch {
-            try {
-                repository.getForks(token, owner, repo).let { forksModelResponse ->
-                    if (forksModelResponse.isSuccessful) {
-                        _state.update {
-                            it.copy(
-                                Forks = Resource.Success(forksModelResponse.body()!!)
-                            )
-                        }
-                    } else {
-                        _state.update {
-                            it.copy(
-                                Forks = Resource.Failure(
-                                    forksModelResponse.errorBody().toString()
-                                )
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        Forks = Resource.Failure(e.message.toString())
-                    )
-                }
-            }
-        }
-    }
-
     fun forkRepo(token: String, owner: String, repo: String): Flow<Boolean> = callbackFlow {
         viewModelScope.launch {
             try {
@@ -549,6 +580,29 @@ class RepositoryViewModel(
         awaitClose {
             channel.close()
             Log.d("ahi3646", "forkRepo: channel closed ")
+        }
+    }
+
+    fun getFileAsHtmlStream(token: String, url: String){
+        viewModelScope.launch {
+            try {
+                repository.getFileAsHtmlStream(token, url).let { response ->
+                    Log.d("ahi3646", "getFileAsHtmlStream: $response ")
+                    if (response.isSuccessful){
+                        _state.update {
+                            it.copy(FileAsHtml = response.body()!!)
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(FileAsHtml = response.errorBody().toString())
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(FileAsHtml = e.message.toString())
+                }
+            }
         }
     }
 
@@ -604,32 +658,6 @@ class RepositoryViewModel(
         }
     }
 
-    fun getLicense(token: String, owner: String, repo: String) {
-        viewModelScope.launch {
-            try {
-                repository.getLicense(token, owner, repo).let { licenseResponse ->
-                    if (licenseResponse.isSuccessful) {
-                        _state.update {
-                            it.copy(License = Resource.Success(licenseResponse.body()!!))
-                        }
-                    } else {
-                        _state.update {
-                            it.copy(
-                                License = Resource.Failure(
-                                    licenseResponse.errorBody().toString()
-                                )
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(License = Resource.Failure(e.message.toString()))
-                }
-            }
-        }
-    }
-
     fun updateFilesRef(ref: String) {
         _state.update {
             it.copy(FilesRef = ref)
@@ -672,6 +700,7 @@ class RepositoryViewModel(
 data class RepositoryScreenState(
     val RepoOwner: String = "",
     val RepoName: String = "",
+    val FileAsHtml : String = "",
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val Repository: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),

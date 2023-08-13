@@ -60,6 +60,13 @@ interface RepositoryService {
         @Url url: String
     ): Response<String>
 
+    @GET
+    @Headers("Accept: application/vnd.github.html")
+    fun getFileAsHtmlStream(
+        @Header("Authorization") token: String,
+        @Url url: String
+    ): Response<String?>
+
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/contents/{path}")
     suspend fun getContentFiles(

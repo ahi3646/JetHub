@@ -624,7 +624,7 @@ fun FeedsScreen(
             Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
             Log.d(
                 "ahi3646",
-                "FeedsScreen: error - ${(events.loadState.refresh as LoadState.Error).error.message } "
+                "FeedsScreen: error - ${(events.loadState.refresh as LoadState.Error).error.message} "
             )
         }
     }
@@ -644,7 +644,7 @@ fun FeedsScreen(
         }
 
         is LoadState.NotLoading -> {
-            //if (eventsX.isNotEmpty()) {
+            if (events.itemCount != 0) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(contentPaddingValues)
@@ -654,27 +654,27 @@ fun FeedsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     items(events) { eventItem ->
-                        if(eventItem != null){
+                        if (eventItem != null) {
                             ItemEventCard(eventItem, onNavigate)
                         }
                     }
                     item {
-                        if (events.loadState.append is LoadState.Loading){
+                        if (events.loadState.append is LoadState.Loading) {
                             CircularProgressIndicator()
                         }
                     }
                 }
-//            } else {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(MaterialTheme.colorScheme.surfaceVariant),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Text(text = "No feeds")
-//                }
-//            }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No feeds")
+                }
+            }
         }
 
         is LoadState.Error -> {
@@ -691,61 +691,6 @@ fun FeedsScreen(
 
     }
 
-//    when (receivedEventsState) {
-//
-//        is ReceivedEventsState.Loading -> {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(MaterialTheme.colorScheme.surfaceVariant),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-//            }
-//        }
-//
-//        is ReceivedEventsState.Success -> {
-//            val eventsX = receivedEventsState.events
-//            if (eventsX.isNotEmpty()) {
-//                LazyColumn(
-//                    modifier = Modifier
-//                        .padding(contentPaddingValues)
-//                        .fillMaxSize()
-//                        .background(MaterialTheme.colorScheme.surfaceVariant),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    items(eventsX) { eventItem ->
-//                        ItemEventCard(eventItem, onNavigate)
-//                    }
-//                }
-//            } else {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(MaterialTheme.colorScheme.surfaceVariant),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Text(text = "No feeds")
-//                }
-//            }
-//        }
-//
-//        is ReceivedEventsState.Error -> {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(MaterialTheme.colorScheme.surfaceVariant),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                Text(text = "Something went wrong !")
-//            }
-//        }
-//
-//    }
 }
 
 @Composable
@@ -806,10 +751,6 @@ private fun ItemEventCard(
                     .size(48.dp, 48.dp)
                     .clip(CircleShape)
                     .clickable {
-                        Log.d(
-                            "ahi3646",
-                            "ItemEventCard: user login - ${eventItem.eventActorLogin} "
-                        )
                         onNavigate(
                             R.id.action_homeFragment_to_profileFragment,
                             eventItem.eventActorLogin,

@@ -40,6 +40,8 @@ interface Repository {
 
     suspend fun getReadmeAsHtml(token: String, url: String): Response<String>
 
+    suspend fun getFileAsHtmlStream(token: String, url: String): Response<String?>
+
     suspend fun getContentFiles(
         token: String,
         owner: String,
@@ -144,6 +146,10 @@ interface Repository {
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
+
+    override suspend fun getFileAsHtmlStream(token: String, url: String): Response<String?> {
+        return RestClient(context).repositoryService.getFileAsHtmlStream(token, url)
+    }
 
     override suspend fun getLabels(
         token: String,

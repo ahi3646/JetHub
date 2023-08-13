@@ -151,6 +151,10 @@ class RepositoryFragment : Fragment() {
                 token = token, owner = owner, repo = repo
             )
 
+            repositoryViewModel.getFileAsHtmlStream(token, "https://api.github.com/repos/$owner/$repo")
+
+            repositoryViewModel.getReadmeAsHtml(token, "https://api.github.com/repos/$owner/$repo" )
+
             repositoryViewModel.getBranches(
                 token = token, owner = owner, repo = repo
             )
@@ -957,7 +961,7 @@ private fun CodeScreen(
             }
         }
         when (tabIndex) {
-            0 -> ReadMe()
+            0 -> ReadMeScreen()
             1 -> FilesScreen(state, onAction, onCurrentSheetChanged, onItemClicked)
             2 -> CommitsScreen(state, onAction, onItemClicked)
             3 -> ReleasesScreen(
@@ -2134,7 +2138,7 @@ private fun ReleaseItemCard(
 }
 
 @Composable
-private fun ReadMe() {
+private fun ReadMeScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -2142,15 +2146,8 @@ private fun ReadMe() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "ReadMe", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
     }
-//    val webViewState = rememberWebViewState(url = "")
-//    WebView(
-//        state = webViewState,
-//        //this later might be problem for play market upload
-//        //onCreated = {it.settings.javaScriptEnabled = true},
-//        captureBackPresses = true
-//    )
 }
 
 @Composable
