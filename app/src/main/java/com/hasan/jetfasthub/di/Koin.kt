@@ -97,7 +97,7 @@ val homeModule = module {
         username: String
     ): Pager<Int, ReceivedEventsModelEntity> {
         return Pager(
-            config = PagingConfig(pageSize = 20),
+            config = PagingConfig(pageSize = 40),
             remoteMediator = EventsRemoteMediator(
                 repository = eventApi,
                 homeDatabase = eventsDb,

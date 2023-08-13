@@ -47,16 +47,6 @@ class HomeViewModel(
         }
     }
 
-    val eventPagingFlow = pager
-        .flow
-        .map { pagingData ->
-            pagingData.map {receivedEventsModelEntity ->
-                receivedEventsModelEntity.toReceivedEventsModel()
-            }
-        }
-        .cachedIn(viewModelScope)
-
-
     fun onBottomBarItemSelected(appScreens: AppScreens) {
         _state.update {
             it.copy(selectedBottomBarItem = appScreens)

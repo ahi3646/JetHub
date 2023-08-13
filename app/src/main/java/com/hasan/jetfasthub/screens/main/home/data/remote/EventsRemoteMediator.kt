@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.home.data.remote
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -36,6 +37,7 @@ class EventsRemoteMediator(
                         1
                     } else {
                         (lastItem.id / state.config.pageSize) + 1
+                        Log.d("ahi3646", "load: ${lastItem.id}  --   ${state.config.pageSize}  ")
                     }
                 }
             }
