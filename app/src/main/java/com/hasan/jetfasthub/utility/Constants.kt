@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.utility
 
 object Constants {
 
-    const val PERSONAL_ACCESS_TOKEN = "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"
+    const val PERSONAL_ACCESS_TOKEN = "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"
 
     const val JetHubOwner = "HasanAnorov"
     const val JetHubRepoName = "JetHub"

@@ -1,8 +1,8 @@
 package com.hasan.jetfasthub.networking.services
 
-import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.AuthenticatedUser
-import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
-import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.home.data.remote.received_events_model_dto.ReceivedEventModelDto
+import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import retrofit2.Response
 import retrofit2.http.GET
@@ -24,7 +24,9 @@ interface HomeService {
     suspend fun getReceivedUserEvents(
         @Header("Authorization") authToken: String,
         @Path("username") username: String,
-    ): Response<ReceivedEventsModel>
+        @Query("page") page: Int,
+        @Query("per_page") perPage: Int,
+    ): List<ReceivedEventModelDto>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}")

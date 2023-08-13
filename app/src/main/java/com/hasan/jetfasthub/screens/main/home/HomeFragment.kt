@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +33,7 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
@@ -53,6 +55,7 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,6 +72,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -87,9 +91,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModelItem
+import com.hasan.jetfasthub.screens.main.home.domain.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
@@ -124,7 +132,7 @@ class HomeFragment : Fragment() {
                 PreferenceHelper.saveAuthenticatedUser(requireContext(), authenticatedUser.login)
 
                 homeViewModel.getUser(token, authenticatedUser.login)
-                homeViewModel.getReceivedEvents(token, authenticatedUser.login)
+                homeViewModel.getEvents()
 
                 homeViewModel.getIssuesWithCount(
                     token = token,
@@ -304,7 +312,7 @@ class HomeFragment : Fragment() {
 
                             }
                         },
-                        onIssueItemClicked = {dest, owner, repo, issueNumber ->
+                        onIssueItemClicked = { dest, owner, repo, issueNumber ->
                             Log.d("ahi3646", "onCreateView: $owner  $repo  $issueNumber ")
                             val bundle = Bundle()
                             bundle.putString("issue_owner", owner)
@@ -519,8 +527,8 @@ private fun MainContent(
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
                     contentPaddingValues = it,
-                    receivedEventsState = state.receivedEventsState,
-                    onNavigate = onNavigate
+                    onNavigate = onNavigate,
+                    events = state.events.collectAsLazyPagingItems()
                 )
 
                 AppScreens.Issues -> IssuesScreen(
@@ -607,12 +615,23 @@ fun BottomNav(
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
-    receivedEventsState: ReceivedEventsState,
+    events: LazyPagingItems<ReceivedEventsModel>,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    when (receivedEventsState) {
+    val context = LocalContext.current
+    LaunchedEffect(key1 = events.loadState) {
+        if (events.loadState.refresh is LoadState.Error) {
+            Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
+            Log.d(
+                "ahi3646",
+                "FeedsScreen: error - ${(events.loadState.refresh as LoadState.Error).error.message } "
+            )
+        }
+    }
 
-        is ReceivedEventsState.Loading -> {
+    when (events.loadState.refresh) {
+
+        is LoadState.Loading -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -624,9 +643,8 @@ fun FeedsScreen(
             }
         }
 
-        is ReceivedEventsState.Success -> {
-            val events = receivedEventsState.events
-            if (events.isNotEmpty()) {
+        is LoadState.NotLoading -> {
+            //if (eventsX.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(contentPaddingValues)
@@ -636,23 +654,30 @@ fun FeedsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     items(events) { eventItem ->
-                        ItemEventCard(eventItem, onNavigate)
+                        if(eventItem != null){
+                            ItemEventCard(eventItem, onNavigate)
+                        }
+                    }
+                    item {
+                        if (events.loadState.append is LoadState.Loading){
+                            CircularProgressIndicator()
+                        }
                     }
                 }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "No feeds")
-                }
-            }
+//            } else {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .background(MaterialTheme.colorScheme.surfaceVariant),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center
+//                ) {
+//                    Text(text = "No feeds")
+//                }
+//            }
         }
 
-        is ReceivedEventsState.Error -> {
+        is LoadState.Error -> {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -665,11 +690,67 @@ fun FeedsScreen(
         }
 
     }
+
+//    when (receivedEventsState) {
+//
+//        is ReceivedEventsState.Loading -> {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(MaterialTheme.colorScheme.surfaceVariant),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center
+//            ) {
+//                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+//            }
+//        }
+//
+//        is ReceivedEventsState.Success -> {
+//            val eventsX = receivedEventsState.events
+//            if (eventsX.isNotEmpty()) {
+//                LazyColumn(
+//                    modifier = Modifier
+//                        .padding(contentPaddingValues)
+//                        .fillMaxSize()
+//                        .background(MaterialTheme.colorScheme.surfaceVariant),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center
+//                ) {
+//                    items(eventsX) { eventItem ->
+//                        ItemEventCard(eventItem, onNavigate)
+//                    }
+//                }
+//            } else {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .background(MaterialTheme.colorScheme.surfaceVariant),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center
+//                ) {
+//                    Text(text = "No feeds")
+//                }
+//            }
+//        }
+//
+//        is ReceivedEventsState.Error -> {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(MaterialTheme.colorScheme.surfaceVariant),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center
+//            ) {
+//                Text(text = "Something went wrong !")
+//            }
+//        }
+//
+//    }
 }
 
 @Composable
 private fun ItemEventCard(
-    eventItem: ReceivedEventsModelItem,
+    eventItem: ReceivedEventsModel,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
     Card(
@@ -677,15 +758,15 @@ private fun ItemEventCard(
             .fillMaxWidth()
             .padding(4.dp)
             .clickable {
-                val uri = Uri.parse(eventItem.repo.url).lastPathSegment
-                val parentUsername = Uri.parse(eventItem.repo.url).pathSegments[1]
+                val uri = Uri.parse(eventItem.eventRepoUrl).lastPathSegment
+                val parentUsername = Uri.parse(eventItem.eventRepoUrl).pathSegments[1]
 
-                when (eventItem.type) {
+                when (eventItem.eventType) {
                     "ForkEvent" -> {
                         onNavigate(
                             R.id.action_homeFragment_to_repositoryFragment,
-                            eventItem.actor.login,
-                            eventItem.payload.forkee.name,
+                            eventItem.eventActorLogin,
+                            eventItem.eventPayloadForkeeName,
                         )
                     }
 
@@ -718,17 +799,20 @@ private fun ItemEventCard(
             GlideImage(
                 failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
                 imageModel = {
-                    eventItem.actor.avatar_url
+                    eventItem.eventActorAvatarUrl
                 }, // loading a network image using an URL.
                 modifier = Modifier
                     .size(48.dp, 48.dp)
                     .size(48.dp, 48.dp)
                     .clip(CircleShape)
                     .clickable {
-                        Log.d("ahi3646", "ItemEventCard: user login - ${eventItem.actor.login} ")
+                        Log.d(
+                            "ahi3646",
+                            "ItemEventCard: user login - ${eventItem.eventActorLogin} "
+                        )
                         onNavigate(
                             R.id.action_homeFragment_to_profileFragment,
-                            eventItem.actor.login,
+                            eventItem.eventActorLogin,
                             null
                         )
                     },
@@ -747,15 +831,15 @@ private fun ItemEventCard(
             ) {
                 Text(
                     text = buildAnnotatedString {
-                        append(eventItem.actor.login)
+                        append(eventItem.eventActorLogin)
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(
-                                " " + stringResource(id = chooseFromEvents(eventItem.type).action).lowercase(
+                                " " + stringResource(id = chooseFromEvents(eventItem.eventType).action).lowercase(
                                     Locale.getDefault()
                                 ) + " "
                             )
                         }
-                        append(eventItem.repo.name)
+                        append(eventItem.eventRepoName)
                     },
                     modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -771,16 +855,16 @@ private fun ItemEventCard(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Icon(
-                        painter = painterResource(id = chooseFromEvents(eventItem.type).icon),
+                        painter = painterResource(id = chooseFromEvents(eventItem.eventType).icon),
                         contentDescription = stringResource(
-                            id = chooseFromEvents(eventItem.type).action
+                            id = chooseFromEvents(eventItem.eventType).action
                         ),
                         tint = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = ParseDateFormat.getTimeAgo(eventItem.created_at).toString(),
+                        text = ParseDateFormat.getTimeAgo(eventItem.eventCreatedAt).toString(),
                         modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         style = androidx.compose.material.MaterialTheme.typography.caption,

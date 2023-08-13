@@ -3,11 +3,17 @@ package com.hasan.jetfasthub.screens.main.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.hasan.jetfasthub.data.HomeRepository
-import com.hasan.jetfasthub.screens.main.home.authenticated_user_model.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
+import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
+import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
-import com.hasan.jetfasthub.screens.main.home.received_events_model.ReceivedEventsModel
-import com.hasan.jetfasthub.screens.main.home.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.domain.ReceivedEventsModel
 import com.hasan.jetfasthub.utility.MyIssuesType
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.Dispatchers
@@ -16,15 +22,40 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val repository: HomeRepository
+    private val repository: HomeRepository,
+    private val pager: Pager<Int, ReceivedEventsModelEntity>
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<HomeScreenState> = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
+
+    fun getEvents(){
+        _state.update {
+            it.copy(
+                events = pager.flow.map { pagingData ->
+                    pagingData.map {receivedEventsModelEntity ->
+                        receivedEventsModelEntity.toReceivedEventsModel()
+                    }
+                }
+            )
+        }
+    }
+
+    val eventPagingFlow = pager
+        .flow
+        .map { pagingData ->
+            pagingData.map {receivedEventsModelEntity ->
+                receivedEventsModelEntity.toReceivedEventsModel()
+            }
+        }
+        .cachedIn(viewModelScope)
+
 
     fun onBottomBarItemSelected(appScreens: AppScreens) {
         _state.update {
@@ -359,43 +390,44 @@ class HomeViewModel(
         }
     }
 
-    fun getReceivedEvents(token: String, username: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                repository.getReceivedUserEvents(token, username).let { receivedEvents ->
-                    if (receivedEvents.isSuccessful) {
-                        _state.update {
-                            it.copy(
-                                receivedEventsState = ReceivedEventsState.Success(
-                                    receivedEvents.body()!!
-                                )
-                            )
-                        }
-                    } else {
-                        _state.update {
-                            it.copy(
-                                receivedEventsState = ReceivedEventsState.Error(
-                                    receivedEvents.errorBody().toString()
-                                )
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        receivedEventsState = ReceivedEventsState.Error(
-                            e.message.toString()
-                        )
-                    )
-                }
-            }
-        }
-    }
+//    fun getReceivedEvents(token: String, username: String) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                repository.getReceivedUserEvents(token, username).let { receivedEvents ->
+//                    if (receivedEvents.isSuccessful) {
+//                        _state.update {
+//                            it.copy(
+//                                receivedEventsState = ReceivedEventsState.Success(
+//                                    receivedEvents.body()!!
+//                                )
+//                            )
+//                        }
+//                    } else {
+//                        _state.update {
+//                            it.copy(
+//                                receivedEventsState = ReceivedEventsState.Error(
+//                                    receivedEvents.errorBody().toString()
+//                                )
+//                            )
+//                        }
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                _state.update {
+//                    it.copy(
+//                        receivedEventsState = ReceivedEventsState.Error(
+//                            e.message.toString()
+//                        )
+//                    )
+//                }
+//            }
+//        }
+//    }
 
 }
 
 data class HomeScreenState(
+    val events: Flow<PagingData<ReceivedEventsModel>> = flowOf(),
     val user: Resource<GitHubUser> = Resource.Loading(),
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
     val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading,
@@ -418,6 +450,6 @@ sealed interface AppScreens {
 
 sealed interface ReceivedEventsState {
     object Loading : ReceivedEventsState
-    data class Success(val events: ReceivedEventsModel) : ReceivedEventsState
+    data class Success(val events: List<ReceivedEventsModel>) : ReceivedEventsState
     data class Error(val message: String) : ReceivedEventsState
 }

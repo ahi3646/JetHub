@@ -1,5 +1,9 @@
 package com.hasan.jetfasthub.di
 
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.room.Room
 import com.hasan.jetfasthub.data.AuthRepository
 import com.hasan.jetfasthub.data.AuthRepositoryImpl
 import com.hasan.jetfasthub.data.CommentRepository
@@ -20,6 +24,7 @@ import com.hasan.jetfasthub.data.NotificationRepository
 import com.hasan.jetfasthub.data.NotificationsRepositoryImpl
 import com.hasan.jetfasthub.data.OrganisationImpl
 import com.hasan.jetfasthub.data.OrganisationRepository
+import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.data.ProfileRepository
 import com.hasan.jetfasthub.data.ProfileRepositoryImpl
 import com.hasan.jetfasthub.data.Repository
@@ -33,12 +38,16 @@ import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
+import com.hasan.jetfasthub.screens.main.home.data.local.HomeDatabase
+import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
+import com.hasan.jetfasthub.screens.main.home.data.remote.EventsRemoteMediator
 import com.hasan.jetfasthub.screens.main.issue.IssueViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.organisations.OrganisationsViewModel
 import com.hasan.jetfasthub.screens.main.profile.ProfileViewModel
 import com.hasan.jetfasthub.screens.main.repository.RepositoryViewModel
 import com.hasan.jetfasthub.screens.main.search.SearchViewModel
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -67,13 +76,45 @@ val gistModule = module {
     viewModel { GistViewModel(get()) }
 }
 
+@OptIn(ExperimentalPagingApi::class)
 val homeModule = module {
     single<HomeRepository> { HomeRepositoryImpl(get()) }
-    viewModel { HomeViewModel(get()) }
+    single {
+        Room.databaseBuilder(
+            androidApplication(),
+            HomeDatabase::class.java,
+            "events.db"
+        ).build()
+    }
+    single { PreferenceHelper.getToken(androidApplication()) }
+    single { PreferenceHelper.getAuthenticatedUsername(androidApplication()) }
+    single { EventsRemoteMediator(get(), get(), get(), get()) }
+
+    fun providesEventPager(
+        eventsDb: HomeDatabase,
+        eventApi: HomeRepository,
+        token: String,
+        username: String
+    ): Pager<Int, ReceivedEventsModelEntity> {
+        return Pager(
+            config = PagingConfig(pageSize = 20),
+            remoteMediator = EventsRemoteMediator(
+                repository = eventApi,
+                homeDatabase = eventsDb,
+                token = token,
+                username = username
+            ),
+            pagingSourceFactory = {
+                eventsDb.dao.pagingSource()
+            }
+        )
+    }
+
+    viewModel { HomeViewModel(get(), providesEventPager(get(), get(), get(), get())) }
 }
 
 val issueModule = module {
-    single<IssueRepository> { IssueRepositoryImpl(get())  }
+    single<IssueRepository> { IssueRepositoryImpl(get()) }
     viewModel { IssueViewModel(get()) }
 }
 
