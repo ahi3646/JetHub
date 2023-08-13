@@ -892,7 +892,6 @@ private fun CommentItem(
                                 comment.id
                             )
                         )
-                        onAction("delete", "")
                         showMenu = false
                     })
                     DropdownMenuItem(text = {

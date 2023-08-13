@@ -70,6 +70,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
@@ -80,6 +81,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
@@ -91,6 +95,8 @@ import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -132,6 +138,32 @@ class IssueFragment : Fragment() {
                         state = state,
                         onAction = { action, data ->
                             when (action) {
+
+                                "post_comment" -> {
+                                    issueViewModel.postComment(
+                                        token = token,
+                                        owner = state.IssueOwner,
+                                        repo = state.IssueRepo,
+                                        issueNumber = state.IssueNumber,
+                                        body = data!!
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach { response ->
+                                            if (response) {
+                                                issueViewModel.getComments(
+                                                    token = token,
+                                                    owner = state.IssueOwner,
+                                                    repo = state.IssueRepo,
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't post a comment",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.launchIn(lifecycleScope)
+                                }
+
                                 "share" -> {
                                     val context = requireContext()
                                     val type = "text/plain"
@@ -159,6 +191,31 @@ class IssueFragment : Fragment() {
                                     )
                                     requireContext().startActivity(urlIntent)
                                 }
+
+                                "delete_comment" -> {
+                                    issueViewModel.deleteComment(
+                                        token = token,
+                                        owner = state.IssueOwner,
+                                        repo = state.IssueRepo,
+                                        commentId = data!!.toInt()
+                                    ).flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                                        .onEach { response ->
+                                            if (response) {
+                                                issueViewModel.getComments(
+                                                    token = token,
+                                                    owner = state.IssueOwner,
+                                                    repo = state.IssueRepo,
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Can't delete a comment!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.launchIn(lifecycleScope)
+                                }
+
                             }
                         },
                         onNavigate = { dest, data, _ ->
@@ -275,6 +332,50 @@ private fun MainContent(
                     }
                 }
 
+                is IssueScreenSheets.CommentDeleteSheet -> {
+                    val commentId = state.CurrentSheet.commentId
+
+                    Column(
+                        Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        Text(
+                            text = "Delete",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = "Are you sure ?",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Button(onClick = { closeSheet() }) {
+                                Text(text = "No", color = Color.Red)
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Button(onClick = {
+                                onAction("delete_comment", commentId.toString())
+                                closeSheet()
+                            }) {
+                                Text(text = "Yes", color = Color.White)
+                            }
+                        }
+                    }
+                }
+
                 is IssueScreenSheets.UnlockIssueSheet -> {
 
                 }
@@ -289,7 +390,8 @@ private fun MainContent(
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)) {
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
                     TitleHeader(
                         state = state.Issue,
                         onNavigate = onNavigate,
@@ -308,6 +410,16 @@ private fun MainContent(
                         state = state,
                         onNavigate = onNavigate,
                         onAction = onAction,
+                        onCurrentSheetChanged = {
+                            onCurrentSheetChanged(it)
+                            scope.launch {
+                                if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                                    sheetScaffoldState.bottomSheetState.expand()
+                                } else {
+                                    sheetScaffoldState.bottomSheetState.collapse()
+                                }
+                            }
+                        }
                     )
                 }
             },
@@ -317,6 +429,16 @@ private fun MainContent(
                 state = state.Comments,
                 onNavigate = onNavigate,
                 onAction = onAction,
+                onCurrentSheetChanged = {
+                    onCurrentSheetChanged(it)
+                    scope.launch {
+                        if (sheetScaffoldState.bottomSheetState.isCollapsed) {
+                            sheetScaffoldState.bottomSheetState.expand()
+                        } else {
+                            sheetScaffoldState.bottomSheetState.collapse()
+                        }
+                    }
+                }
             )
 
         }
@@ -533,6 +655,7 @@ private fun Toolbar(
     state: IssueScreenState,
     onNavigate: (Int, String?, Int?) -> Unit,
     onAction: (String, String?) -> Unit,
+    onCurrentSheetChanged: (IssueScreenSheets) -> Unit
 ) {
     when (state.Issue) {
         is Resource.Loading -> {
@@ -695,7 +818,7 @@ private fun Toolbar(
                                         )
                                     },
                                     onClick = {
-                                        onAction("close_issue", null)
+                                        onCurrentSheetChanged(IssueScreenSheets.UnlockIssueSheet("2"))
                                         showEditMenu = false
                                     }
                                 )
@@ -908,7 +1031,8 @@ private fun CommentsScreen(
     contentPaddingValues: PaddingValues,
     state: Resource<IssueCommentsModel>,
     onAction: (String, String?) -> Unit,
-    onNavigate: (Int, String?, Int?) -> Unit
+    onNavigate: (Int, String?, Int?) -> Unit,
+    onCurrentSheetChanged: (IssueScreenSheets) -> Unit
 ) {
     when (state) {
 
@@ -956,20 +1080,21 @@ private fun CommentsScreen(
                                 comment = comment,
                                 onAction = onAction,
                                 onReply = { userLogin ->
-//                                    if (userLogin != "N/A") {
-//                                        val newValue = textFieldValueState.text.plus("@$userLogin")
-//                                        textFieldValueState = TextFieldValue(
-//                                            text = newValue, selection = TextRange(newValue.length)
-//                                        )
-//                                        focusRequester.requestFocus()
-//                                        keyboardController?.show()
-//                                    } else {
-//                                        Toast.makeText(
-//                                            context, "Can't identify user !", Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    }
+                                    if (userLogin != "N/A") {
+                                        val newValue = textFieldValueState.text.plus("@$userLogin")
+                                        textFieldValueState = TextFieldValue(
+                                            text = newValue, selection = TextRange(newValue.length)
+                                        )
+                                        focusRequester.requestFocus()
+                                        keyboardController?.show()
+                                    } else {
+                                        Toast.makeText(
+                                            context, "Can't identify user !", Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 },
-                                onNavigate = onNavigate
+                                onNavigate = onNavigate,
+                                onCurrentSheetChanged = onCurrentSheetChanged
                             )
                             if (index < comments.lastIndex) {
                                 Divider(
@@ -986,7 +1111,79 @@ private fun CommentsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.LightGray),
+                            .background(MaterialTheme.colorScheme.surface.copy(0.8F)),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        TextField(
+                            value = textFieldValueState,
+                            onValueChange = {
+                                textFieldValueState = it
+                            },
+                            textStyle = TextStyle(fontSize = 16.sp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            maxLines = 1,
+                            modifier = Modifier
+                                .weight(1F)
+                                .focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                        )
+
+                        IconButton(
+                            onClick = {
+                                if (textFieldValueState.text.length >= 2) {
+                                    onAction(
+                                        "post_comment", textFieldValueState.text
+                                    )
+                                    textFieldValueState = TextFieldValue("")
+                                    keyboardController?.hide()
+                                } else {
+                                    Toast.makeText(
+                                        context, "Min length for comment is 2 !", Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_send),
+                                tint = Color.Blue,
+                                contentDescription = "search icon"
+                            )
+                        }
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPaddingValues)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .weight(1F),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "No comments",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface.copy(0.8F)),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -1032,75 +1229,6 @@ private fun CommentsScreen(
                         }
                     }
                 }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(contentPaddingValues)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .weight(1F),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "No comments",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.LightGray),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        TextField(
-                            value = textFieldValueState,
-                            onValueChange = {
-                                textFieldValueState = it
-                            },
-                            textStyle = TextStyle(fontSize = 16.sp),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                            ),
-                            maxLines = 1,
-                            modifier = Modifier
-                                .weight(1F)
-                                .focusRequester(focusRequester),
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
-                        )
-
-                        IconButton(onClick = {
-                            if (textFieldValueState.text.length >= 2) {
-//                                onAction(
-//                                    "post_comment", textFieldValueState.text
-//                                )
-                                textFieldValueState = TextFieldValue("")
-                                keyboardController?.hide()
-                            } else {
-                                Toast.makeText(
-                                    context, "Min length for comment is 2 !", Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_send),
-                                tint = Color.Blue,
-                                contentDescription = "search icon"
-                            )
-                        }
-                    }
-                }
             }
         }
 
@@ -1127,7 +1255,8 @@ private fun CommentItem(
     comment: IssueCommentsModelItem,
     onAction: (String, String?) -> Unit,
     onReply: (String) -> Unit,
-    onNavigate: (Int, String?, Int?) -> Unit
+    onNavigate: (Int, String?, Int?) -> Unit,
+    onCurrentSheetChanged: (IssueScreenSheets) -> Unit
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -1221,10 +1350,28 @@ private fun CommentItem(
                             )
                         },
                         onClick = {
-
+                            //navigate to edit screen with body
                             showMenu = false
                         }
                     )
+
+                    if (comment.author_association == "OWNER") {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Delete",
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }, onClick = {
+                                onCurrentSheetChanged(
+                                    IssueScreenSheets.CommentDeleteSheet(
+                                        comment.id
+                                    )
+                                )
+                                showMenu = false
+                            }
+                        )
+                    }
 
                     DropdownMenuItem(
                         text = {
@@ -1233,6 +1380,7 @@ private fun CommentItem(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }, onClick = {
+                            onReply(comment.user?.login ?: "N/A")
                             showMenu = false
                         }
                     )
@@ -1243,6 +1391,7 @@ private fun CommentItem(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }, onClick = {
+                            onAction("share", comment.html_url)
                             showMenu = false
                         }
                     )

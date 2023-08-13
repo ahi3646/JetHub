@@ -126,7 +126,6 @@ class HomeFragment : Fragment() {
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getReceivedEvents(token, authenticatedUser.login)
 
-
                 homeViewModel.getIssuesWithCount(
                     token = token,
                     query = getUrlForIssues(

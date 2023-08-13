@@ -2,8 +2,11 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
+import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
+import com.hasan.jetfasthub.screens.main.issue.comment_response_model.CommentResponseModel
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.issue_model.IssueModel
+import com.hasan.jetfasthub.utility.Constants
 import retrofit2.Response
 
 interface IssueRepository {
@@ -21,9 +24,51 @@ interface IssueRepository {
         repo: String,
     ): Response<IssueCommentsModel>
 
+    suspend fun postCommit(
+        token: String,
+        owner: String,
+        repo: String,
+        issueNumber: String,
+        body: String
+    ): Response<CommentResponseModel>
+
+    suspend fun deleteComment(
+        token: String, owner: String, repo: String, commentId: Int
+    ): Response<Boolean>
+
 }
 
 class IssueRepositoryImpl(private val context: Context) : IssueRepository {
+
+    override suspend fun deleteComment(
+        token: String,
+        owner: String,
+        repo: String,
+        commentId: Int
+    ): Response<Boolean> {
+        return RestClient(context).issueService.deleteComment(
+            authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
+            owner = owner,
+            repo = repo,
+            commentId = commentId
+        )
+    }
+
+    override suspend fun postCommit(
+        token: String,
+        owner: String,
+        repo: String,
+        issueNumber: String,
+        body: String
+    ): Response<CommentResponseModel> {
+        return RestClient(context).issueService.postComment(
+            authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
+            owner = owner,
+            repo = repo,
+            issueNumber = issueNumber,
+            body = CommentRequestModel(body)
+        )
+    }
 
     override suspend fun getComments(
         token: String,
@@ -31,7 +76,7 @@ class IssueRepositoryImpl(private val context: Context) : IssueRepository {
         repo: String
     ): Response<IssueCommentsModel> {
         return RestClient(context).issueService.getComments(
-            authToken = token,
+            authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
         )
@@ -44,7 +89,7 @@ class IssueRepositoryImpl(private val context: Context) : IssueRepository {
         issueNumber: String
     ): Response<IssueModel> {
         return RestClient(context).issueService.getIssue(
-            authToken = token,
+            authToken = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}",
             owner = owner,
             repo = repo,
             issueNumber = issueNumber
