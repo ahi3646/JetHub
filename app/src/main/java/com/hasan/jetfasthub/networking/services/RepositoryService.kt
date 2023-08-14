@@ -54,6 +54,15 @@ interface RepositoryService {
         @Query("page") page: Int
     ): Response<ReleasesModel>
 
+    @GET("https://raw.githubusercontent.com/{owner}/{repo}/{branch}/README.md")
+    @Headers("Accept: application/vnd.github+json")
+    suspend fun getReadMeMarkdown(
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("branch") branch: String,
+    ): Response<String>
+
     @Headers("Accept: application/vnd.github.html")
     suspend fun getReadmeAsHtml(
         @Header("Authorization") token: String,
@@ -62,10 +71,10 @@ interface RepositoryService {
 
     @GET
     @Headers("Accept: application/vnd.github.html")
-    fun getFileAsHtmlStream(
+    suspend fun getFileAsHtmlStream(
         @Header("Authorization") token: String,
         @Url url: String
-    ): Response<String?>
+    ): Response<String>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("repos/{owner}/{repo}/contents/{path}")

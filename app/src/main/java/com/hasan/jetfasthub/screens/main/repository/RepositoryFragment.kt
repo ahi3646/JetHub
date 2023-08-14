@@ -33,8 +33,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
@@ -102,6 +104,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import com.halilibo.richtext.markdown.Markdown
+import com.halilibo.richtext.ui.RichText
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
@@ -151,10 +155,6 @@ class RepositoryFragment : Fragment() {
                 token = token, owner = owner, repo = repo
             )
 
-            repositoryViewModel.getFileAsHtmlStream(token, "https://api.github.com/repos/$owner/$repo")
-
-            repositoryViewModel.getReadmeAsHtml(token, "https://api.github.com/repos/$owner/$repo" )
-
             repositoryViewModel.getBranches(
                 token = token, owner = owner, repo = repo
             )
@@ -177,6 +177,8 @@ class RepositoryFragment : Fragment() {
                     } else {
                         "main"
                     }
+
+                    repositoryViewModel.getReadMeMarkdown(token, repo, owner, initialBranch)
 
                     repositoryViewModel.updateFilesRef(initialBranch)
                     repositoryViewModel.updateCommitsRef(initialBranch)
@@ -576,6 +578,7 @@ private fun MainContent(
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: (BottomSheetScreens) -> Unit,
 ) {
+
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed,
@@ -961,7 +964,7 @@ private fun CodeScreen(
             }
         }
         when (tabIndex) {
-            0 -> ReadMeScreen()
+            0 -> ReadMeScreen(state)
             1 -> FilesScreen(state, onAction, onCurrentSheetChanged, onItemClicked)
             2 -> CommitsScreen(state, onAction, onItemClicked)
             3 -> ReleasesScreen(
@@ -2138,15 +2141,50 @@ private fun ReleaseItemCard(
 }
 
 @Composable
-private fun ReadMeScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+private fun ReadMeScreen(state: RepositoryScreenState) {
 
+    when (state.ReadmeMarkdown) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.8F)),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                val content = state.ReadmeMarkdown.data!!
+
+                RichText(modifier = Modifier.padding(16.dp)) {
+                    Markdown(content = content)
+                }
+
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

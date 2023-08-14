@@ -37,10 +37,12 @@ interface Repository {
         repo: String,
         page: Int
     ): Response<ReleasesModel>
-
-    suspend fun getReadmeAsHtml(token: String, url: String): Response<String>
-
-    suspend fun getFileAsHtmlStream(token: String, url: String): Response<String?>
+    suspend fun getReadMeMarkDown(
+        token: String,
+        owner: String,
+        repo: String,
+        branch:String
+    ): Response<String>
 
     suspend fun getContentFiles(
         token: String,
@@ -147,8 +149,13 @@ interface Repository {
 
 class RepositoryImpl(private val context: Context) : Repository {
 
-    override suspend fun getFileAsHtmlStream(token: String, url: String): Response<String?> {
-        return RestClient(context).repositoryService.getFileAsHtmlStream(token, url)
+    override suspend fun getReadMeMarkDown(
+        token: String,
+        owner: String,
+        repo: String,
+        branch: String
+    ): Response<String> {
+        return RestClient(context).repositoryService.getReadMeMarkdown(token, owner, repo, branch)
     }
 
     override suspend fun getLabels(
@@ -215,13 +222,6 @@ class RepositoryImpl(private val context: Context) : Repository {
         )
     }
 
-    override suspend fun getReadmeAsHtml(token: String, url: String): Response<String> {
-        return RestClient(context).repositoryService.getReadmeAsHtml(
-            token = "Bearer $PERSONAL_ACCESS_TOKEN",
-            url = url
-        )
-
-    }
 
     override suspend fun getContentFiles(
         token: String,

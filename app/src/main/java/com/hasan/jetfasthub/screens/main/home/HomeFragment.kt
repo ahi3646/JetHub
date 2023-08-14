@@ -701,7 +701,7 @@ private fun ItemEventCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(top = 4.dp)
             .clickable {
                 val uri = Uri.parse(eventItem.eventRepoUrl).lastPathSegment
                 val parentUsername = Uri.parse(eventItem.eventRepoUrl).pathSegments[1]
