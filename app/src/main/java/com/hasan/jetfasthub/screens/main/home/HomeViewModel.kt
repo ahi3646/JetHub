@@ -35,14 +35,17 @@ class HomeViewModel(
     private val _state: MutableStateFlow<HomeScreenState> = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
 
-    fun getEvents(){
+    fun getEvents() {
         _state.update {
             it.copy(
-                events = pager.flow.map { pagingData ->
-                    pagingData.map {receivedEventsModelEntity ->
-                        receivedEventsModelEntity.toReceivedEventsModel()
+                events = pager
+                    .flow
+                    .map { pagingData ->
+                        pagingData.map { receivedEventsModelEntity ->
+                            receivedEventsModelEntity.toReceivedEventsModel()
+                        }
                     }
-                }
+                    .cachedIn(viewModelScope)
             )
         }
     }
@@ -380,6 +383,26 @@ class HomeViewModel(
         }
     }
 
+    fun updateIssueScreen(index: Int, isOpen: Boolean){
+        val newState = state.value.IssueScreenState.toMutableList()
+        newState[index] = isOpen
+        _state.update {
+            it.copy(
+                IssueScreenState = newState
+            )
+        }
+    }
+
+    fun updatePullScreen(index: Int, isOpen: Boolean){
+        val newState = state.value.PullScreenState.toMutableList()
+        newState[index] = isOpen
+        _state.update {
+            it.copy(
+                PullScreenState = newState
+            )
+        }
+    }
+
 //    fun getReceivedEvents(token: String, username: String) {
 //        viewModelScope.launch(Dispatchers.IO) {
 //            try {
@@ -420,7 +443,6 @@ data class HomeScreenState(
     val events: Flow<PagingData<ReceivedEventsModel>> = flowOf(),
     val user: Resource<GitHubUser> = Resource.Loading(),
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
-    val receivedEventsState: ReceivedEventsState = ReceivedEventsState.Loading,
     val IssuesCreated: Resource<IssuesModel> = Resource.Loading(),
     val IssuesAssigned: Resource<IssuesModel> = Resource.Loading(),
     val IssuesMentioned: Resource<IssuesModel> = Resource.Loading(),
@@ -428,7 +450,9 @@ data class HomeScreenState(
     val PullsCreated: Resource<IssuesModel> = Resource.Loading(),
     val PullsAssigned: Resource<IssuesModel> = Resource.Loading(),
     val PullsMentioned: Resource<IssuesModel> = Resource.Loading(),
-    val PullsReview: Resource<IssuesModel> = Resource.Loading()
+    val PullsReview: Resource<IssuesModel> = Resource.Loading(),
+    val PullScreenState: List<Boolean> = listOf(true, true, true, true),
+    val IssueScreenState: List<Boolean> = listOf(true, true, true, true)
 )
 
 sealed interface AppScreens {

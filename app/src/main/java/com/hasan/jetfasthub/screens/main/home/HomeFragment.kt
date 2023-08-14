@@ -320,7 +320,13 @@ class HomeFragment : Fragment() {
                             bundle.putString("issue_number", issueNumber)
                             findNavController().navigate(dest, bundle)
                         },
-                        onIssuesStateChanged = { issuesType, issueState ->
+                        onIssuesStateChanged = { index, issuesType, issueState ->
+                            val isOpen = when(issueState){
+                                IssueState.Open -> true
+                                IssueState.Closed -> false
+                                IssueState.All -> true
+                            }
+                            homeViewModel.updateIssueScreen(index, isOpen)
                             homeViewModel.getIssuesWithCount(
                                 token = token,
                                 query = getUrlForIssues(
@@ -332,7 +338,13 @@ class HomeFragment : Fragment() {
                                 issuesType = issuesType
                             )
                         },
-                        onPullsStateChanged = { myIssuesType, issueState ->
+                        onPullsStateChanged = { index, myIssuesType, issueState ->
+                            val isOpen = when(issueState){
+                                IssueState.Open -> true
+                                IssueState.Closed -> false
+                                IssueState.All -> true
+                            }
+                            homeViewModel.updatePullScreen(index, isOpen)
                             homeViewModel.getPullsWithCount(
                                 token = token,
                                 query = getUrlForPulls(
@@ -419,8 +431,8 @@ private fun MainContent(
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
     onIssueItemClicked: (Int, String, String, String) -> Unit,
-    onIssuesStateChanged: (MyIssuesType, IssueState) -> Unit,
-    onPullsStateChanged: (MyIssuesType, IssueState) -> Unit,
+    onIssuesStateChanged: (Int, MyIssuesType, IssueState) -> Unit,
+    onPullsStateChanged: (Int, MyIssuesType, IssueState) -> Unit,
     scaffoldState: ScaffoldState,
     onNavigationClick: () -> Unit
 ) {
@@ -533,20 +545,14 @@ private fun MainContent(
 
                 AppScreens.Issues -> IssuesScreen(
                     contentPaddingValues = it,
-                    issuesCreated = state.IssuesCreated,
-                    issuesAssigned = state.IssuesAssigned,
-                    issuesMentioned = state.IssuesMentioned,
-                    issuesParticipated = state.IssuesParticipated,
+                    state = state,
                     onIssueItemClicked = onIssueItemClicked,
                     onIssuesStateChanged = onIssuesStateChanged
                 )
 
                 AppScreens.PullRequests -> PullRequestScreen(
                     contentPaddingValues = it,
-                    PullsCreated = state.PullsCreated,
-                    PullsAssigned = state.PullsAssigned,
-                    PullsMentioned = state.PullsMentioned,
-                    PullsReview = state.PullsReview,
+                    state = state,
                     onNavigate = onNavigate,
                     onPullsStateChanges = onPullsStateChanged
                 )
@@ -821,15 +827,12 @@ private fun ItemEventCard(
 @Composable
 fun IssuesScreen(
     contentPaddingValues: PaddingValues,
-    issuesCreated: Resource<IssuesModel>,
-    issuesAssigned: Resource<IssuesModel>,
-    issuesMentioned: Resource<IssuesModel>,
-    issuesParticipated: Resource<IssuesModel>,
+    state: HomeScreenState,
     onIssueItemClicked: (Int, String, String, String) -> Unit,
-    onIssuesStateChanged: (MyIssuesType, IssueState) -> Unit
+    onIssuesStateChanged: (Int, MyIssuesType, IssueState) -> Unit
 ) {
 
-    when (issuesCreated) {
+    when (state.IssuesCreated) {
 
         is Resource.Loading -> {
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -878,10 +881,10 @@ fun IssuesScreen(
 
         is Resource.Success -> {
             var tabIndex by remember { mutableIntStateOf(0) }
-            val issuesCreatedData = issuesCreated.data!!
-            val issuesAssignedData = issuesAssigned.data!!
-            val issuesMentionedData = issuesMentioned.data!!
-            val issuesParticipatedData = issuesParticipated.data!!
+            val issuesCreatedData = state.IssuesCreated.data!!
+            val issuesAssignedData = state.IssuesAssigned.data!!
+            val issuesMentionedData = state.IssuesMentioned.data!!
+            val issuesParticipatedData = state.IssuesParticipated.data!!
 
             Column(
                 modifier = Modifier
@@ -901,13 +904,13 @@ fun IssuesScreen(
                                 issuesCount = issuesCreatedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 0,
+                                isOpened = state.IssueScreenState[0],
                                 tabName = "CREATED",
                                 onItemClick = {
                                     tabIndex = 0
                                 },
-                                onStateChanged = { state ->
-                                    onIssuesStateChanged(MyIssuesType.CREATED, state)
-                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                onStateChanged = { index, state ->
+                                    onIssuesStateChanged(index, MyIssuesType.CREATED, state)
                                 },
                             )
                         }
@@ -920,13 +923,13 @@ fun IssuesScreen(
                                 issuesCount = issuesAssignedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 1,
+                                isOpened = state.IssueScreenState[1],
                                 tabName = "ASSIGNED",
                                 onItemClick = {
                                     tabIndex = 1
                                 },
-                                onStateChanged = { state ->
-                                    onIssuesStateChanged(MyIssuesType.ASSIGNED, state)
-                                    Log.d("ahi3646", "IssuesScreen: $state ")
+                                onStateChanged = { index, state ->
+                                    onIssuesStateChanged(index, MyIssuesType.ASSIGNED, state)
                                 },
                             )
                         }
@@ -939,12 +942,13 @@ fun IssuesScreen(
                                 issuesCount = issuesMentionedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 2,
+                                isOpened = state.IssueScreenState[2],
                                 tabName = "MENTIONED",
                                 onItemClick = {
                                     tabIndex = 2
                                 },
-                                onStateChanged = { state ->
-                                    onIssuesStateChanged(MyIssuesType.MENTIONED, state)
+                                onStateChanged = { index, state ->
+                                    onIssuesStateChanged(index, MyIssuesType.MENTIONED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -958,12 +962,13 @@ fun IssuesScreen(
                                 issuesCount = issuesParticipatedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 3,
+                                isOpened = state.IssueScreenState[3],
                                 tabName = "PARTICIPATED",
                                 onItemClick = {
                                     tabIndex = 3
                                 },
-                                onStateChanged = { state ->
-                                    onIssuesStateChanged(MyIssuesType.PARTICIPATED, state)
+                                onStateChanged = { index, state ->
+                                    onIssuesStateChanged(index, MyIssuesType.PARTICIPATED, state)
                                     Log.d("ahi3646", "IssuesScreen: $state ")
                                 },
                             )
@@ -1128,17 +1133,18 @@ fun TabItem(
     issuesCount: Int,
     tabIndex: Int,
     index: Int,
+    isOpened: Boolean,
     tabName: String,
     onItemClick: () -> Unit,
-    onStateChanged: (IssueState) -> Unit,
+    onStateChanged: (Int, IssueState) -> Unit,
 ) {
     var isContextMenuVisible by rememberSaveable {
         mutableStateOf(false)
     }
 
-    var isOpened by rememberSaveable {
-        mutableStateOf(true)
-    }
+//    var isOpened by rememberSaveable {
+//        mutableStateOf(true)
+//    }
 
     var itemHeight by remember {
         mutableStateOf(0.dp)
@@ -1195,8 +1201,8 @@ fun TabItem(
             ) {
                 DropdownMenuItem(
                     onClick = {
-                        onStateChanged(IssueState.Open)
-                        isOpened = true
+                        onStateChanged(index, IssueState.Open)
+                        //isOpened = true
                         isContextMenuVisible = false
                     }
                 ) {
@@ -1204,8 +1210,8 @@ fun TabItem(
                 }
                 DropdownMenuItem(
                     onClick = {
-                        onStateChanged(IssueState.Closed)
-                        isOpened = false
+                        onStateChanged(index, IssueState.Closed)
+                        //isOpened = false
                         isContextMenuVisible = false
                     }
                 ) {
@@ -1346,14 +1352,16 @@ private fun IssuesParticipated(
 @Composable
 fun PullRequestScreen(
     contentPaddingValues: PaddingValues,
-    PullsCreated: Resource<IssuesModel>,
-    PullsAssigned: Resource<IssuesModel>,
-    PullsMentioned: Resource<IssuesModel>,
-    PullsReview: Resource<IssuesModel>,
+    state: HomeScreenState,
     onNavigate: (Int, String?, String?) -> Unit,
-    onPullsStateChanges: (MyIssuesType, IssueState) -> Unit
+    onPullsStateChanges: (Int, MyIssuesType, IssueState) -> Unit
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
+
+    val pullsCreated = state.PullsCreated.data?.total_count ?: 0
+    val pullsAssigned = state.PullsAssigned.data?.total_count ?: 0
+    val pullsMentioned = state.PullsMentioned.data?.total_count ?: 0
+    val pullsReview = state.PullsReview.data?.total_count ?: 0
 
     Column(
         modifier = Modifier
@@ -1370,16 +1378,16 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = 0,
+                    issuesCount = pullsCreated,
                     tabIndex = tabIndex,
                     index = 0,
                     tabName = "CREATED",
+                    isOpened = state.PullScreenState[0],
                     onItemClick = {
                         tabIndex = 0
                     },
-                    onStateChanged = { state ->
-                        onPullsStateChanges(MyIssuesType.CREATED, state)
-                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    onStateChanged = { index, state ->
+                        onPullsStateChanges(index, MyIssuesType.CREATED, state)
                     },
                 )
             }
@@ -1389,16 +1397,16 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = 0,
+                    issuesCount = pullsAssigned,
                     tabIndex = tabIndex,
                     index = 1,
                     tabName = "ASSIGNED",
+                    isOpened = state.PullScreenState[1],
                     onItemClick = {
                         tabIndex = 1
                     },
-                    onStateChanged = { state ->
-                        onPullsStateChanges(MyIssuesType.ASSIGNED, state)
-                        Log.d("ahi3646", "IssuesScreen: $state ")
+                    onStateChanged = { index, state ->
+                        onPullsStateChanges(index, MyIssuesType.ASSIGNED, state)
                     },
                 )
             }
@@ -1408,15 +1416,16 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = 0,
+                    issuesCount = pullsMentioned,
                     tabIndex = tabIndex,
                     index = 2,
                     tabName = "MENTIONED",
+                    isOpened = state.PullScreenState[2],
                     onItemClick = {
                         tabIndex = 2
                     },
-                    onStateChanged = { state ->
-                        onPullsStateChanges(MyIssuesType.MENTIONED, state)
+                    onStateChanged = { index, state ->
+                        onPullsStateChanges(index, MyIssuesType.MENTIONED, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1427,15 +1436,16 @@ fun PullRequestScreen(
                 onClick = { tabIndex = 0 }
             ) {
                 TabItem(
-                    issuesCount = 0,
+                    issuesCount = pullsReview,
                     tabIndex = tabIndex,
                     index = 3,
                     tabName = "REVIEW REQUESTS",
+                    isOpened = state.PullScreenState[3],
                     onItemClick = {
                         tabIndex = 3
                     },
-                    onStateChanged = { state ->
-                        onPullsStateChanges(MyIssuesType.REVIEW, state)
+                    onStateChanged = { index, state ->
+                        onPullsStateChanges(index, MyIssuesType.REVIEW, state)
                         Log.d("ahi3646", "IssuesScreen: $state ")
                     },
                 )
@@ -1443,10 +1453,10 @@ fun PullRequestScreen(
         }
 
         when (tabIndex) {
-            0 -> PullRequestsCreated(PullsCreated, onNavigate)
-            1 -> PullRequestsAssigned(PullsAssigned, onNavigate)
-            2 -> PullRequestsMentioned(PullsMentioned, onNavigate)
-            3 -> PullRequestsReviewedRequests(PullsReview, onNavigate)
+            0 -> PullRequestsCreated(state.PullsCreated, onNavigate)
+            1 -> PullRequestsAssigned(state.PullsAssigned, onNavigate)
+            2 -> PullRequestsMentioned(state.PullsMentioned, onNavigate)
+            3 -> PullRequestsReviewedRequests(state.PullsReview, onNavigate)
         }
     }
 }
