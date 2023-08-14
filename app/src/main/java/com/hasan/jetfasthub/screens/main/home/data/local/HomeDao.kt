@@ -14,7 +14,7 @@ interface HomeDao {
     @Query("SELECT * FROM events_entity")
     fun pagingSource(): PagingSource<Int, ReceivedEventsModelEntity>
 
-    @Query("DELETE FROM events_entity  ")
+    @Query("DELETE FROM events_entity")
     suspend fun clearAll()
 
 }

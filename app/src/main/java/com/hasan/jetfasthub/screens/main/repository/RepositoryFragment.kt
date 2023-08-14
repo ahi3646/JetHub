@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -106,6 +107,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
+import com.hasan.jetfasthub.screens.main.home.IssuesItem
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
@@ -115,9 +117,13 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_mode
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.ContributorsItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
+import com.hasan.jetfasthub.utility.IssueState
 import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.utility.RepoQueryProvider
 import com.hasan.jetfasthub.utility.Resource
 import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
@@ -182,6 +188,8 @@ class RepositoryFragment : Fragment() {
                     repositoryViewModel.updateCommitsRef(initialBranch)
                     repositoryViewModel.updateInitialBranch(initialBranch)
 
+                    repositoryViewModel.getReadMeMarkdown(token, repo, owner, initialBranch)
+
                     repositoryViewModel.getBranch(
                         token = token,
                         owner = owner,
@@ -224,10 +232,62 @@ class RepositoryFragment : Fragment() {
             repositoryViewModel.getContributors(
                 token = token, owner = owner, repo = repo, page = 1
             )
+
+            val issuesOpenQuery = RepoQueryProvider.getIssuesPullRequestQuery(
+                owner,
+                repo,
+                IssueState.Open,
+                false
+            )
+            repositoryViewModel.getIssuesWithCount(
+                token = token,
+                query = issuesOpenQuery,
+                page = 1,
+                IssueState.Open
+            )
+
+            val issuesCloseQuery = RepoQueryProvider.getIssuesPullRequestQuery(
+                owner,
+                repo,
+                IssueState.Closed,
+                false
+            )
+            repositoryViewModel.getIssuesWithCount(
+                token = token,
+                query = issuesCloseQuery,
+                page = 1,
+                IssueState.Closed
+            )
+
+            val pullsOpenQuery = RepoQueryProvider.getIssuesPullRequestQuery(
+                owner,
+                repo,
+                IssueState.Open,
+                true
+            )
+            repositoryViewModel.getPullWithCount(
+                token = token,
+                query = pullsOpenQuery,
+                page = 1,
+                IssueState.Open
+            )
+
+            val pullsCloseQuery = RepoQueryProvider.getIssuesPullRequestQuery(
+                owner,
+                repo,
+                IssueState.Closed,
+                true
+            )
+            repositoryViewModel.getPullWithCount(
+                token = token,
+                query = pullsCloseQuery,
+                page = 1,
+                IssueState.Closed
+            )
+
         } else {
             Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
         }
-
     }
 
     override fun onCreateView(
@@ -559,6 +619,14 @@ class RepositoryFragment : Fragment() {
                                 }
                             }
                         },
+                        onIssueItemClicked = { dest, owner, repo, issueNumber ->
+                            Log.d("ahi3646", "onCreateView: $owner  $repo  $issueNumber ")
+                            val bundle = Bundle()
+                            bundle.putString("issue_owner", owner)
+                            bundle.putString("issue_repo", repo)
+                            bundle.putString("issue_number", issueNumber)
+                            findNavController().navigate(dest, bundle)
+                        }
                     )
                 }
             }
@@ -576,6 +644,7 @@ private fun MainContent(
     onItemClicked: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: (BottomSheetScreens) -> Unit,
+    onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
 
     val scope = rememberCoroutineScope()
@@ -741,7 +810,21 @@ private fun MainContent(
                     sheetState = sheetStateX
                 ) {
                     when (state.License) {
-                        is Resource.Loading -> {}
+                        is Resource.Loading -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "Loading ...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
                         is Resource.Success -> {
                             val content = state.License.data!!.body
                             Column(
@@ -756,6 +839,7 @@ private fun MainContent(
                                     text = content,
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .padding(16.dp)
                                         .background(
                                             MaterialTheme.colorScheme.surfaceVariant.copy(
                                                 0.5F
@@ -765,7 +849,20 @@ private fun MainContent(
                             }
                         }
 
-                        is Resource.Failure -> {}
+                        is Resource.Failure -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "Can't get license",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -789,8 +886,16 @@ private fun MainContent(
                     onAction = onAction
                 )
 
-                RepositoryScreens.Issues -> IssuesScreen(paddingValues = paddingValues)
-                RepositoryScreens.PullRequest -> PullRequestsScreen(paddingValues = paddingValues)
+                RepositoryScreens.Issues -> IssuesScreen(
+                    paddingValues = paddingValues,
+                    state = state,
+                    onIssueItemClicked = onIssueItemClicked
+                )
+
+                RepositoryScreens.PullRequest -> PullRequestsScreen(
+                    paddingValues = paddingValues,
+                    state = state,
+                )
                 RepositoryScreens.Projects -> {
                     if ((state.Repository.data != null) && state.Repository.data.has_projects) {
                         ProjectsScreen(paddingValues = paddingValues)
@@ -2165,7 +2270,7 @@ private fun ReadMeScreen(state: RepositoryScreenState) {
         ) {
             Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    } else {
+    } else if(state.HasMarkdown){
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -2178,6 +2283,16 @@ private fun ReadMeScreen(state: RepositoryScreenState) {
                 url = URL("https://raw.githubusercontent.com/${state.RepoOwner}/${state.RepoName}/${state.InitialBranch}/README.md"),
                 modifier = Modifier.fillMaxSize()
             )
+        }
+    }else{
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "No data available", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -2306,78 +2421,282 @@ private fun ContributorsItemCard(
 }
 
 @Composable
-private fun IssuesScreen(paddingValues: PaddingValues) {
+private fun IssuesScreen(
+    paddingValues: PaddingValues,
+    state: RepositoryScreenState,
+    onIssueItemClicked: (Int, String, String, String) -> Unit
+) {
     val tabs = listOf("OPENED", "CLOSED")
     var tabIndex by remember { mutableIntStateOf(0) }
 
-    TabRow(
-        selectedTabIndex = tabIndex,
+    Column(
         modifier = Modifier
+            .padding(paddingValues)
             .fillMaxWidth()
-            .padding(paddingValues),
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        tabs.forEachIndexed { index, title ->
-            Tab(
-                selected = tabIndex == index, onClick = { tabIndex = index },
-                text = {
-                    if (tabIndex == index) {
-                        androidx.compose.material3.Text(
-                            title,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    } else {
-                        androidx.compose.material3.Text(
-                            title,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
-                },
-                selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+        TabRow(
+            selectedTabIndex = tabIndex,
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index, onClick = { tabIndex = index },
+                    text = {
+                        if (tabIndex == index) {
+                            androidx.compose.material3.Text(
+                                title,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        } else {
+                            androidx.compose.material3.Text(
+                                title,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    },
+                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
+        }
+        when (tabIndex) {
+            0 -> IssuesScreenContent(
+                state = state.OpenIssues,
+                onIssueItemClicked = onIssueItemClicked,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+
+            1 -> IssuesScreenContent(
+                state = state.ClosedIssues,
+                onIssueItemClicked = onIssueItemClicked,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
         }
-    }
-    when (tabIndex) {
-        0 -> {}
-        1 -> {}
     }
 }
 
 @Composable
-private fun PullRequestsScreen(paddingValues: PaddingValues) {
+private fun IssuesScreenContent(
+    state: Resource<IssuesModel>,
+    onIssueItemClicked: (Int, String, String, String) -> Unit,
+    modifier: Modifier
+) {
+    when (state) {
+        is Resource.Loading -> {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val issues = state.data!!.items
+            if (issues.isNotEmpty()) {
+                LazyColumn(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(issues) { issue ->
+                        IssuesItem(issue = issue, onIssueItemClicked = onIssueItemClicked)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No issues", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PullRequestsScreen(
+    paddingValues: PaddingValues,
+    state: RepositoryScreenState
+) {
     val tabs = listOf("OPENED", "CLOSED")
     var tabIndex by remember { mutableIntStateOf(0) }
 
-    TabRow(
-        selectedTabIndex = tabIndex,
+    Column(
         modifier = Modifier
+            .padding(paddingValues)
             .fillMaxWidth()
-            .padding(paddingValues),
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        tabs.forEachIndexed { index, title ->
-            Tab(
-                selected = tabIndex == index, onClick = { tabIndex = index },
-                text = {
-                    if (tabIndex == index) {
-                        androidx.compose.material3.Text(
-                            title,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    } else {
-                        androidx.compose.material3.Text(
-                            title,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
-                },
-            )
+        TabRow(
+            selectedTabIndex = tabIndex,
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = tabIndex == index, onClick = { tabIndex = index },
+                    text = {
+                        if (tabIndex == index) {
+                            androidx.compose.material3.Text(
+                                title,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        } else {
+                            androidx.compose.material3.Text(
+                                title,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    },
+                )
+            }
+        }
+        when (tabIndex) {
+            0 -> PullRequestScreenContent(data = state.OpenPulls)
+            1 -> PullRequestScreenContent(data = state.ClosedPulls)
         }
     }
-    when (tabIndex) {
-        0 -> {}
-        1 -> {}
+}
+
+@Composable
+private fun PullRequestScreenContent(
+    data: Resource<IssuesModel>,
+) {
+    when (data) {
+        is Resource.Loading -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        is Resource.Success -> {
+            val pulls = data.data!!.items
+            if (pulls.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    items(pulls) { pull ->
+                        PullsItem(pull)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No pulls", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        is Resource.Failure -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PullsItem(
+    pull: IssuesItem
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                onClick = {
+
+                }
+            )
+            .padding(8.dp),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+        ) {
+            Text(
+                text = pull.title,
+                modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val repoUrl = Uri.parse(pull.repository_url).pathSegments
+            val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
+
+            Row {
+                Text(
+                    text = buildAnnotatedString {
+                        append(repoName)
+                        append("#${pull.number}")
+                        append(" ")
+                        if (pull.state == "closed") {
+                            append(pull.state)
+                            append(ParseDateFormat.getTimeAgo(pull.closed_at.toString()).toString())
+                        } else {
+                            append("${pull.state}ed")
+                            append(ParseDateFormat.getTimeAgo(pull.created_at).toString())
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1F),
+                    fontSize = 12.sp
+                )
+            }
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.commits_model.Commits
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.issues_model.RepoIssuesModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_response_model.LicenseResponse
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
@@ -17,12 +18,15 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_subscription_mod
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
 interface Repository {
 
     suspend fun getRepo(token: String, owner: String, repo: String): Response<RepoModel>
+
+    suspend fun getIssuesWithCount(token: String, query: String, page: Int): Response<IssuesModel>
 
     suspend fun getContributors(
         token: String,
@@ -64,6 +68,15 @@ interface Repository {
         repo: String,
         branch: String
     ): Response<BranchModel>
+
+    suspend fun getRepoIssues(
+        token: String,
+        owner: String,
+        repo: String,
+        state: String,
+        sortBy: String,
+        page: Int
+    ): Response<RepoIssuesModel>
 
     suspend fun getCommits(
         token: String,
@@ -148,6 +161,19 @@ interface Repository {
 }
 
 class RepositoryImpl(private val context: Context) : Repository {
+
+
+    override suspend fun getIssuesWithCount(
+        token: String,
+        query: String,
+        page: Int
+    ): Response<IssuesModel> {
+        return RestClient(context).repositoryService.getIssuesWithCount(
+            authToken = "Bearer $PERSONAL_ACCESS_TOKEN",
+            query = query,
+            page = page,
+        )
+    }
 
     override suspend fun getReadMeMarkDown(
         token: String,
@@ -262,6 +288,24 @@ class RepositoryImpl(private val context: Context) : Repository {
             owner = owner,
             repo = repo,
             branch = branch,
+        )
+    }
+
+    override suspend fun getRepoIssues(
+        token: String,
+        owner: String,
+        repo: String,
+        state: String,
+        sortBy: String,
+        page: Int
+    ): Response<RepoIssuesModel> {
+        return RestClient(context).repositoryService.getIssues(
+            token = "Bearer $PERSONAL_ACCESS_TOKEN",
+            owner = owner,
+            repo = repo,
+            state = state,
+            sortBy = sortBy,
+            page = page
         )
     }
 

@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +40,10 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material.rememberDrawerState
@@ -72,7 +75,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -133,7 +135,6 @@ class HomeFragment : Fragment() {
 
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getEvents()
-
 
                 val createdIssuesState = if(homeViewModel.state.value.IssueScreenState[0]){
                     IssueState.Open
@@ -274,6 +275,7 @@ class HomeFragment : Fragment() {
             .launchIn(lifecycleScope)
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -285,6 +287,10 @@ class HomeFragment : Fragment() {
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scaffoldState = rememberScaffoldState(drawerState = drawerState)
                 val drawerScope = rememberCoroutineScope()
+
+                val isRefreshing by homeViewModel.isRefreshing.collectAsState()
+                val pullRefreshState = rememberPullRefreshState(isRefreshing, { homeViewModel.refresh() })
+
 
                 activity?.onBackPressedDispatcher?.addCallback(
                     viewLifecycleOwner,
@@ -305,6 +311,8 @@ class HomeFragment : Fragment() {
                 JetFastHubTheme {
                     MainContent(
                         state = state,
+                        isRefreshing = isRefreshing,
+                        pullRefreshState = pullRefreshState,
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { dest, data, extra ->
                             when (dest) {
@@ -475,6 +483,8 @@ class HomeFragment : Fragment() {
 @Composable
 private fun MainContent(
     state: HomeScreenState,
+    pullRefreshState: PullRefreshState,
+    isRefreshing: Boolean,
     onBottomBarItemSelected: (AppScreens) -> Unit,
     onNavigate: (Int, String?, String?) -> Unit,
     onIssueItemClicked: (Int, String, String, String) -> Unit,
@@ -583,9 +593,12 @@ private fun MainContent(
                 )
             },
         ) {
+
             when (state.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
                     contentPaddingValues = it,
+                    isRefreshing = isRefreshing,
+                    pullRefreshState = pullRefreshState,
                     onNavigate = onNavigate,
                     events = state.events.collectAsLazyPagingItems()
                 )
@@ -665,16 +678,19 @@ fun BottomNav(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState,
     events: LazyPagingItems<ReceivedEventsModel>,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    val context = LocalContext.current
+    //val context = LocalContext.current
     LaunchedEffect(key1 = events.loadState) {
         if (events.loadState.refresh is LoadState.Error) {
-            Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
             Log.d(
                 "ahi3646",
                 "FeedsScreen: error - ${(events.loadState.refresh as LoadState.Error).error.message} "
@@ -698,24 +714,31 @@ fun FeedsScreen(
 
         is LoadState.NotLoading -> {
             if (events.itemCount != 0) {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(contentPaddingValues)
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    items(events) { eventItem ->
-                        if (eventItem != null) {
-                            ItemEventCard(eventItem, onNavigate)
+                Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(contentPaddingValues)
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        items(events) { eventItem ->
+                            if (eventItem != null) {
+                                ItemEventCard(eventItem, onNavigate)
+                            }
+                        }
+                        item {
+                            if (events.loadState.append is LoadState.Loading) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
-                    item {
-                        if (events.loadState.append is LoadState.Loading) {
-                            CircularProgressIndicator()
-                        }
-                    }
+                    PullRefreshIndicator(
+                        refreshing = isRefreshing,
+                        state = pullRefreshState,
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    )
                 }
             } else {
                 Column(
@@ -1086,7 +1109,7 @@ fun IssuesScreen(
 }
 
 @Composable
-private fun IssuesItem(
+fun IssuesItem(
     issue: IssuesItem,
     onIssueItemClicked: (Int, String, String, String) -> Unit
 ) {
@@ -1099,7 +1122,7 @@ private fun IssuesItem(
             .clickable(
                 onClick = {
                     onIssueItemClicked(
-                        R.id.action_homeFragment_to_issueFragment,
+                        R.id.action_fromFragment_to_issueFragment,
                         repoUrl[repoUrl.lastIndex - 1],
                         repoUrl[repoUrl.lastIndex],
                         issue.number.toString()
@@ -1510,10 +1533,10 @@ fun PullRequestScreen(
 
 @Composable
 private fun PullRequestsCreated(
-    issuesModel: Resource<IssuesModel>,
+    data: Resource<IssuesModel>,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    when (issuesModel) {
+    when (data) {
         is Resource.Loading -> {
             Column(
                 modifier = Modifier
@@ -1527,7 +1550,7 @@ private fun PullRequestsCreated(
         }
 
         is Resource.Success -> {
-            val pulls = issuesModel.data!!.items
+            val pulls = data.data!!.items
             if (pulls.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
@@ -1754,7 +1777,7 @@ private fun PullsItem(
             .fillMaxWidth()
             .clickable(
                 onClick = {
-                    onNavigate(R.id.action_homeFragment_to_issueFragment, null, null)
+                    onNavigate(R.id.action_fromFragment_to_issueFragment, null, null)
                 }
             )
             .padding(8.dp),

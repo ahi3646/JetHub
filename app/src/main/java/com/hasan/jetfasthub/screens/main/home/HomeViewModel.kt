@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
@@ -34,6 +35,23 @@ class HomeViewModel(
 
     private val _state: MutableStateFlow<HomeScreenState> = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> get() = _isRefreshing.asStateFlow()
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+        // Don't set _isRefreshing to true here as this will be called on init,
+        //  the pull to refresh api will handle setting _isRefreshing to true
+        viewModelScope.launch {
+            getEvents()
+            // Set _isRefreshing to false to indicate the refresh is complete
+            _isRefreshing.emit(false)
+        }
+    }
 
     fun getEvents() {
         _state.update {

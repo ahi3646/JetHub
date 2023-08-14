@@ -20,7 +20,7 @@
             app:destination="@id/repositoryFragment" />
 
         <action
-            android:id="@+id/action_homeFragment_to_issueFragment"
+            android:id="@+id/action_fromFragment_to_issueFragment"
             app:launchSingleTop="true"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/fade_out"
@@ -299,6 +299,16 @@
         android:id="@+id/repositoryFragment"
         android:name="com.hasan.jetfasthub.screens.main.repository.RepositoryFragment"
         android:label="RepositoryFragment" >
+
+        <action
+            android:id="@+id/action_fromFragment_to_issueFragment"
+            app:launchSingleTop="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@id/repositoryFragment"
+            app:destination="@id/issueFragment" />
 
         <action
             android:id="@+id/action_repositoryFragment_to_homeFragment"

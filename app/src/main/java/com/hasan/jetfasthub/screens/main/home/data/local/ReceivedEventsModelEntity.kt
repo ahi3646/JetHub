@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity("events_entity")
 data class ReceivedEventsModelEntity (
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     val id: Int,
     val eventType: String,
     val eventRepoUrl: String,

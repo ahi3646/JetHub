@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.home.data.remote
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -23,8 +24,10 @@ class EventsRemoteMediator(
         loadType: LoadType,
         state: PagingState<Int, ReceivedEventsModelEntity>
     ): MediatorResult {
+        Log.d("ahi3646", "load: loadType - $loadType ")
         return try {
             val loadKey = when (loadType) {
+
                 LoadType.REFRESH -> 1
                 LoadType.PREPEND -> return MediatorResult.Success(
                     endOfPaginationReached = true
@@ -35,6 +38,7 @@ class EventsRemoteMediator(
                     if (lastItem == null) {
                         1
                     } else {
+                        Log.d("ahi3646", "load: ${lastItem.id}  - ${state.config.pageSize} ")
                         (lastItem.id / state.config.pageSize) + 1
                     }
                 }
@@ -43,6 +47,7 @@ class EventsRemoteMediator(
                 repository.getReceivedUserEvents(token, username, loadKey, state.config.pageSize)
 
             homeDatabase.withTransaction {
+
                 if (loadType == LoadType.REFRESH) {
                     homeDatabase.dao.clearAll()
                 }

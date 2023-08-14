@@ -1,6 +1,7 @@
 package com.hasan.jetfasthub.utility
 
 object RepoQueryProvider {
+
     fun getIssuesPullRequestQuery(
         owner: String, repo: String,
         issueState: IssueState, isPr: Boolean
@@ -43,4 +44,5 @@ object RepoQueryProvider {
                 "+" + "involves:" + username +
                 "+is:" + issueState.name
     }
+
 }

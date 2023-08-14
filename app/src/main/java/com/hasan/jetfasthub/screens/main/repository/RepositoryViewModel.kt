@@ -3,7 +3,6 @@ package com.hasan.jetfasthub.screens.main.repository
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hasan.jetfasthub.data.Repository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
@@ -11,8 +10,8 @@ import com.hasan.jetfasthub.screens.main.repository.models.branches_model.Branch
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModel
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
+import com.hasan.jetfasthub.screens.main.repository.models.issues_model.RepoIssuesModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
-import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_response_model.LicenseResponse
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
@@ -23,6 +22,8 @@ import com.hasan.jetfasthub.screens.main.repository.models.release_download_mode
 import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.StargazersModel
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
+import com.hasan.jetfasthub.utility.IssueState
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -558,31 +559,256 @@ class RepositoryViewModel(
         }
     }
 
-    fun getReadMeMarkdown(token: String, repo: String, owner: String, branch: String) {
+
+    //getIssuesWithCount & getPullWithCount , they both uses same api
+    fun getIssuesWithCount(token: String, query: String, page: Int, issueState: IssueState) {
         viewModelScope.launch {
             try {
-                repository.getReadMeMarkDown(token, owner, repo, branch).let { response ->
-                    if(response.isSuccessful){
+                repository.getIssuesWithCount(token, query, page).let { issuesResponse ->
+                    if (issuesResponse.isSuccessful) {
+                        when (issueState) {
+                            IssueState.Open -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenIssues = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            IssueState.Closed -> {
+                                _state.update {
+                                    it.copy(
+                                        ClosedIssues = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            IssueState.All -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenIssues = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        when (issueState) {
+                            IssueState.Open -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenIssues = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            IssueState.Closed -> {
+                                _state.update {
+                                    it.copy(
+                                        ClosedIssues = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            IssueState.All -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenIssues = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                when (issueState) {
+                    IssueState.Open -> {
                         _state.update {
                             it.copy(
-                                ReadmeMarkdown = Resource.Success(response.body()!!)
+                                OpenIssues = Resource.Failure(e.message.toString())
                             )
                         }
-                    }else{
+                    }
+
+                    IssueState.Closed -> {
                         _state.update {
                             it.copy(
-                                ReadmeMarkdown = Resource.Failure(response.errorBody().toString())
+                                ClosedIssues = Resource.Failure(e.message.toString())
+                            )
+                        }
+                    }
+
+                    IssueState.All -> {
+                        _state.update {
+                            it.copy(
+                                OpenIssues = Resource.Failure(e.message.toString())
                             )
                         }
                     }
                 }
-            }catch (e: Exception){
+            }
+        }
+    }
+
+    fun getPullWithCount(token: String, query: String, page: Int, issueState: IssueState) {
+        viewModelScope.launch {
+            try {
+                repository.getIssuesWithCount(token, query, page).let { issuesResponse ->
+                    if (issuesResponse.isSuccessful) {
+                        when (issueState) {
+                            IssueState.Open -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenPulls = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            IssueState.Closed -> {
+                                _state.update {
+                                    it.copy(
+                                        ClosedPulls = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+
+                            IssueState.All -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenPulls = Resource.Success(issuesResponse.body()!!)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        when (issueState) {
+                            IssueState.Open -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenPulls = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            IssueState.Closed -> {
+                                _state.update {
+                                    it.copy(
+                                        ClosedPulls = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+
+                            IssueState.All -> {
+                                _state.update {
+                                    it.copy(
+                                        OpenPulls = Resource.Failure(
+                                            issuesResponse.errorBody().toString()
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                when (issueState) {
+                    IssueState.Open -> {
+                        _state.update {
+                            it.copy(
+                                OpenPulls = Resource.Failure(e.message.toString())
+                            )
+                        }
+                    }
+
+                    IssueState.Closed -> {
+                        _state.update {
+                            it.copy(
+                                ClosedPulls = Resource.Failure(e.message.toString())
+                            )
+                        }
+                    }
+
+                    IssueState.All -> {
+                        _state.update {
+                            it.copy(
+                                OpenPulls = Resource.Failure(e.message.toString())
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getReadMeMarkdown(token: String, repo: String, owner: String, branch: String) {
+        viewModelScope.launch {
+            try {
+                repository.getReadMeMarkDown(token, owner, repo, branch).let { response ->
+                    if (response.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                HasMarkdown = true
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                HasMarkdown = false
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
-                        ReadmeMarkdown = Resource.Failure(e.message.toString())
+                        HasMarkdown = false
                     )
                 }
                 Log.d("ahi3646", "getReadMeMarkdown: e - ${e.message} ")
+            }
+        }
+    }
+
+    fun getRepoIssues(
+        token: String,
+        repo: String,
+        owner: String,
+        state: String,
+        sortBy: String,
+        page: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.getRepoIssues(token, owner, repo, state, sortBy, page).let { response ->
+                    if (response.isSuccessful) {
+                        _state.update {
+                            it.copy(
+                                RepoIssues = Resource.Success(response.body()!!)
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                RepoIssues = Resource.Failure(response.errorBody().toString())
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        RepoIssues = Resource.Failure(e.message.toString())
+                    )
+                }
             }
         }
     }
@@ -639,17 +865,17 @@ class RepositoryViewModel(
         }
     }
 
-    private fun getLicense(token: String, license: String){
+    private fun getLicense(token: String, license: String) {
         viewModelScope.launch {
             try {
                 repository.getLicense(token, license).let { response ->
-                    if(response.isSuccessful){
+                    if (response.isSuccessful) {
                         _state.update {
                             it.copy(
                                 License = Resource.Success(response.body()!!)
                             )
                         }
-                    }else{
+                    } else {
                         _state.update {
                             it.copy(
                                 License = Resource.Failure(response.errorBody().toString())
@@ -657,7 +883,7 @@ class RepositoryViewModel(
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         License = Resource.Failure(e.message.toString())
@@ -716,12 +942,19 @@ data class RepositoryScreenState(
     val RepoOwner: String = "",
     val RepoName: String = "",
     val InitialBranch: String = "",
+
+    val OpenIssues: Resource<IssuesModel> = Resource.Loading(),
+    val ClosedIssues: Resource<IssuesModel> = Resource.Loading(),
+    val OpenPulls: Resource<IssuesModel> = Resource.Loading(),
+    val ClosedPulls: Resource<IssuesModel> = Resource.Loading(),
+
+    val RepoIssues: Resource<RepoIssuesModel> = Resource.Loading(),
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val Repository: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),
     val Releases: Resource<ReleasesModel> = Resource.Loading(),
     val currentSheet: BottomSheetScreens = BottomSheetScreens.RepositoryInfoSheet,
-    val ReadmeMarkdown: Resource<String> = Resource.Loading(),
+    val HasMarkdown: Boolean = false,
     val RepositoryFiles: Resource<FilesModel> = Resource.Loading(),
     val Branches: Resource<BranchesModel> = Resource.Loading(),
     val Commits: Resource<CommitsModel> = Resource.Loading(),
