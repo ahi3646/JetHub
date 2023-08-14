@@ -59,8 +59,8 @@ android {
 
 dependencies {
 
-    //for markdown
-    implementation "com.halilibo.compose-richtext:richtext-commonmark:0.17.0"
+    //markdown
+    implementation 'com.github.mukeshsolanki:MarkdownView-Android:2.0.0'
 
     //to read plain text response
     implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'

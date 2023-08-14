@@ -9,7 +9,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesMode
 import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.ForkResponseModel
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
-import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
+import com.hasan.jetfasthub.screens.main.repository.models.license_response_model.LicenseResponse
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -136,8 +136,8 @@ interface Repository {
     ): Response<ForkResponseModel>
 
     suspend fun getLicense(
-        token: String, owner: String, repo: String
-    ): Response<LicenseModel>
+        token: String, license: String
+    ): Response<LicenseResponse>
 
     suspend fun getLabels(
         token: String, owner: String, repo: String, page: Int
@@ -399,13 +399,11 @@ class RepositoryImpl(private val context: Context) : Repository {
 
     override suspend fun getLicense(
         token: String,
-        owner: String,
-        repo: String
-    ): Response<LicenseModel> {
+        license: String
+    ): Response<LicenseResponse> {
         return RestClient(context).repositoryService.getLicense(
             token = "Bearer $PERSONAL_ACCESS_TOKEN",
-            owner = owner,
-            repo = repo,
+            license = license
         )
     }
 

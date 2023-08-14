@@ -104,8 +104,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import com.halilibo.richtext.markdown.Markdown
-import com.halilibo.richtext.ui.RichText
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
@@ -121,12 +119,14 @@ import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
 import com.hasan.jetfasthub.utility.FileSizeCalculator
 import com.hasan.jetfasthub.utility.ParseDateFormat
 import com.hasan.jetfasthub.utility.Resource
+import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.net.URL
 
 class RepositoryFragment : Fragment() {
 
@@ -178,10 +178,9 @@ class RepositoryFragment : Fragment() {
                         "main"
                     }
 
-                    repositoryViewModel.getReadMeMarkdown(token, repo, owner, initialBranch)
-
                     repositoryViewModel.updateFilesRef(initialBranch)
                     repositoryViewModel.updateCommitsRef(initialBranch)
+                    repositoryViewModel.updateInitialBranch(initialBranch)
 
                     repositoryViewModel.getBranch(
                         token = token,
@@ -595,7 +594,6 @@ private fun MainContent(
     }
 
     val sheetStateX = rememberModalBottomSheetState()
-    val scopeX = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
@@ -734,7 +732,7 @@ private fun MainContent(
             if (showBottomSheet) {
                 ModalBottomSheet(
                     modifier = Modifier
-                        .fillMaxHeight(0.5F)
+                        .fillMaxHeight()
                         .fillMaxWidth()
                         .navigationBarsPadding(),
                     onDismissRequest = {
@@ -742,17 +740,32 @@ private fun MainContent(
                     },
                     sheetState = sheetStateX
                 ) {
-                    // Sheet content
-                    Button(
-                        onClick = {
-                            scopeX.launch { sheetStateX.hide() }.invokeOnCompletion {
-                                if (!sheetStateX.isVisible) {
-                                    showBottomSheet = false
-                                }
+                    when (state.License) {
+                        is Resource.Loading -> {}
+                        is Resource.Success -> {
+                            val content = state.License.data!!.body
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.8F)),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Top
+                            ) {
+                                MarkDown(
+                                    text = content,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                0.5F
+                                            )
+                                        ),
+                                )
                             }
                         }
-                    ) {
-                        Text("Hide bottom sheet")
+
+                        is Resource.Failure -> {}
                     }
                 }
             }
@@ -2142,48 +2155,29 @@ private fun ReleaseItemCard(
 
 @Composable
 private fun ReadMeScreen(state: RepositoryScreenState) {
-
-    when (state.ReadmeMarkdown) {
-        is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+    if (state.InitialBranch == "") {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-
-        is Resource.Success -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.8F)),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                val content = state.ReadmeMarkdown.data!!
-
-                RichText(modifier = Modifier.padding(16.dp)) {
-                    Markdown(content = content)
-                }
-
-            }
-        }
-
-        is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.8F)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            MarkDown(
+                url = URL("https://raw.githubusercontent.com/${state.RepoOwner}/${state.RepoName}/${state.InitialBranch}/README.md"),
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }

@@ -8,6 +8,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.fork_response_model.F
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
+import com.hasan.jetfasthub.screens.main.repository.models.license_response_model.LicenseResponse
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
 import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
@@ -213,6 +214,13 @@ interface RepositoryService {
         @Path("repo") repo: String,
     ): Response<ForkResponseModel>
 
+    @Headers("Accept: application/vnd.github+json")
+    @GET("licenses/{license}")
+    suspend fun getLicense(
+        @Header("Authorization") token: String,
+        @Path("license") license: String,
+    ): Response<LicenseResponse>
+
     @Headers("Accept: application/vnd.github.html")
     @GET("repos/{owner}/{repo}/license")
     suspend fun getLicense(
@@ -220,5 +228,7 @@ interface RepositoryService {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
     ): Response<LicenseModel>
+
+
 
 }

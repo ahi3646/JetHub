@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.repository
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hasan.jetfasthub.data.Repository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.repository.models.branch_model.BranchModel
@@ -12,6 +13,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesMode
 import com.hasan.jetfasthub.screens.main.repository.models.forks_model.ForksModel
 import com.hasan.jetfasthub.screens.main.repository.models.labels_model.LabelsModel
 import com.hasan.jetfasthub.screens.main.repository.models.license_model.LicenseModel
+import com.hasan.jetfasthub.screens.main.repository.models.license_response_model.LicenseResponse
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModel
 import com.hasan.jetfasthub.screens.main.repository.models.releases_model.ReleasesModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.repo_contributor_model.Contributors
@@ -75,6 +77,7 @@ class RepositoryViewModel(
             try {
                 repository.getRepo(token, owner, repo).let { repo ->
                     if (repo.isSuccessful) {
+                        repo.body()!!.license?.let { getLicense(token, it.key) }
                         _state.update {
                             it.copy(Repository = Resource.Success(repo.body()!!))
                         }
@@ -636,9 +639,43 @@ class RepositoryViewModel(
         }
     }
 
+    private fun getLicense(token: String, license: String){
+        viewModelScope.launch {
+            try {
+                repository.getLicense(token, license).let { response ->
+                    if(response.isSuccessful){
+                        _state.update {
+                            it.copy(
+                                License = Resource.Success(response.body()!!)
+                            )
+                        }
+                    }else{
+                        _state.update {
+                            it.copy(
+                                License = Resource.Failure(response.errorBody().toString())
+                            )
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                _state.update {
+                    it.copy(
+                        License = Resource.Failure(e.message.toString())
+                    )
+                }
+            }
+        }
+    }
+
     fun updateFilesRef(ref: String) {
         _state.update {
             it.copy(FilesRef = ref)
+        }
+    }
+
+    fun updateInitialBranch(ref: String) {
+        _state.update {
+            it.copy(InitialBranch = ref)
         }
     }
 
@@ -678,6 +715,7 @@ class RepositoryViewModel(
 data class RepositoryScreenState(
     val RepoOwner: String = "",
     val RepoName: String = "",
+    val InitialBranch: String = "",
     val selectedBottomBarItem: RepositoryScreens = RepositoryScreens.Code,
     val Repository: Resource<RepoModel> = Resource.Loading(),
     val Contributors: Resource<Contributors> = Resource.Loading(),
@@ -693,7 +731,7 @@ data class RepositoryScreenState(
     val isStarring: Boolean = false,
     val Forks: Resource<ForksModel> = Resource.Loading(),
     val HasForked: Boolean = false,
-    val License: Resource<LicenseModel> = Resource.Loading(),
+    val License: Resource<LicenseResponse> = Resource.Loading(),
     val Labels: Resource<LabelsModel> = Resource.Loading(),
     val Tags: Resource<TagsModel> = Resource.Loading(),
     val Branch: Resource<BranchModel> = Resource.Loading(),
