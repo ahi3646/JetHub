@@ -134,44 +134,68 @@ class HomeFragment : Fragment() {
                 homeViewModel.getUser(token, authenticatedUser.login)
                 homeViewModel.getEvents()
 
+
+                val createdIssuesState = if(homeViewModel.state.value.IssueScreenState[0]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getIssuesWithCount(
                     token = token,
                     query = getUrlForIssues(
                         MyIssuesType.CREATED,
-                        IssueState.Open,
+                        createdIssuesState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.CREATED
                 )
 
+
+                val assignedIssuesState = if(homeViewModel.state.value.IssueScreenState[1]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getIssuesWithCount(
                     token = token,
                     query = getUrlForIssues(
                         MyIssuesType.ASSIGNED,
-                        IssueState.Open,
+                        assignedIssuesState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.ASSIGNED
                 )
 
+
+                val mentionedIssuesState = if(homeViewModel.state.value.IssueScreenState[2]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getIssuesWithCount(
                     token = token,
                     query = getUrlForIssues(
                         MyIssuesType.MENTIONED,
-                        IssueState.Open,
+                        mentionedIssuesState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.MENTIONED
                 )
 
+
+                val participatedIssuesState = if(homeViewModel.state.value.IssueScreenState[3]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getIssuesWithCount(
                     token = token,
                     query = getUrlForIssues(
                         MyIssuesType.PARTICIPATED,
-                        IssueState.Open,
+                        participatedIssuesState,
                         authenticatedUser.login
                     ),
                     page = 1,
@@ -179,44 +203,67 @@ class HomeFragment : Fragment() {
                 )
 
 
+                val createdPullsState = if(homeViewModel.state.value.PullScreenState[0]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getPullsWithCount(
                     token = token,
                     query = getUrlForPulls(
                         MyIssuesType.CREATED,
-                        IssueState.Open,
+                        createdPullsState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.CREATED
                 )
 
+
+                val assignedPullsState = if(homeViewModel.state.value.PullScreenState[1]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getPullsWithCount(
                     token = token,
                     query = getUrlForPulls(
                         MyIssuesType.ASSIGNED,
-                        IssueState.Open,
+                        assignedPullsState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.ASSIGNED
                 )
 
+
+                val mentionedPullsState = if(homeViewModel.state.value.PullScreenState[2]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getPullsWithCount(
                     token = token,
                     query = getUrlForPulls(
                         MyIssuesType.MENTIONED,
-                        IssueState.Open,
+                        mentionedPullsState,
                         authenticatedUser.login
                     ),
                     page = 1,
                     issuesType = MyIssuesType.MENTIONED
                 )
 
+
+                val reviewPullsState = if(homeViewModel.state.value.PullScreenState[3]){
+                    IssueState.Open
+                }else{
+                    IssueState.Closed
+                }
                 homeViewModel.getPullsWithCount(
                     token = token,
                     query = getUrlForPulls(
                         MyIssuesType.REVIEW,
-                        IssueState.Open,
+                        reviewPullsState,
                         authenticatedUser.login
                     ),
                     page = 1,
