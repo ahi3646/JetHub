@@ -964,8 +964,8 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String, Strin
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                itemsIndexed(userEvents.data!!) { index, UserEventsItem ->
-                    FeedsItem(onFeedsItemClicked = onNavigate, UserEventsItem)
+                itemsIndexed(userEvents.data!!) { index, userEventsItem ->
+                    FeedsItem(onFeedsItemClicked = onNavigate, userEventsItem)
                     if (index < userEvents.data.lastIndex) {
                         Divider(
                             color = Color.Gray,
@@ -1113,9 +1113,9 @@ fun RepositoriesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(repositories) { index, UserEventsItem ->
+                    itemsIndexed(repositories) { index, userEventsItem ->
                         RepositoryItem(
-                            UserEventsItem, onRepositoryItemClicked = onNavigate
+                            userEventsItem, onRepositoryItemClicked = onNavigate
                         )
                         if (index < repositories.lastIndex) {
                             Divider(
@@ -1298,9 +1298,9 @@ fun StarredScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(starredRepos) { index, StarredUserRepo ->
+                    itemsIndexed(starredRepos) { index, starredUserRepo ->
                         StarredRepositoryItem(
-                            StarredUserRepo, onStarredRepositoryItemClicked = onNavigate
+                            starredUserRepo, onStarredRepositoryItemClicked = onNavigate
                         )
                         if (index < starredRepos.lastIndex) {
                             Divider(
@@ -1602,9 +1602,9 @@ fun FollowersScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(followers) { index, StarredUserRepo ->
+                    itemsIndexed(followers) { index, starredUserRepo ->
                         FollowersItemCard(
-                            StarredUserRepo, onItemClicked = onNavigate
+                            starredUserRepo, onItemClicked = onNavigate
                         )
                         if (index < followers.lastIndex) {
                             Divider(
@@ -1726,9 +1726,9 @@ fun FollowingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    itemsIndexed(followings) { index, StarredUserRepo ->
+                    itemsIndexed(followings) { index, starredUserRepo ->
                         FollowingsItemCard(
-                            StarredUserRepo, onNavigate = onNavigate
+                            starredUserRepo, onNavigate = onNavigate
                         )
                         if (index < followings.lastIndex) {
                             Divider(

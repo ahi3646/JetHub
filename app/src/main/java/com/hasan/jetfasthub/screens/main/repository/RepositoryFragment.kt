@@ -306,10 +306,19 @@ class RepositoryFragment : Fragment() {
                         onCurrentSheetChanged = { currentSheet ->
                             repositoryViewModel.onBottomSheetChanged(currentSheet)
                         },
-                        onItemClicked = { dest, data, extra ->
+                        onNavigate = { dest, data, extra ->
                             when (dest) {
                                 -1 -> {
                                     findNavController().popBackStack()
+                                }
+
+                                R.id.action_repositoryFragment_to_fileViewFragment -> {
+                                    val bundle = Bundle()
+                                    bundle.putString("file_path", data)
+                                    bundle.putString("file_ref", state.FilesRef)
+                                    bundle.putString("repo_owner", state.RepoOwner)
+                                    bundle.putString("repo_name", state.RepoName)
+                                    findNavController().navigate(dest, bundle)
                                 }
 
                                 R.id.action_repositoryFragment_to_searchFragment -> {
@@ -439,6 +448,7 @@ class RepositoryFragment : Fragment() {
                                     } else if (paths.contains(data) && data == paths[paths.lastIndex]) {
                                         //just repeatable action
                                     } else {
+                                        Log.d("ahi3646", "onCreateView: content - $data ")
                                         val newPaths = paths.toMutableList()
                                         newPaths.add(data ?: "")
                                         repositoryViewModel.updatePaths(newPaths)
@@ -641,7 +651,7 @@ private fun MainContent(
     onDownload: (release: ReleaseDownloadModel) -> Unit,
     state: RepositoryScreenState,
     onBottomBarClicked: (RepositoryScreens) -> Unit,
-    onItemClicked: (Int, String?, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: (BottomSheetScreens) -> Unit,
     onIssueItemClicked: (Int, String, String, String) -> Unit
@@ -761,7 +771,7 @@ private fun MainContent(
                 Column(Modifier.fillMaxWidth()) {
                     TitleHeader(
                         state = state.Repository,
-                        onItemClicked = onItemClicked,
+                        onNavigate = onNavigate,
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.RepositoryInfoSheet)
                             scope.launch {
@@ -775,7 +785,7 @@ private fun MainContent(
                     )
                     Toolbar(
                         state = state,
-                        onItemClicked = onItemClicked,
+                        onNavigate = onNavigate,
                         onAction = onAction,
                         onCurrentSheetChanged = {
                             onCurrentSheetChanged(BottomSheetScreens.ForkSheet)
@@ -872,7 +882,7 @@ private fun MainContent(
                     onDownload = onDownload,
                     paddingValues = paddingValues,
                     state = state,
-                    onItemClicked = onItemClicked,
+                    onNavigate = onNavigate,
                     onCurrentSheetChanged = { bottomSheet ->
                         onCurrentSheetChanged(bottomSheet)
                         scope.launch {
@@ -1041,7 +1051,7 @@ private fun CodeScreen(
     onDownload: (release: ReleaseDownloadModel) -> Unit,
     paddingValues: PaddingValues,
     state: RepositoryScreenState,
-    onItemClicked: (Int, String?, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit,
     onAction: (String, String?) -> Unit
 ) {
@@ -1083,15 +1093,20 @@ private fun CodeScreen(
         }
         when (tabIndex) {
             0 -> ReadMeScreen(state)
-            1 -> FilesScreen(state, onAction, onCurrentSheetChanged, onItemClicked)
-            2 -> CommitsScreen(state, onAction, onItemClicked)
+            1 -> FilesScreen(
+                state = state,
+                onAction = onAction,
+                onCurrentSheetChanged = onCurrentSheetChanged,
+                onNavigate = onNavigate
+            )
+            2 -> CommitsScreen(state, onAction, onNavigate)
             3 -> ReleasesScreen(
                 onDownload = onDownload,
                 releases = state.Releases,
                 onCurrentSheetChanged = onCurrentSheetChanged
             )
 
-            4 -> ContributorsScreen(state.Contributors, onItemClicked)
+            4 -> ContributorsScreen(state.Contributors, onNavigate)
         }
     }
 }
@@ -1296,7 +1311,7 @@ private fun FilesScreen(
     state: RepositoryScreenState,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: (bottomSheet: BottomSheetScreens) -> Unit,
-    onItemClicked: (Int, String?, String?) -> Unit
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
 
     when (state.RepositoryFiles) {
@@ -1459,7 +1474,7 @@ private fun FilesScreen(
                     }
 
                     IconButton(onClick = {
-                        onItemClicked(
+                        onNavigate(
                             R.id.action_repositoryFragment_to_searchFilesFragment,
                             null,
                             null
@@ -1499,6 +1514,7 @@ private fun FilesScreen(
                                 FileDocumentItemCard(
                                     file = file,
                                     onAction = onAction,
+                                    onNavigate = onNavigate,
                                 )
                             }
 
@@ -1643,6 +1659,7 @@ private fun FileFolderItemCard(
 private fun FileDocumentItemCard(
     file: FileModel,
     onAction: (String, String?) -> Unit,
+    onNavigate: (Int, String, String?) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -1650,7 +1667,7 @@ private fun FileDocumentItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onAction("on_path_change", file.path)
+                onNavigate(R.id.action_repositoryFragment_to_fileViewFragment, file.path, null)
             },
         elevation = 0.dp,
         backgroundColor = MaterialTheme.colorScheme.surfaceVariant
@@ -3001,7 +3018,7 @@ private fun BottomNav(
 @Composable
 private fun TitleHeader(
     state: Resource<RepoModel>,
-    onItemClicked: (Int, String?, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onCurrentSheetChanged: () -> Unit
 ) {
     when (state) {
@@ -3057,7 +3074,7 @@ private fun TitleHeader(
                             .size(48.dp, 48.dp)
                             .clip(CircleShape)
                             .clickable {
-                                onItemClicked(
+                                onNavigate(
                                     R.id.action_repositoryFragment_to_profileFragment,
                                     repository.owner.login,
                                     null
@@ -3142,7 +3159,7 @@ private fun TitleHeader(
                                 modifier = Modifier
                                     .padding(6.dp)
                                     .clickable {
-                                        onItemClicked(
+                                        onNavigate(
                                             R.id.action_repositoryFragment_to_searchFragment,
                                             topic,
                                             null
@@ -3192,7 +3209,7 @@ private fun TitleHeader(
 @Composable
 private fun Toolbar(
     state: RepositoryScreenState,
-    onItemClicked: (Int, String?, String?) -> Unit,
+    onNavigate: (Int, String?, String?) -> Unit,
     onAction: (String, String?) -> Unit,
     onCurrentSheetChanged: () -> Unit,
     onLicenseClicked: () -> Unit
@@ -3208,7 +3225,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null, null) }) {
+                IconButton(onClick = { onNavigate(-1, null, null) }) {
                     Icon(
                         Icons.Filled.ArrowBack,
                         contentDescription = "Back button",
@@ -3331,7 +3348,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null, null) }) {
+                IconButton(onClick = { onNavigate(-1, null, null) }) {
                     Icon(
                         Icons.Filled.ArrowBack,
                         contentDescription = "Back button",
@@ -3505,7 +3522,7 @@ private fun Toolbar(
                         if (repository.fork) {
                             DropdownMenuItem(text = { Text(text = repository.parent.full_name) },
                                 onClick = {
-                                    onItemClicked(
+                                    onNavigate(
                                         R.id.action_repositoryFragment_self,
                                         repository.parent.owner.login,
                                         repository.parent.name
@@ -3526,7 +3543,7 @@ private fun Toolbar(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                IconButton(onClick = { onItemClicked(-1, null, null) }) {
+                IconButton(onClick = { onNavigate(-1, null, null) }) {
                     Icon(
                         Icons.Filled.ArrowBack,
                         contentDescription = "Back button",

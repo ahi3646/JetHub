@@ -38,17 +38,24 @@ class EventsRemoteMediator(
                     if (lastItem == null) {
                         1
                     } else {
-                        Log.d("ahi3646", "load: ${lastItem.id}  - ${state.config.pageSize} ")
+                        Log.d("ahi3646", "load: itemId - ${lastItem.id} - ${state.config.pageSize}")
                         (lastItem.id / state.config.pageSize) + 1
                     }
                 }
             }
-            val events = repository.getReceivedUserEvents(token, username, loadKey, state.config.pageSize)
+            Log.d("ahi3646", "load events mediator: $token - $username - id-${state.lastItemOrNull()?.id}")
+            val events = repository.getReceivedUserEvents(
+                token,
+                username,
+                loadKey,
+                state.config.pageSize
+            )
 
             homeDatabase.withTransaction {
 
                 if (loadType == LoadType.REFRESH) {
                     homeDatabase.dao.clearAll()
+//                    homeDatabase.clearAllTables()
                 }
                 val eventEntities = events.map { it.toReceivedEventsModelEntity() }
                 homeDatabase.dao.upsertAll(eventEntities)

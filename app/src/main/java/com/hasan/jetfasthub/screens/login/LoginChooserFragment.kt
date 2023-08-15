@@ -64,7 +64,6 @@ class LoginChooserFragment : Fragment() {
 
             setContent {
                 val state by viewModel.state.collectAsState()
-                Log.d("ahi3646", "onCreateView: ${state.isFetchingUserData} ")
 
                 JetFastHubTheme {
                     MainContent(

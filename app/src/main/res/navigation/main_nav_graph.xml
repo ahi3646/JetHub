@@ -301,6 +301,16 @@
         android:label="RepositoryFragment" >
 
         <action
+            android:id="@+id/action_repositoryFragment_to_fileViewFragment"
+            app:launchSingleTop="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@id/repositoryFragment"
+            app:destination="@id/fileViewFragment" />
+
+        <action
             android:id="@+id/action_fromFragment_to_issueFragment"
             app:launchSingleTop="true"
             app:enterAnim="@anim/fade_in"
@@ -452,5 +462,9 @@
             app:popUpToInclusive="false"/>
 
     </fragment>
+    <fragment
+        android:id="@+id/fileViewFragment"
+        android:name="com.hasan.jetfasthub.screens.main.file_view.FileViewFragment"
+        android:label="FileViewFragment" />
 
 </navigation>

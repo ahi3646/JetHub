@@ -709,43 +709,31 @@ fun FeedsScreen(
         }
 
         is LoadState.NotLoading -> {
-            if (events.itemCount != 0) {
-                Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(contentPaddingValues)
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        items(events) { eventItem ->
-                            if (eventItem != null) {
-                                ItemEventCard(eventItem, onNavigate)
-                            }
-                        }
-                        item {
-                            if (events.loadState.append is LoadState.Loading) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-                    PullRefreshIndicator(
-                        refreshing = isRefreshing,
-                        state = pullRefreshState,
-                        modifier = Modifier.align(Alignment.TopCenter)
-                    )
-                }
-            } else {
-                Column(
+            Box(modifier = Modifier.pullRefresh(pullRefreshState)) {
+                LazyColumn(
                     modifier = Modifier
+                        .padding(contentPaddingValues)
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(text = "No feeds")
+                    items(events) { eventItem ->
+                        if (eventItem != null) {
+                            ItemEventCard(eventItem, onNavigate)
+                        }
+                    }
+                    item {
+                        if (events.loadState.append is LoadState.Loading) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
             }
         }
 
@@ -757,7 +745,7 @@ fun FeedsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Something went wrong !")
+                Text(text = "Could not load data!")
             }
         }
 

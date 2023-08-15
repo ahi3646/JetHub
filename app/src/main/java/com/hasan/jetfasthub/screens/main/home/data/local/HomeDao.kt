@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.main.home.data.local
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
@@ -15,6 +16,8 @@ interface HomeDao {
     fun pagingSource(): PagingSource<Int, ReceivedEventsModelEntity>
 
     @Query("DELETE FROM events_entity")
-    suspend fun clearAll()
+    suspend fun clearAll(){
+        Log.d("ahi3646", "clearAll: ")
+    }
 
 }

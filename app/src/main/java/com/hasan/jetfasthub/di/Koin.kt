@@ -10,6 +10,8 @@ import com.hasan.jetfasthub.data.CommentRepository
 import com.hasan.jetfasthub.data.CommentRepositoryImpl
 import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.CommitRepositoryImpl
+import com.hasan.jetfasthub.data.FileViewRepository
+import com.hasan.jetfasthub.data.FileViewRepositoryImpl
 import com.hasan.jetfasthub.data.GistRepository
 import com.hasan.jetfasthub.data.GistRepositoryImpl
 import com.hasan.jetfasthub.data.GistsRepository
@@ -35,6 +37,7 @@ import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
+import com.hasan.jetfasthub.screens.main.file_view.FileViewVM
 import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.HomeViewModel
@@ -54,6 +57,12 @@ import org.koin.dsl.module
 val appModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     viewModel { LoginViewModel(get()) }
+}
+
+val fileViewModule = module {
+    single<Downloader> { AndroidDownloader(get()) }
+    single<FileViewRepository> { FileViewRepositoryImpl(get()) }
+    viewModel{ FileViewVM(get(), get()) }
 }
 
 val profileModule = module {
@@ -97,7 +106,7 @@ val homeModule = module {
         username: String
     ): Pager<Int, ReceivedEventsModelEntity> {
         return Pager(
-            config = PagingConfig(pageSize = 40),
+            config = PagingConfig(pageSize = 30),
             remoteMediator = EventsRemoteMediator(
                 repository = eventApi,
                 homeDatabase = eventsDb,

@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder
 import com.hasan.jetfasthub.networking.services.AuthorizationService
 import com.hasan.jetfasthub.networking.services.CommentService
 import com.hasan.jetfasthub.networking.services.CommitService
+import com.hasan.jetfasthub.networking.services.FileViewService
 import com.hasan.jetfasthub.networking.services.GistService
 import com.hasan.jetfasthub.networking.services.HomeService
 import com.hasan.jetfasthub.networking.services.IssueService
@@ -47,6 +48,10 @@ class RestClient(context: Context) {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .client(client)
             .build()
+    }
+
+    val fileViewRepository: FileViewService by lazy {
+        retrofit.create(FileViewService::class.java)
     }
 
     val repositoryService: RepositoryService by lazy {

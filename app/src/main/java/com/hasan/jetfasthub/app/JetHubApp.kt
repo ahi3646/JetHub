@@ -5,6 +5,7 @@ import com.hasan.jetfasthub.di.appModule
 import com.hasan.jetfasthub.di.basicAuthViewModelModule
 import com.hasan.jetfasthub.di.commentEditModule
 import com.hasan.jetfasthub.di.commitModule
+import com.hasan.jetfasthub.di.fileViewModule
 import com.hasan.jetfasthub.di.homeModule
 import com.hasan.jetfasthub.di.gistModule
 import com.hasan.jetfasthub.di.gistsModule
@@ -29,6 +30,7 @@ class JetHubApp: Application() {
             androidContext(this@JetHubApp)
             modules(
                 appModule,
+                fileViewModule,
                 homeModule,
                 issueModule,
                 repositoryModule,
