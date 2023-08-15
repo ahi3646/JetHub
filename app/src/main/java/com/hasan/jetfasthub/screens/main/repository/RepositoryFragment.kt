@@ -3344,7 +3344,7 @@ private fun Toolbar(
 
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
 
@@ -3539,7 +3539,7 @@ private fun Toolbar(
         is Resource.Failure -> {
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
 

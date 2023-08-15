@@ -478,7 +478,11 @@ fun TabScreen(
             )
 
             1 -> FeedScreen(
-                state.UserEvents, onNavigate = onNavigate
+                userEvents = state.UserEvents,
+                onNavigate = onNavigate,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
             2 -> RepositoriesScreen(
@@ -942,13 +946,15 @@ fun OrganisationItem(organisation: OrgModelItem, onNavigate: (Int, String?, Stri
 }
 
 @Composable
-fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String, String?) -> Unit) {
+fun FeedScreen(
+    userEvents: Resource<UserEvents>,
+    onNavigate: (Int, String, String?) -> Unit,
+    modifier: Modifier
+) {
     when (userEvents) {
         is Resource.Loading -> {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                modifier = modifier,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -957,30 +963,37 @@ fun FeedScreen(userEvents: Resource<UserEvents>, onNavigate: (Int, String, Strin
         }
 
         is Resource.Success -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                itemsIndexed(userEvents.data!!) { index, userEventsItem ->
-                    FeedsItem(onFeedsItemClicked = onNavigate, userEventsItem)
-                    if (index < userEvents.data.lastIndex) {
-                        Divider(
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
-                        )
+            val events = userEvents.data!!
+            if(events.isNotEmpty()){
+                LazyColumn(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    itemsIndexed(events) { index, userEventsItem ->
+                        FeedsItem(onFeedsItemClicked = onNavigate, userEventsItem)
+                        if (index < events.lastIndex) {
+                            Divider(
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                            )
+                        }
                     }
+                }
+            }else{
+                Column(
+                    modifier = modifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No feeds", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
 
         is Resource.Failure -> {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                modifier = modifier,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
