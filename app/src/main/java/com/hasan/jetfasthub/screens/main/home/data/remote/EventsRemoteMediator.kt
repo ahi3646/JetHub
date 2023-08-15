@@ -43,8 +43,7 @@ class EventsRemoteMediator(
                     }
                 }
             }
-            val events =
-                repository.getReceivedUserEvents(token, username, loadKey, state.config.pageSize)
+            val events = repository.getReceivedUserEvents(token, username, loadKey, state.config.pageSize)
 
             homeDatabase.withTransaction {
 
@@ -64,6 +63,5 @@ class EventsRemoteMediator(
             MediatorResult.Error(e)
         }
     }
-
 
 }

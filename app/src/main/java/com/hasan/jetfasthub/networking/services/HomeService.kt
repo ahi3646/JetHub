@@ -13,11 +13,11 @@ import retrofit2.http.Query
 
 interface HomeService {
 
-    @Headers("Accept: application/vnd.github+json")
-    @GET("user")
-    suspend fun getAuthenticatedUser(
-        @Header("Authorization") token: String,
-    ): Response<AuthenticatedUser>
+//    @Headers("Accept: application/vnd.github+json")
+//    @GET("user")
+//    suspend fun getAuthenticatedUser(
+//        @Header("Authorization") token: String,
+//    ): Response<AuthenticatedUser>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("users/{username}/received_events")

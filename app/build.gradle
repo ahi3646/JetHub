@@ -9,6 +9,7 @@ android {
     compileSdk 34
 
     defaultConfig {
+
         applicationId "com.hasan.jetfasthub"
         minSdk 24
         targetSdk 34
@@ -16,9 +17,17 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         vectorDrawables {
             useSupportLibrary true
         }
+
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/schemas")
+            }
+        }
+
     }
 
     buildTypes {

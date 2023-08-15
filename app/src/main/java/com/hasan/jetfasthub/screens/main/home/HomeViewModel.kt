@@ -10,19 +10,16 @@ import androidx.paging.map
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
 import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
-import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.home.domain.ReceivedEventsModel
 import com.hasan.jetfasthub.utility.MyIssuesType
 import com.hasan.jetfasthub.utility.Resource
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -84,7 +81,7 @@ class HomeViewModel(
                             MyIssuesType.CREATED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesCreated = Resource.Success(issuesResponse.body()!!)
+                                        issuesCreated = Resource.Success(issuesResponse.body()!!)
                                     )
                                 }
                             }
@@ -92,7 +89,7 @@ class HomeViewModel(
                             MyIssuesType.ASSIGNED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesAssigned = Resource.Success(issuesResponse.body()!!)
+                                        issuesAssigned = Resource.Success(issuesResponse.body()!!)
                                     )
                                 }
                             }
@@ -100,7 +97,7 @@ class HomeViewModel(
                             MyIssuesType.MENTIONED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesMentioned = Resource.Success(issuesResponse.body()!!)
+                                        issuesMentioned = Resource.Success(issuesResponse.body()!!)
                                     )
                                 }
                             }
@@ -108,7 +105,7 @@ class HomeViewModel(
                             MyIssuesType.PARTICIPATED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesParticipated = Resource.Success(issuesResponse.body()!!)
+                                        issuesParticipated = Resource.Success(issuesResponse.body()!!)
                                     )
                                 }
                             }
@@ -120,7 +117,7 @@ class HomeViewModel(
                             MyIssuesType.CREATED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesCreated = Resource.Failure(
+                                        issuesCreated = Resource.Failure(
                                             issuesResponse.errorBody().toString()
                                         )
                                     )
@@ -130,7 +127,7 @@ class HomeViewModel(
                             MyIssuesType.ASSIGNED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesAssigned = Resource.Failure(
+                                        issuesAssigned = Resource.Failure(
                                             issuesResponse.errorBody().toString()
                                         )
                                     )
@@ -140,7 +137,7 @@ class HomeViewModel(
                             MyIssuesType.MENTIONED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesMentioned = Resource.Failure(
+                                        issuesMentioned = Resource.Failure(
                                             issuesResponse.errorBody().toString()
                                         )
                                     )
@@ -150,7 +147,7 @@ class HomeViewModel(
                             MyIssuesType.PARTICIPATED -> {
                                 _state.update {
                                     it.copy(
-                                        IssuesParticipated = Resource.Failure(
+                                        issuesParticipated = Resource.Failure(
                                             issuesResponse.errorBody().toString()
                                         )
                                     )
@@ -166,7 +163,7 @@ class HomeViewModel(
                     MyIssuesType.CREATED -> {
                         _state.update {
                             it.copy(
-                                IssuesCreated = Resource.Failure(
+                                issuesCreated = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -177,7 +174,7 @@ class HomeViewModel(
                     MyIssuesType.ASSIGNED -> {
                         _state.update {
                             it.copy(
-                                IssuesAssigned = Resource.Failure(
+                                issuesAssigned = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -188,7 +185,7 @@ class HomeViewModel(
                     MyIssuesType.MENTIONED -> {
                         _state.update {
                             it.copy(
-                                IssuesMentioned = Resource.Failure(
+                                issuesMentioned = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -199,7 +196,7 @@ class HomeViewModel(
                     MyIssuesType.PARTICIPATED -> {
                         _state.update {
                             it.copy(
-                                IssuesParticipated = Resource.Failure(
+                                issuesParticipated = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -222,7 +219,7 @@ class HomeViewModel(
                             MyIssuesType.CREATED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsCreated = Resource.Success(pullResponse.body()!!)
+                                        pullsCreated = Resource.Success(pullResponse.body()!!)
                                     )
                                 }
                             }
@@ -230,7 +227,7 @@ class HomeViewModel(
                             MyIssuesType.ASSIGNED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsAssigned = Resource.Success(pullResponse.body()!!)
+                                        pullsAssigned = Resource.Success(pullResponse.body()!!)
                                     )
                                 }
                             }
@@ -238,7 +235,7 @@ class HomeViewModel(
                             MyIssuesType.MENTIONED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsMentioned = Resource.Success(pullResponse.body()!!)
+                                        pullsMentioned = Resource.Success(pullResponse.body()!!)
                                     )
                                 }
                             }
@@ -246,7 +243,7 @@ class HomeViewModel(
                             MyIssuesType.REVIEW -> {
                                 _state.update {
                                     it.copy(
-                                        PullsReview = Resource.Success(pullResponse.body()!!)
+                                        pullsReview = Resource.Success(pullResponse.body()!!)
                                     )
                                 }
                             }
@@ -258,7 +255,7 @@ class HomeViewModel(
                             MyIssuesType.CREATED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsCreated = Resource.Failure(
+                                        pullsCreated = Resource.Failure(
                                             pullResponse.errorBody().toString()
                                         )
                                     )
@@ -268,7 +265,7 @@ class HomeViewModel(
                             MyIssuesType.ASSIGNED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsAssigned = Resource.Failure(
+                                        pullsAssigned = Resource.Failure(
                                             pullResponse.errorBody().toString()
                                         )
                                     )
@@ -278,7 +275,7 @@ class HomeViewModel(
                             MyIssuesType.MENTIONED -> {
                                 _state.update {
                                     it.copy(
-                                        PullsMentioned = Resource.Failure(
+                                        pullsMentioned = Resource.Failure(
                                             pullResponse.errorBody().toString()
                                         )
                                     )
@@ -288,7 +285,7 @@ class HomeViewModel(
                             MyIssuesType.REVIEW -> {
                                 _state.update {
                                     it.copy(
-                                        PullsReview = Resource.Failure(
+                                        pullsReview = Resource.Failure(
                                             pullResponse.errorBody().toString()
                                         )
                                     )
@@ -304,7 +301,7 @@ class HomeViewModel(
                     MyIssuesType.CREATED -> {
                         _state.update {
                             it.copy(
-                                PullsCreated = Resource.Failure(
+                                pullsCreated = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -315,7 +312,7 @@ class HomeViewModel(
                     MyIssuesType.ASSIGNED -> {
                         _state.update {
                             it.copy(
-                                PullsAssigned = Resource.Failure(
+                                pullsAssigned = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -326,7 +323,7 @@ class HomeViewModel(
                     MyIssuesType.MENTIONED -> {
                         _state.update {
                             it.copy(
-                                PullsMentioned = Resource.Failure(
+                                pullsMentioned = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -337,7 +334,7 @@ class HomeViewModel(
                     MyIssuesType.REVIEW -> {
                         _state.update {
                             it.copy(
-                                PullsReview = Resource.Failure(
+                                pullsReview = Resource.Failure(
                                     e.message.toString()
                                 )
                             )
@@ -351,33 +348,33 @@ class HomeViewModel(
         }
     }
 
-    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
-        viewModelScope.launch {
-            try {
-                repository.getAuthenticatedUser(token).let { authenticatedUser ->
-                    if (authenticatedUser.isSuccessful) {
-                        trySend(authenticatedUser.body()!!)
-                    } else {
-                        _state.update {
-                            it.copy(
-                                user = Resource.Failure(
-                                    authenticatedUser.errorBody().toString()
-                                )
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(user = Resource.Failure(e.message.toString()))
-                }
-            }
-        }
-        awaitClose {
-            channel.close()
-            Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
-        }
-    }
+//    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
+//        viewModelScope.launch {
+//            try {
+//                repository.getAuthenticatedUser(token).let { authenticatedUser ->
+//                    if (authenticatedUser.isSuccessful) {
+//                        trySend(authenticatedUser.body()!!)
+//                    } else {
+//                        _state.update {
+//                            it.copy(
+//                                user = Resource.Failure(
+//                                    authenticatedUser.errorBody().toString()
+//                                )
+//                            )
+//                        }
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                _state.update {
+//                    it.copy(user = Resource.Failure(e.message.toString()))
+//                }
+//            }
+//        }
+//        awaitClose {
+//            channel.close()
+//            Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
+//        }
+//    }
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -402,21 +399,21 @@ class HomeViewModel(
     }
 
     fun updateIssueScreen(index: Int, isOpen: Boolean){
-        val newState = state.value.IssueScreenState.toMutableList()
+        val newState = state.value.issueScreenState.toMutableList()
         newState[index] = isOpen
         _state.update {
             it.copy(
-                IssueScreenState = newState
+                issueScreenState = newState
             )
         }
     }
 
     fun updatePullScreen(index: Int, isOpen: Boolean){
-        val newState = state.value.PullScreenState.toMutableList()
+        val newState = state.value.pullScreenState.toMutableList()
         newState[index] = isOpen
         _state.update {
             it.copy(
-                PullScreenState = newState
+                pullScreenState = newState
             )
         }
     }
@@ -461,16 +458,16 @@ data class HomeScreenState(
     val events: Flow<PagingData<ReceivedEventsModel>> = flowOf(),
     val user: Resource<GitHubUser> = Resource.Loading(),
     val selectedBottomBarItem: AppScreens = AppScreens.Feeds,
-    val IssuesCreated: Resource<IssuesModel> = Resource.Loading(),
-    val IssuesAssigned: Resource<IssuesModel> = Resource.Loading(),
-    val IssuesMentioned: Resource<IssuesModel> = Resource.Loading(),
-    val IssuesParticipated: Resource<IssuesModel> = Resource.Loading(),
-    val PullsCreated: Resource<IssuesModel> = Resource.Loading(),
-    val PullsAssigned: Resource<IssuesModel> = Resource.Loading(),
-    val PullsMentioned: Resource<IssuesModel> = Resource.Loading(),
-    val PullsReview: Resource<IssuesModel> = Resource.Loading(),
-    val PullScreenState: List<Boolean> = listOf(true, true, true, true),
-    val IssueScreenState: List<Boolean> = listOf(true, true, true, true)
+    val issuesCreated: Resource<IssuesModel> = Resource.Loading(),
+    val issuesAssigned: Resource<IssuesModel> = Resource.Loading(),
+    val issuesMentioned: Resource<IssuesModel> = Resource.Loading(),
+    val issuesParticipated: Resource<IssuesModel> = Resource.Loading(),
+    val pullsCreated: Resource<IssuesModel> = Resource.Loading(),
+    val pullsAssigned: Resource<IssuesModel> = Resource.Loading(),
+    val pullsMentioned: Resource<IssuesModel> = Resource.Loading(),
+    val pullsReview: Resource<IssuesModel> = Resource.Loading(),
+    val pullScreenState: List<Boolean> = listOf(true, true, true, true),
+    val issueScreenState: List<Boolean> = listOf(true, true, true, true)
 )
 
 sealed interface AppScreens {

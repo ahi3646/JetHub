@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,6 +76,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -89,9 +91,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -112,8 +111,6 @@ import com.hasan.jetfasthub.utility.RepoQueryProvider
 import com.hasan.jetfasthub.utility.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
@@ -126,17 +123,14 @@ class HomeFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper.getToken(context)
+        val authenticatedUser = PreferenceHelper.getAuthenticatedUsername(context)
 
-        homeViewModel.getAuthenticatedUser(token)
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { authenticatedUser ->
-                PreferenceHelper.saveAuthenticatedUser(requireContext(), authenticatedUser.login)
-
-                homeViewModel.getUser(token, authenticatedUser.login)
+        if(token != "" && authenticatedUser != ""){
+                homeViewModel.getUser(token, authenticatedUser)
                 homeViewModel.getEvents()
 
-                val createdIssuesState = if(homeViewModel.state.value.IssueScreenState[0]){
+                val createdIssuesState = if(homeViewModel.state.value.issueScreenState[0]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -146,14 +140,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForIssues(
                         MyIssuesType.CREATED,
                         createdIssuesState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.CREATED
                 )
 
 
-                val assignedIssuesState = if(homeViewModel.state.value.IssueScreenState[1]){
+                val assignedIssuesState = if(homeViewModel.state.value.issueScreenState[1]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -163,14 +157,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForIssues(
                         MyIssuesType.ASSIGNED,
                         assignedIssuesState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.ASSIGNED
                 )
 
 
-                val mentionedIssuesState = if(homeViewModel.state.value.IssueScreenState[2]){
+                val mentionedIssuesState = if(homeViewModel.state.value.issueScreenState[2]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -180,14 +174,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForIssues(
                         MyIssuesType.MENTIONED,
                         mentionedIssuesState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.MENTIONED
                 )
 
 
-                val participatedIssuesState = if(homeViewModel.state.value.IssueScreenState[3]){
+                val participatedIssuesState = if(homeViewModel.state.value.issueScreenState[3]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -197,14 +191,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForIssues(
                         MyIssuesType.PARTICIPATED,
                         participatedIssuesState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.PARTICIPATED
                 )
 
 
-                val createdPullsState = if(homeViewModel.state.value.PullScreenState[0]){
+                val createdPullsState = if(homeViewModel.state.value.pullScreenState[0]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -214,14 +208,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForPulls(
                         MyIssuesType.CREATED,
                         createdPullsState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.CREATED
                 )
 
 
-                val assignedPullsState = if(homeViewModel.state.value.PullScreenState[1]){
+                val assignedPullsState = if(homeViewModel.state.value.pullScreenState[1]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -231,14 +225,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForPulls(
                         MyIssuesType.ASSIGNED,
                         assignedPullsState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.ASSIGNED
                 )
 
 
-                val mentionedPullsState = if(homeViewModel.state.value.PullScreenState[2]){
+                val mentionedPullsState = if(homeViewModel.state.value.pullScreenState[2]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -248,14 +242,14 @@ class HomeFragment : Fragment() {
                     query = getUrlForPulls(
                         MyIssuesType.MENTIONED,
                         mentionedPullsState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.MENTIONED
                 )
 
 
-                val reviewPullsState = if(homeViewModel.state.value.PullScreenState[3]){
+                val reviewPullsState = if(homeViewModel.state.value.pullScreenState[3]){
                     IssueState.Open
                 }else{
                     IssueState.Closed
@@ -265,14 +259,16 @@ class HomeFragment : Fragment() {
                     query = getUrlForPulls(
                         MyIssuesType.REVIEW,
                         reviewPullsState,
-                        authenticatedUser.login
+                        authenticatedUser
                     ),
                     page = 1,
                     issuesType = MyIssuesType.REVIEW
                 )
 
-            }
-            .launchIn(lifecycleScope)
+            }else{
+            Toast.makeText(context, "Can't load user data. Please try to resign in!", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     @OptIn(ExperimentalMaterialApi::class)
@@ -687,10 +683,10 @@ fun FeedsScreen(
     events: LazyPagingItems<ReceivedEventsModel>,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-    //val context = LocalContext.current
+    val context = LocalContext.current
     LaunchedEffect(key1 = events.loadState) {
         if (events.loadState.refresh is LoadState.Error) {
-            //Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Something went wrong!", Toast.LENGTH_SHORT).show()
             Log.d(
                 "ahi3646",
                 "FeedsScreen: error - ${(events.loadState.refresh as LoadState.Error).error.message} "
@@ -721,7 +717,7 @@ fun FeedsScreen(
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Top
                     ) {
                         items(events) { eventItem ->
                             if (eventItem != null) {
@@ -902,7 +898,7 @@ fun IssuesScreen(
     onIssuesStateChanged: (Int, MyIssuesType, IssueState) -> Unit
 ) {
 
-    when (state.IssuesCreated) {
+    when (state.issuesCreated) {
 
         is Resource.Loading -> {
             var tabIndex by remember { mutableIntStateOf(0) }
@@ -951,10 +947,10 @@ fun IssuesScreen(
 
         is Resource.Success -> {
             var tabIndex by remember { mutableIntStateOf(0) }
-            val issuesCreatedData = state.IssuesCreated.data!!
-            val issuesAssignedData = state.IssuesAssigned.data!!
-            val issuesMentionedData = state.IssuesMentioned.data!!
-            val issuesParticipatedData = state.IssuesParticipated.data!!
+            val issuesCreatedData = state.issuesCreated.data!!
+            val issuesAssignedData = state.issuesAssigned.data!!
+            val issuesMentionedData = state.issuesMentioned.data!!
+            val issuesParticipatedData = state.issuesParticipated.data!!
 
             Column(
                 modifier = Modifier
@@ -974,7 +970,7 @@ fun IssuesScreen(
                                 issuesCount = issuesCreatedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 0,
-                                isOpened = state.IssueScreenState[0],
+                                isOpened = state.issueScreenState[0],
                                 tabName = "CREATED",
                                 onItemClick = {
                                     tabIndex = 0
@@ -993,7 +989,7 @@ fun IssuesScreen(
                                 issuesCount = issuesAssignedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 1,
-                                isOpened = state.IssueScreenState[1],
+                                isOpened = state.issueScreenState[1],
                                 tabName = "ASSIGNED",
                                 onItemClick = {
                                     tabIndex = 1
@@ -1012,7 +1008,7 @@ fun IssuesScreen(
                                 issuesCount = issuesMentionedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 2,
-                                isOpened = state.IssueScreenState[2],
+                                isOpened = state.issueScreenState[2],
                                 tabName = "MENTIONED",
                                 onItemClick = {
                                     tabIndex = 2
@@ -1032,7 +1028,7 @@ fun IssuesScreen(
                                 issuesCount = issuesParticipatedData.total_count ?: 0,
                                 tabIndex = tabIndex,
                                 index = 3,
-                                isOpened = state.IssueScreenState[3],
+                                isOpened = state.issueScreenState[3],
                                 tabName = "PARTICIPATED",
                                 onItemClick = {
                                     tabIndex = 3
@@ -1428,10 +1424,10 @@ fun PullRequestScreen(
 ) {
     var tabIndex by remember { mutableIntStateOf(0) }
 
-    val pullsCreated = state.PullsCreated.data?.total_count ?: 0
-    val pullsAssigned = state.PullsAssigned.data?.total_count ?: 0
-    val pullsMentioned = state.PullsMentioned.data?.total_count ?: 0
-    val pullsReview = state.PullsReview.data?.total_count ?: 0
+    val pullsCreated = state.pullsCreated.data?.total_count ?: 0
+    val pullsAssigned = state.pullsAssigned.data?.total_count ?: 0
+    val pullsMentioned = state.pullsMentioned.data?.total_count ?: 0
+    val pullsReview = state.pullsReview.data?.total_count ?: 0
 
     Column(
         modifier = Modifier
@@ -1452,7 +1448,7 @@ fun PullRequestScreen(
                     tabIndex = tabIndex,
                     index = 0,
                     tabName = "CREATED",
-                    isOpened = state.PullScreenState[0],
+                    isOpened = state.pullScreenState[0],
                     onItemClick = {
                         tabIndex = 0
                     },
@@ -1471,7 +1467,7 @@ fun PullRequestScreen(
                     tabIndex = tabIndex,
                     index = 1,
                     tabName = "ASSIGNED",
-                    isOpened = state.PullScreenState[1],
+                    isOpened = state.pullScreenState[1],
                     onItemClick = {
                         tabIndex = 1
                     },
@@ -1490,7 +1486,7 @@ fun PullRequestScreen(
                     tabIndex = tabIndex,
                     index = 2,
                     tabName = "MENTIONED",
-                    isOpened = state.PullScreenState[2],
+                    isOpened = state.pullScreenState[2],
                     onItemClick = {
                         tabIndex = 2
                     },
@@ -1510,7 +1506,7 @@ fun PullRequestScreen(
                     tabIndex = tabIndex,
                     index = 3,
                     tabName = "REVIEW REQUESTS",
-                    isOpened = state.PullScreenState[3],
+                    isOpened = state.pullScreenState[3],
                     onItemClick = {
                         tabIndex = 3
                     },
@@ -1523,10 +1519,10 @@ fun PullRequestScreen(
         }
 
         when (tabIndex) {
-            0 -> PullRequestsCreated(state.PullsCreated, onNavigate)
-            1 -> PullRequestsAssigned(state.PullsAssigned, onNavigate)
-            2 -> PullRequestsMentioned(state.PullsMentioned, onNavigate)
-            3 -> PullRequestsReviewedRequests(state.PullsReview, onNavigate)
+            0 -> PullRequestsCreated(state.pullsCreated, onNavigate)
+            1 -> PullRequestsAssigned(state.pullsAssigned, onNavigate)
+            2 -> PullRequestsMentioned(state.pullsMentioned, onNavigate)
+            3 -> PullRequestsReviewedRequests(state.pullsReview, onNavigate)
         }
     }
 }
