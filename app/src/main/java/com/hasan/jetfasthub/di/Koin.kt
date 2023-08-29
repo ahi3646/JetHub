@@ -35,6 +35,8 @@ import com.hasan.jetfasthub.data.SearchRepository
 import com.hasan.jetfasthub.data.SearchRepositoryImpl
 import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.data.download.Downloader
+import com.hasan.jetfasthub.networking.AuthenticationInterceptor
+import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.screens.main.file_view.FileViewVM
@@ -57,6 +59,11 @@ import org.koin.dsl.module
 val appModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     viewModel { LoginViewModel(get()) }
+}
+
+val networkModule = module {
+    factory { AuthenticationInterceptor(get()) }
+    single { RestClient(get()) }
 }
 
 val fileViewModule = module {

@@ -1,6 +1,8 @@
 package com.hasan.jetfasthub.app
 
 import android.app.Application
+import android.content.Context
+import androidx.core.app.AppLocalesStorageHelper
 import com.hasan.jetfasthub.di.appModule
 import com.hasan.jetfasthub.di.basicAuthViewModelModule
 import com.hasan.jetfasthub.di.commentEditModule
