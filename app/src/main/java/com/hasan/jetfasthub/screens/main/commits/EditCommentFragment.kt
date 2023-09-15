@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -183,7 +184,7 @@ class EditCommentFragment : Fragment() {
 
 }
 
-@OptIn( ExperimentalMaterialApi::class)
+@OptIn( ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun MainContent(
     editComment: String,
