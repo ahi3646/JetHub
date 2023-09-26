@@ -348,33 +348,35 @@ class HomeViewModel(
         }
     }
 
-//    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
-//        viewModelScope.launch {
-//            try {
-//                repository.getAuthenticatedUser(token).let { authenticatedUser ->
-//                    if (authenticatedUser.isSuccessful) {
-//                        trySend(authenticatedUser.body()!!)
-//                    } else {
-//                        _state.update {
-//                            it.copy(
-//                                user = Resource.Failure(
-//                                    authenticatedUser.errorBody().toString()
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                _state.update {
-//                    it.copy(user = Resource.Failure(e.message.toString()))
-//                }
-//            }
-//        }
-//        awaitClose {
-//            channel.close()
-//            Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
-//        }
-//    }
+    /**
+    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
+    viewModelScope.launch {
+    try {
+    repository.getAuthenticatedUser(token).let { authenticatedUser ->
+    if (authenticatedUser.isSuccessful) {
+    trySend(authenticatedUser.body()!!)
+    } else {
+    _state.update {
+    it.copy(
+    user = Resource.Failure(
+    authenticatedUser.errorBody().toString()
+    )
+    )
+    }
+    }
+    }
+    } catch (e: Exception) {
+    _state.update {
+    it.copy(user = Resource.Failure(e.message.toString()))
+    }
+    }
+    }
+    awaitClose {
+    channel.close()
+    Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
+    }
+    }
+     */
 
     fun getUser(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -398,7 +400,7 @@ class HomeViewModel(
         }
     }
 
-    fun updateIssueScreen(index: Int, isOpen: Boolean){
+    fun updateIssueScreen(index: Int, isOpen: Boolean) {
         val newState = state.value.issueScreenState.toMutableList()
         newState[index] = isOpen
         _state.update {
@@ -408,7 +410,7 @@ class HomeViewModel(
         }
     }
 
-    fun updatePullScreen(index: Int, isOpen: Boolean){
+    fun updatePullScreen(index: Int, isOpen: Boolean) {
         val newState = state.value.pullScreenState.toMutableList()
         newState[index] = isOpen
         _state.update {
@@ -418,39 +420,41 @@ class HomeViewModel(
         }
     }
 
-//    fun getReceivedEvents(token: String, username: String) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                repository.getReceivedUserEvents(token, username).let { receivedEvents ->
-//                    if (receivedEvents.isSuccessful) {
-//                        _state.update {
-//                            it.copy(
-//                                receivedEventsState = ReceivedEventsState.Success(
-//                                    receivedEvents.body()!!
-//                                )
-//                            )
-//                        }
-//                    } else {
-//                        _state.update {
-//                            it.copy(
-//                                receivedEventsState = ReceivedEventsState.Error(
-//                                    receivedEvents.errorBody().toString()
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                _state.update {
-//                    it.copy(
-//                        receivedEventsState = ReceivedEventsState.Error(
-//                            e.message.toString()
-//                        )
-//                    )
-//                }
-//            }
-//        }
-//    }
+    /**
+    fun getReceivedEvents(token: String, username: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+    try {
+    repository.getReceivedUserEvents(token, username).let { receivedEvents ->
+    if (receivedEvents.isSuccessful) {
+    _state.update {
+    it.copy(
+    receivedEventsState = ReceivedEventsState.Success(
+    receivedEvents.body()!!
+    )
+    )
+    }
+    } else {
+    _state.update {
+    it.copy(
+    receivedEventsState = ReceivedEventsState.Error(
+    receivedEvents.errorBody().toString()
+    )
+    )
+    }
+    }
+    }
+    } catch (e: Exception) {
+    _state.update {
+    it.copy(
+    receivedEventsState = ReceivedEventsState.Error(
+    e.message.toString()
+    )
+    )
+    }
+    }
+    }
+    }
+     */
 
 }
 

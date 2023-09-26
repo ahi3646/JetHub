@@ -1,23 +1,27 @@
 package com.hasan.jetfasthub.utility
 
+import com.hasan.jetfasthub.BuildConfig
+
 object Constants {
 
-    const val PERSONAL_ACCESS_TOKEN = "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"
+    const val PERSONAL_ACCESS_TOKEN = BuildConfig.PERSONAL_ACCESS_TOKEN
 
-    const val JetHubOwner = "HasanAnorov"
-    const val JetHubRepoName = "JetHub"
+    const val JetHubOwner = BuildConfig.JetHubOwner
+    const val JetHubRepoName = BuildConfig.JetHubRepoName
 
-    const val BASE_URL = "https://api.github.com/"
-    const val BASIC_AUTH_URL = "https://github.com/"
-    const val CLIENT_ID = "a84294a23f9142b73d0f"
-    const val CLIENT_SECRET = "5547636a43ab2ee0688d751427397cb70bde06e9"
-    const val REDIRECT_URL = "jetfasthub://login"
-    const val STATE = "JetHub"
-    const val SCOPE = "user,repo,gist,notifications,read:org"
+    const val CLIENT_ID = BuildConfig.CLIENT_ID
+    const val CLIENT_SECRET = BuildConfig.CLIENT_SECRET
 
-    const val SHARED_PREF = "jetfasthub_pref"
-    const val TOKEN_KEY = "jethub_pref_key"
-    const val USERNAME_KEY = "jethub_pref_username"
+    const val BASE_URL = BuildConfig.BASE_URL
+    const val BASIC_AUTH_URL = BuildConfig.BASIC_AUTH_URL
+
+    const val REDIRECT_URL = BuildConfig.REDIRECT_URL
+    const val STATE = BuildConfig.STATE
+    const val SCOPE = BuildConfig.SCOPE
+
+    const val SHARED_PREF = BuildConfig.SHARED_PREF
+    const val TOKEN_KEY = BuildConfig.TOKEN_KEY
+    const val USERNAME_KEY = BuildConfig.USERNAME_KEY
 
     fun chooseFromEvents(type: String): EventsType {
         return when (type) {
@@ -130,5 +134,4 @@ object Constants {
             }
         }
     }
-
 }
