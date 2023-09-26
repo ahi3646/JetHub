@@ -26,6 +26,27 @@ android {
             arg('room.schemaLocation', "$projectDir/schemas")
         }
 
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file("local.properties").newDataInputStream())
+
+        buildConfigField("String", "PERSONAL_ACCESS_TOKEN", "\"${properties.getProperty("PERSONAL_ACCESS_TOKEN")}\"")
+
+        buildConfigField("String", "JetHubOwner", "\"${properties.getProperty("JetHubOwner")}\"")
+        buildConfigField("String", "JetHubRepoName", "\"${properties.getProperty("JetHubRepoName")}\"")
+
+        buildConfigField("String", "CLIENT_ID", "\"${properties.getProperty("CLIENT_ID")}\"")
+        buildConfigField("String", "CLIENT_SECRET", "\"${properties.getProperty("CLIENT_SECRET")}\"")
+
+        buildConfigField("String", "BASE_URL", "\"${properties.getProperty("BASE_URL")}\"")
+        buildConfigField("String", "BASIC_AUTH_URL", "\"${properties.getProperty("BASIC_AUTH_URL")}\"")
+        buildConfigField("String", "REDIRECT_URL", "\"${properties.getProperty("REDIRECT_URL")}\"")
+        buildConfigField("String", "STATE", "\"${properties.getProperty("STATE")}\"")
+        buildConfigField("String", "SCOPE", "\"${properties.getProperty("SCOPE")}\"")
+        
+        buildConfigField("String", "SHARED_PREF", "\"${properties.getProperty("SHARED_PREF")}\"")
+        buildConfigField("String", "TOKEN_KEY", "\"${properties.getProperty("TOKEN_KEY")}\"")
+        buildConfigField("String", "USERNAME_KEY", "\"${properties.getProperty("USERNAME_KEY")}\"")
+
     }
 
     buildTypes {
@@ -46,6 +67,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -86,15 +108,15 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.13.0'
 
     //landscapist
-    implementation 'com.github.skydoves:landscapist-glide:2.2.7'
+    implementation 'com.github.skydoves:landscapist-glide:2.2.9'
 
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.3'
 
-    implementation "androidx.compose.ui:ui:1.5.0"
-    implementation "androidx.compose.ui:ui-tooling:1.5.0"
-    implementation "androidx.compose.material:material:1.5.0"
-    implementation "androidx.compose.material3:material3:1.1.1"
+    implementation "androidx.compose.ui:ui:1.5.1"
+    implementation "androidx.compose.ui:ui-tooling:1.5.1"
+    implementation "androidx.compose.material:material:1.5.1"
+    implementation "androidx.compose.material3:material3:1.1.2"
 
     implementation 'androidx.compose.ui:ui-graphics'
     implementation 'androidx.compose.ui:ui-tooling-preview'
@@ -103,8 +125,8 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-webview:0.33.1-alpha'
 
     // Navigation
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.1'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.7.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.3'
 
     //lifecycle
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
@@ -125,17 +147,17 @@ dependencies {
     releaseImplementation 'com.github.chuckerteam.chucker:library-no-op:4.0.0'
 
     // Koin for Android
-    implementation 'io.insert-koin:koin-androidx-compose:3.4.6'
-    implementation 'io.insert-koin:koin-android:3.4.3'
+    implementation 'io.insert-koin:koin-androidx-compose:3.5.0'
+    implementation 'io.insert-koin:koin-android:3.5.0'
 
-    implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
     implementation 'androidx.activity:activity-compose:1.7.2'
-    implementation platform('androidx.compose:compose-bom:2023.08.00')
+    implementation platform('androidx.compose:compose-bom:2023.09.01')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2023.08.00')
+    androidTestImplementation platform('androidx.compose:compose-bom:2023.09.01')
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'

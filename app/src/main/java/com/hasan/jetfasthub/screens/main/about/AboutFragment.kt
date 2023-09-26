@@ -59,9 +59,9 @@ class AboutFragment : Fragment() {
 private fun MainContent(onNavigate: () -> Unit) {
     val state = rememberScaffoldState()
     Scaffold(
-        scaffoldState = state, topBar = {
-            TopAppBarContent(onNavigate)
-        }, backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+        scaffoldState = state,
+        topBar = { TopAppBarContent(onNavigate) },
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     ) { contentPadding ->
         Surface(
             modifier = Modifier
