@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.IssueRepository
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.issue_model.IssueModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

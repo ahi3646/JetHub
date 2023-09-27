@@ -6,7 +6,7 @@ import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.Comme
 import com.hasan.jetfasthub.screens.main.issue.comment_response_model.CommentResponseModel
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.issue_model.IssueModel
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 interface IssueRepository {

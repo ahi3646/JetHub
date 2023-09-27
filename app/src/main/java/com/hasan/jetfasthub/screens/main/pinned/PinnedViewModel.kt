@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.screens.main.pinned
 
 import androidx.lifecycle.ViewModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

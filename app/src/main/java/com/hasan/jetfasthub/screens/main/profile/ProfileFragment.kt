@@ -84,6 +84,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEventsItem
@@ -99,11 +100,10 @@ import com.hasan.jetfasthub.screens.main.profile.model.repo_model.RepositoryMode
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModelItem
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.Constants.chooseFromEvents
-import com.hasan.jetfasthub.utility.FileSizeCalculator
-import com.hasan.jetfasthub.utility.ParseDateFormat
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Constants.chooseFromEvents
+import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
+import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.flow.launchIn

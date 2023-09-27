@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.utility
+package com.hasan.jetfasthub.core.ui.utils
 
 import android.text.format.DateUtils
 import java.text.DateFormat

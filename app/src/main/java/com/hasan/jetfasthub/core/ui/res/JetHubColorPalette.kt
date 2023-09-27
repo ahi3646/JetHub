@@ -1,0 +1,48 @@
+package com.hasan.jetfasthub.core.ui.res
+
+import androidx.compose.ui.graphics.Color
+
+@Suppress("unused")
+object JetHubColorPalette {
+    // region Base
+    val Black = Color(0xFF000000)
+    val White = Color(0xFFFFFFFF)
+    // endregion Base
+
+    // region Dark
+    val Dark1 = Color(0xFF919191)
+    val Dark2 = Color(0xFF656565)
+    val Dark3 = Color(0xFF494949)
+    val Dark4 = Color(0xFF3B3B3B)
+    val Dark5 = Color(0xFF303030)
+    val Dark6 = Color(0xFF1E1E1E)
+    // endregion Dark
+
+    // region Light
+    val Light1 = Color(0xFFF5F5F5)
+    val Light2 = Color(0xFFEBEBEB)
+    val Light3 = Color(0xFFD3D3D3)
+    val Light4 = Color(0xFFC9C9C9)
+    val Light5 = Color(0xFFB0B0B0)
+    // endregion Light
+
+    // region Green
+    val Meadow = Color(0xFF1ACE80)
+    val MagicMint = Color(0xFFA3EBCC)
+    val DarkGreen = Color(0xFF06311F)
+    // endregion Green
+
+    // region Blue
+    val Azure = Color(0xFF0099FF)
+    // endregion Blue
+
+    // region Red
+    val Amaranth = Color(0xFFFF3333)
+    val Flamingo = Color(0xFFFF5B5B)
+    // endregion Red
+
+    // region Yellow
+    val Tangerine = Color(0xFFFFB71B)
+    val Mustard = Color(0xFFFDDE55)
+    // endregion Yellow
+}

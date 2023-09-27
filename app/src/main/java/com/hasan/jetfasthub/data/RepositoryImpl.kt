@@ -19,7 +19,7 @@ import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.Star
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
-import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
+import com.hasan.jetfasthub.core.ui.utils.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 
 interface Repository {

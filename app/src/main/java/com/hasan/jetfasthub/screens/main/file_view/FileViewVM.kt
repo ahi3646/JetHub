@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.FileViewRepository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.file_view.file_model.FileModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

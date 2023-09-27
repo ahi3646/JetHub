@@ -6,7 +6,7 @@ import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentPostResponse
 import com.hasan.jetfasthub.screens.main.commits.models.comment_post_model.CommentRequestModel
 import com.hasan.jetfasthub.screens.main.gists.gist_comment_response.GistCommentResponse
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 interface CommentRepository {

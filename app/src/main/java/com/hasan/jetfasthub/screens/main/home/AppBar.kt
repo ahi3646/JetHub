@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.ui.theme.RippleCustomTheme
+import com.hasan.jetfasthub.core.ui.res.RippleCustomTheme
 
 
 @Composable

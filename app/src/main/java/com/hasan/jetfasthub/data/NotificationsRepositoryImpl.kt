@@ -3,8 +3,8 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
-import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
-import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.core.ui.utils.Constants.PERSONAL_ACCESS_TOKEN
+import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import retrofit2.Response
 
 interface NotificationRepository {

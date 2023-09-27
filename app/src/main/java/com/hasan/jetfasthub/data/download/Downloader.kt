@@ -8,7 +8,7 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
-import com.hasan.jetfasthub.utility.Constants.PERSONAL_ACCESS_TOKEN
+import com.hasan.jetfasthub.core.ui.utils.Constants.PERSONAL_ACCESS_TOKEN
 
 
 interface Downloader {

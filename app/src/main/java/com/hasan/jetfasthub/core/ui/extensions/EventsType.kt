@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.utility
+package com.hasan.jetfasthub.core.ui.extensions
 
 import com.hasan.jetfasthub.R
 

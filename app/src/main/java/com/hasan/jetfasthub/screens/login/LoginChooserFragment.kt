@@ -3,7 +3,6 @@ package com.hasan.jetfasthub.screens.login
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class LoginChooserFragment : Fragment() {
@@ -64,7 +63,6 @@ class LoginChooserFragment : Fragment() {
 
             setContent {
                 val state by viewModel.state.collectAsState()
-
                 JetFastHubTheme {
                     MainContent(
                         modifier = Modifier
@@ -89,7 +87,7 @@ private fun MainContent(
     userLoadCase: UserLoadCase
 ) {
     val context = LocalContext.current
-    when(userLoadCase){
+    when (userLoadCase) {
         UserLoadCase.Nothing -> {
             Column(
                 modifier,
@@ -209,6 +207,7 @@ private fun MainContent(
                 }
             }
         }
+
         UserLoadCase.Fetching -> {
             Column(
                 modifier,
@@ -230,6 +229,7 @@ private fun MainContent(
 
             }
         }
+
         UserLoadCase.Success -> {
             Column(
                 modifier,
@@ -244,6 +244,7 @@ private fun MainContent(
                 )
             }
         }
+
         UserLoadCase.Error -> {
             Column(
                 modifier,

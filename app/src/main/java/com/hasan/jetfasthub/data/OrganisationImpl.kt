@@ -5,7 +5,7 @@ import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
 import com.hasan.jetfasthub.screens.main.organisations.org_repo_model.OrganisationsRepositoryModel
 import com.hasan.jetfasthub.screens.main.organisations.organisation_model.OrganisationModel
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 interface OrganisationRepository {

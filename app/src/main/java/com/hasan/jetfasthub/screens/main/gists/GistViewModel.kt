@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.data.GistRepository
 import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

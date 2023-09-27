@@ -13,8 +13,8 @@ import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.home.domain.ReceivedEventsModel
-import com.hasan.jetfasthub.utility.MyIssuesType
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

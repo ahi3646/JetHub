@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 
 class AboutFragment : Fragment() {
 
@@ -83,13 +83,12 @@ private fun MainContent(onNavigate: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start,
                     modifier = Modifier
                         .fillMaxWidth(1F)
-                        .clickable {
-
-                        }) {
+                        .clickable {  }) {
                     Image(
                         painter = painterResource(id = R.drawable.baseline_person_24),
                         contentDescription = "Profile icon",

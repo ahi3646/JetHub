@@ -4,7 +4,7 @@ import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 interface AuthRepository {

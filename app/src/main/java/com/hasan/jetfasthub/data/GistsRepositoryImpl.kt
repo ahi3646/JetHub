@@ -5,7 +5,7 @@ import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 interface GistsRepository {

@@ -1,6 +1,7 @@
-package com.hasan.jetfasthub.utility
+package com.hasan.jetfasthub.core.ui.utils
 
 import com.hasan.jetfasthub.BuildConfig
+import com.hasan.jetfasthub.core.ui.extensions.EventsType
 
 object Constants {
 

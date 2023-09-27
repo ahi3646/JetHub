@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.utility
+package com.hasan.jetfasthub.core.ui.utils
 
 sealed class Resource <T> (
     val data :T? =null,
