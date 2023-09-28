@@ -42,7 +42,7 @@ android {
         buildConfigField("String", "REDIRECT_URL", "\"${properties.getProperty("REDIRECT_URL")}\"")
         buildConfigField("String", "STATE", "\"${properties.getProperty("STATE")}\"")
         buildConfigField("String", "SCOPE", "\"${properties.getProperty("SCOPE")}\"")
-        
+
         buildConfigField("String", "SHARED_PREF", "\"${properties.getProperty("SHARED_PREF")}\"")
         buildConfigField("String", "TOKEN_KEY", "\"${properties.getProperty("TOKEN_KEY")}\"")
         buildConfigField("String", "USERNAME_KEY", "\"${properties.getProperty("USERNAME_KEY")}\"")
@@ -99,7 +99,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.5.2")
     implementation("androidx.room:room-paging:2.5.2")
 
-    //pagination, don't upgrade
+    //pagination - don't upgrade, idk but items lazy paging version can't be found on new versions
     implementation "androidx.paging:paging-runtime-ktx:3.1.1"
     implementation "androidx.paging:paging-compose:1.0.0-alpha18"
 

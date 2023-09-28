@@ -1,9 +1,6 @@
 package com.hasan.jetfasthub.screens.login
 
-interface LoginChooserClickIntents {
-
-    fun onBasicAuthLoginClick()
-
-    fun  onOAuthClick()
-
+sealed interface LoginChooserClickIntents {
+    data object BasicAuthentication: LoginChooserClickIntents
+    data object OAuthCLick: LoginChooserClickIntents
 }

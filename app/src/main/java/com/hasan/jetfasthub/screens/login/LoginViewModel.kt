@@ -3,7 +3,10 @@ package com.hasan.jetfasthub.screens.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hasan.jetfasthub.core.ui.navigation.DefaultNavigationEventDelegate
+import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
 import com.hasan.jetfasthub.data.AuthRepository
+import com.hasan.jetfasthub.screens.login.ui.LoginChooserNavigation
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,10 +15,14 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
+class LoginViewModel(
+    private val repository: AuthRepository
+) : ViewModel(),
+    NavigationEventDelegate<LoginChooserNavigation> by DefaultNavigationEventDelegate() {
 
     private val _state: MutableStateFlow<LoginScreenState> = MutableStateFlow(LoginScreenState())
     val state = _state.asStateFlow()
+
 
     fun getAccessToken(code: String): Flow<String> = callbackFlow {
         viewModelScope.launch {
@@ -47,6 +54,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     }
 
     fun changeStatus(userLoadCase: UserLoadCase) {
+
         _state.update {
             it.copy(
                 isFetchingUserData = userLoadCase
@@ -73,7 +81,6 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
             Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
         }
     }
-
 }
 
 data class LoginScreenState(

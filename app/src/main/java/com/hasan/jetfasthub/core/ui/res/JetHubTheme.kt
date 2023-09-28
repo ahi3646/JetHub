@@ -199,6 +199,11 @@ object JetHubTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalJetHubTypography.current
+
+    val colors: JetHubColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalJetHubColors.current
 }
 
 @Stable
