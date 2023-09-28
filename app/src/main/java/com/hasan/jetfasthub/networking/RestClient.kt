@@ -4,7 +4,7 @@ import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
-import com.hasan.jetfasthub.networking.services.AuthorizationService
+import com.hasan.jetfasthub.screens.login.data.AuthorizationService
 import com.hasan.jetfasthub.networking.services.CommentService
 import com.hasan.jetfasthub.networking.services.CommitService
 import com.hasan.jetfasthub.networking.services.FileViewService

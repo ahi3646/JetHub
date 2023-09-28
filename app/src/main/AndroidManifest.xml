@@ -18,7 +18,7 @@
         tools:targetApi="tiramisu">
 
         <activity
-            android:name=".screens.login.LoginActivity"
+            android:name=".screens.login.presentation.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.JetFastHub">
             <intent-filter>

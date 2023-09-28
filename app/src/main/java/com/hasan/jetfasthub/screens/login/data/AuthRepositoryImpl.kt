@@ -1,19 +1,12 @@
-package com.hasan.jetfasthub.data
+package com.hasan.jetfasthub.screens.login.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
-import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
+import com.hasan.jetfasthub.screens.login.data.entity.AccessTokenModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
+import com.hasan.jetfasthub.screens.login.domain.AuthRepository
 import retrofit2.Response
-
-interface AuthRepository {
-
-    suspend fun getAccessToken(code: String): Response<AccessTokenModel>
-
-    suspend fun getAuthenticatedUser(token: String): Response<AuthenticatedUser>
-
-}
 
 class AuthRepositoryImpl(private val context: Context) : AuthRepository {
 

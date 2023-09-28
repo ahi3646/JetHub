@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.login
+package com.hasan.jetfasthub.screens.login.presentation.loginPage
 
 import android.content.Intent
 import android.net.Uri
@@ -6,8 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -15,9 +18,9 @@ import androidx.navigation.fragment.findNavController
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.extensions.executeWithLifecycle
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.core.ui.utils.Constants
-import com.hasan.jetfasthub.screens.login.ui.LoginChooserNavigation
-import com.hasan.jetfasthub.screens.login.ui.LoginChooserScreen
+import com.hasan.jetfasthub.screens.login.presentation.LoginViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class LoginChooserFragment : Fragment() {
@@ -29,39 +32,33 @@ class LoginChooserFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = ComposeView(requireContext()).apply {
-            // Dispose of the Composition when the view's LifecycleOwner
-            // is destroyed
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                val state by viewModel.state.collectAsState()
-                JetFastHubTheme {
-                    LoginChooserScreen(
-                        state = state.isFetchingUserData,
-                        intentReducer = ::handleIntents
-                    )
-                }
+        // Dispose of the Composition when the view's LifecycleOwner
+        // is destroyed
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            val state by viewModel.state.collectAsState()
+            JetFastHubTheme {
+                LoginChooserScreen(
+                    state = state.loadingPageStatus,
+                    intentReducer = ::handleIntents,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = JetHubTheme.colors.background.secondary)
+                )
             }
         }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        (view as ComposeView).setContent {
-//            val state by viewModel.state.collectAsState()
-//            JetFastHubTheme {
-//                LoginChooserScreen(
-//                    state = state.isFetchingUserData,
-//                    intentReducer = ::handleIntents
-//                )
-//            }
-//        }
         viewModel.screenNavigation.executeWithLifecycle(
             lifecycle = viewLifecycleOwner.lifecycle,
             action = ::executeNavigation
         )
     }
 
-    private fun handleIntents(intent: LoginChooserClickIntents){
-        when(intent){
+    private fun handleIntents(intent: LoginChooserClickIntents) {
+        when (intent) {
             LoginChooserClickIntents.BasicAuthentication -> {
                 findNavController().navigate(R.id.action_loginChooserFragment_to_basicAuthFragment)
             }

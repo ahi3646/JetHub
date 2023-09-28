@@ -1,12 +1,12 @@
-package com.hasan.jetfasthub.screens.login
+package com.hasan.jetfasthub.screens.login.presentation
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.core.ui.navigation.DefaultNavigationEventDelegate
 import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
-import com.hasan.jetfasthub.data.AuthRepository
-import com.hasan.jetfasthub.screens.login.ui.LoginChooserNavigation
+import com.hasan.jetfasthub.screens.login.domain.AuthRepository
+import com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserNavigation
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,6 @@ class LoginViewModel(
 
     private val _state: MutableStateFlow<LoginScreenState> = MutableStateFlow(LoginScreenState())
     val state = _state.asStateFlow()
-
 
     fun getAccessToken(code: String): Flow<String> = callbackFlow {
         viewModelScope.launch {
@@ -53,11 +52,10 @@ class LoginViewModel(
         }
     }
 
-    fun changeStatus(userLoadCase: UserLoadCase) {
-
+    fun changeStatus(loadingPageStatus: LoginPageState) {
         _state.update {
             it.copy(
-                isFetchingUserData = userLoadCase
+                loadingPageStatus = loadingPageStatus
             )
         }
     }
@@ -84,11 +82,11 @@ class LoginViewModel(
 }
 
 data class LoginScreenState(
-    val isFetchingUserData: UserLoadCase = UserLoadCase.Nothing
+    val loadingPageStatus: LoginPageState = LoginPageState.Default
 )
 
-enum class UserLoadCase {
-    Nothing,
+enum class LoginPageState {
+    Default,
     Fetching,
     Error,
     Success

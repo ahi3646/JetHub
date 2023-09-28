@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.login.basic_auth
+package com.hasan.jetfasthub.screens.login.presentation.basicAuth
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

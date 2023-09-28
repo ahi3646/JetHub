@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.login.model
+package com.hasan.jetfasthub.screens.login.data.entity
 
 import com.google.gson.annotations.SerializedName
 

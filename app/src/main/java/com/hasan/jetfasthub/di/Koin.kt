@@ -4,8 +4,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.room.Room
-import com.hasan.jetfasthub.data.AuthRepository
-import com.hasan.jetfasthub.data.AuthRepositoryImpl
+import com.hasan.jetfasthub.screens.login.data.AuthRepositoryImpl
 import com.hasan.jetfasthub.data.CommentRepository
 import com.hasan.jetfasthub.data.CommentRepositoryImpl
 import com.hasan.jetfasthub.data.CommitRepository
@@ -16,8 +15,8 @@ import com.hasan.jetfasthub.data.GistRepository
 import com.hasan.jetfasthub.data.GistRepositoryImpl
 import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.data.GistsRepositoryImpl
-import com.hasan.jetfasthub.screens.login.LoginViewModel
-import com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthViewModel
+import com.hasan.jetfasthub.screens.login.presentation.LoginViewModel
+import com.hasan.jetfasthub.screens.login.presentation.basicAuth.BasicAuthViewModel
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.data.HomeRepositoryImpl
 import com.hasan.jetfasthub.data.IssueRepository
@@ -37,6 +36,7 @@ import com.hasan.jetfasthub.data.download.AndroidDownloader
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.networking.AuthenticationInterceptor
 import com.hasan.jetfasthub.networking.RestClient
+import com.hasan.jetfasthub.screens.login.domain.AuthRepository
 import com.hasan.jetfasthub.screens.main.commits.CommitViewModel
 import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.screens.main.file_view.FileViewVM

@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.login
+package com.hasan.jetfasthub.screens.login.presentation.loginPage
 
 sealed interface LoginChooserClickIntents {
     data object BasicAuthentication: LoginChooserClickIntents

@@ -6,11 +6,11 @@
 
     <fragment
         android:id="@+id/basicAuthFragment"
-        android:name="com.hasan.jetfasthub.screens.login.basic_auth.BasicAuthFragment"
+        android:name="com.hasan.jetfasthub.screens.login.presentation.basicAuth.BasicAuthFragment"
         android:label="BasicAuthFragment" />
     <fragment
         android:id="@+id/loginChooserFragment"
-        android:name="com.hasan.jetfasthub.screens.login.LoginChooserFragment"
+        android:name="com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserFragment"
         android:label="LoginChooserFragment" >
         <action
             android:id="@+id/action_loginChooserFragment_to_basicAuthFragment"

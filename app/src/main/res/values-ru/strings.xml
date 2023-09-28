@@ -82,4 +82,17 @@
     <string name="closed">closed</string>
     <string name="all">all</string>
 
+    <!--    Login Screen-->
+    <string name="usage_guide">Войдите, используя свою учетную запись GitHub, чтобы использовать JetHub.</string>
+    <string name="basic_authentication">Обычный Аутентификация</string>
+    <string name="access_token">Токен доступа</string>
+    <string name="enterprise">Предприятие</string>
+    <string name="or_with">Или с :</string>
+    <string name="fetching_status">Идет получение пользовательских данных, подождите немного :)</string>
+    <string name="welcome">Добро пожаловать</string>
+    <string name="login_status_error">Что-то пошло не так! Попробуйте повторно войти в систему, пожалуйста</string>
+
+
+
+
 </resources>

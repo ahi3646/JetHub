@@ -1,6 +1,6 @@
-package com.hasan.jetfasthub.networking.services
+package com.hasan.jetfasthub.screens.login.data
 
-import com.hasan.jetfasthub.screens.login.model.AccessTokenModel
+import com.hasan.jetfasthub.screens.login.data.entity.AccessTokenModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response

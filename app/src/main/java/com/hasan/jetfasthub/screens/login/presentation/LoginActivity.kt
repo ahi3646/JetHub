@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.login
+package com.hasan.jetfasthub.screens.login.presentation
 
 import android.content.Intent
 import android.widget.Toast
@@ -42,7 +42,7 @@ class LoginActivity : AppCompatActivity(R.layout.activity_login) {
             if (uri.toString().startsWith(Constants.REDIRECT_URL)) {
                 val tokenCode = uri!!.getQueryParameter("code")
                 if (tokenCode!!.isNotBlank()) {
-                    viewModel.changeStatus(UserLoadCase.Fetching)
+                    viewModel.changeStatus(LoginPageState.Fetching)
                     viewModel.getAccessToken(tokenCode)
                         .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                         .onEach {
@@ -52,15 +52,15 @@ class LoginActivity : AppCompatActivity(R.layout.activity_login) {
                                     .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                                     .onEach { login ->
                                         if (login != "") {
-                                            viewModel.changeStatus(UserLoadCase.Success)
+                                            viewModel.changeStatus(LoginPageState.Success)
                                             PreferenceHelper.saveAuthenticatedUser(this, login)
                                             navigateToMainScreen()
                                         } else {
-                                            viewModel.changeStatus(UserLoadCase.Error)
+                                            viewModel.changeStatus(LoginPageState.Error)
                                         }
                                     }.launchIn(lifecycleScope)
                             } else {
-                                viewModel.changeStatus(UserLoadCase.Error)
+                                viewModel.changeStatus(LoginPageState.Error)
                             }
                         }
                         .launchIn(lifecycleScope)

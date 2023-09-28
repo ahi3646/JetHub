@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">JetHub</string>
 
+<!--    TODO remove unnecessary string resources-->
     <string name="login">login</string>
     <string name="basic_auth">basic_auth</string>
     <string name="home">Home</string>
@@ -79,5 +80,15 @@
     <string name="opened">opened</string>
     <string name="closed">closed</string>
     <string name="all">all</string>
+
+    <!--    Login Screen-->
+    <string name="usage_guide">Sign in using your GitHub account to use JetHub</string>
+    <string name="basic_authentication">Basic Authentication</string>
+    <string name="access_token">Access Token</string>
+    <string name="enterprise">Enterprise</string>
+    <string name="or_with">Or with :</string>
+    <string name="fetching_status">Fetching user data, please wait a while :)</string>
+    <string name="welcome">Welcome</string>
+    <string name="login_status_error">Something went wrong! Try to re sign in, please</string>
 
 </resources>
