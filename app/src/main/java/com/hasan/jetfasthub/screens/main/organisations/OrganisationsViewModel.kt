@@ -6,7 +6,7 @@ import com.hasan.jetfasthub.data.OrganisationRepository
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
 import com.hasan.jetfasthub.screens.main.organisations.org_repo_model.OrganisationsRepositoryModel
 import com.hasan.jetfasthub.screens.main.organisations.organisation_model.OrganisationModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

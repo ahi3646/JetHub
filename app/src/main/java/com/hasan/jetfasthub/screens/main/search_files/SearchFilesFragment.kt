@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 
 class SearchFilesFragment : Fragment() {
 

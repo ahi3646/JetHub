@@ -37,10 +37,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.Constants
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Constants
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 

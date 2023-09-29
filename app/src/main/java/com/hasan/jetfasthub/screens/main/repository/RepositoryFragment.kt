@@ -106,6 +106,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.IssuesItem
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
@@ -119,12 +120,11 @@ import com.hasan.jetfasthub.screens.main.repository.models.repo_model.RepoModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.FileSizeCalculator
-import com.hasan.jetfasthub.utility.IssueState
-import com.hasan.jetfasthub.utility.ParseDateFormat
-import com.hasan.jetfasthub.utility.RepoQueryProvider
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
+import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
+import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage

@@ -7,7 +7,7 @@ import com.hasan.jetfasthub.data.CommitRepository
 import com.hasan.jetfasthub.data.download.Downloader
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
 import com.hasan.jetfasthub.screens.main.commits.models.commit_model.CommitModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

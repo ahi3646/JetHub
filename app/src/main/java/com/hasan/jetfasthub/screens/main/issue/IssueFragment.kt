@@ -86,13 +86,13 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModelItem
 import com.hasan.jetfasthub.screens.main.issue.issue_model.IssueModel
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.ParseDateFormat
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.flow.launchIn

@@ -23,8 +23,8 @@ import com.hasan.jetfasthub.screens.main.repository.models.stargazers_model.Star
 import com.hasan.jetfasthub.screens.main.repository.models.subscriptions_model.SubscriptionsModel
 import com.hasan.jetfasthub.screens.main.repository.models.tags_model.TagsModel
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
-import com.hasan.jetfasthub.utility.IssueState
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

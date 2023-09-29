@@ -3,8 +3,7 @@ package com.hasan.jetfasthub.data
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
 import com.hasan.jetfasthub.screens.main.file_view.file_model.FileModel
-import com.hasan.jetfasthub.screens.main.repository.models.file_models.FilesModel
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 

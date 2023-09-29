@@ -4,7 +4,7 @@ import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.google.gson.GsonBuilder
-import com.hasan.jetfasthub.networking.services.AuthorizationService
+import com.hasan.jetfasthub.screens.login.data.AuthorizationService
 import com.hasan.jetfasthub.networking.services.CommentService
 import com.hasan.jetfasthub.networking.services.CommitService
 import com.hasan.jetfasthub.networking.services.FileViewService
@@ -16,7 +16,7 @@ import com.hasan.jetfasthub.networking.services.OrganisationService
 import com.hasan.jetfasthub.networking.services.ProfileService
 import com.hasan.jetfasthub.networking.services.RepositoryService
 import com.hasan.jetfasthub.networking.services.SearchService
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

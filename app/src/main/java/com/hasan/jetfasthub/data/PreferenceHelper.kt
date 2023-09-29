@@ -1,7 +1,7 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 
 object PreferenceHelper {
 

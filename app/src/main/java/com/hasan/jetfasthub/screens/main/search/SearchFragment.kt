@@ -65,6 +65,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeItem
 import com.hasan.jetfasthub.screens.main.search.models.code_model.CodeModel
@@ -74,10 +75,9 @@ import com.hasan.jetfasthub.screens.main.search.models.repository_model.Item
 import com.hasan.jetfasthub.screens.main.search.models.repository_model.RepositoryModel
 import com.hasan.jetfasthub.screens.main.search.models.users_model.UserModel
 import com.hasan.jetfasthub.screens.main.search.models.users_model.UsersItem
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.ui.theme.RippleCustomTheme
-import com.hasan.jetfasthub.utility.FileSizeCalculator
-import com.hasan.jetfasthub.utility.ParseDateFormat
+import com.hasan.jetfasthub.core.ui.res.RippleCustomTheme
+import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
+import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import org.koin.androidx.viewmodel.ext.android.viewModel

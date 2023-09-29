@@ -7,7 +7,7 @@ import com.hasan.jetfasthub.screens.main.gists.fork_response_model.GistForkRespo
 import com.hasan.jetfasthub.screens.main.gists.gist_comment_response.GistCommentResponse
 import com.hasan.jetfasthub.screens.main.gists.gist_comments_model.GistCommentsModel
 import com.hasan.jetfasthub.screens.main.gists.gist_model.GistModel
-import com.hasan.jetfasthub.utility.Constants
+import com.hasan.jetfasthub.core.ui.utils.Constants
 import retrofit2.Response
 
 

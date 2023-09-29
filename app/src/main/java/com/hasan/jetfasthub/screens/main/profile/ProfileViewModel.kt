@@ -12,7 +12,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.org_model.OrgModel
 import com.hasan.jetfasthub.screens.main.profile.model.repo_model.UserRepositoryModel
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -51,9 +51,9 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
+import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.ui.theme.JetFastHubTheme
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class FileViewFragment : Fragment() {

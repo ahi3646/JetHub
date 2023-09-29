@@ -6,7 +6,7 @@ import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.public_gist_model.PublicGistsModel
 import com.hasan.jetfasthub.screens.main.profile.model.gist_model.GistsModel
-import com.hasan.jetfasthub.utility.Resource
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
