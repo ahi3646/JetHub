@@ -2,10 +2,10 @@ package com.hasan.jetfasthub.screens.login.presentation.loginPage
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.CommonJetHubLoginButton
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.screens.login.presentation.LoginPageState
@@ -66,75 +67,41 @@ private fun LoginChooserDefaultContent(
             textAlign = TextAlign.Center
         )
 
-        Box(
+        CommonJetHubLoginButton(
+            onClick = {
+                intentReducer(LoginChooserClickIntents.BasicAuthentication)
+            },
+            text = stringResource(id = R.string.basic_authentication),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = JetHubTheme.dimens.spacing16)
                 .padding(top = JetHubTheme.dimens.spacing24)
-                .clickable { intentReducer(LoginChooserClickIntents.BasicAuthentication) }
                 .clip(RoundedCornerShape(JetHubTheme.dimens.spacing12))
                 .background(color = JetHubTheme.colors.background.primary),
-            content = {
-                Text(
-                    text = stringResource(id = R.string.basic_authentication),
-                    modifier = Modifier
-                        .padding(
-                            horizontal = JetHubTheme.dimens.spacing16,
-                            vertical = JetHubTheme.dimens.spacing16
-                        )
-                        .fillMaxWidth(),
-                    style = JetHubTheme.typography.subtitle2,
-                    color = JetHubTheme.colors.text.primary1,
-                    textAlign = TextAlign.Center
-                )
-            }
         )
-
-        Box(
+        CommonJetHubLoginButton(
+            onClick = {
+                intentReducer(LoginChooserClickIntents.BasicAuthentication)
+            },
+            text = stringResource(id = R.string.access_token),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = JetHubTheme.dimens.spacing16)
                 .padding(top = JetHubTheme.dimens.spacing8)
-                .clickable { intentReducer(LoginChooserClickIntents.BasicAuthentication) }
                 .clip(RoundedCornerShape(JetHubTheme.dimens.spacing12))
                 .background(color = JetHubTheme.colors.background.primary),
-            content = {
-                Text(
-                    text = stringResource(id = R.string.access_token),
-                    modifier = Modifier
-                        .padding(
-                            horizontal = JetHubTheme.dimens.spacing16,
-                            vertical = JetHubTheme.dimens.spacing16
-                        )
-                        .fillMaxWidth(),
-                    style = JetHubTheme.typography.subtitle2,
-                    color = JetHubTheme.colors.text.primary1,
-                    textAlign = TextAlign.Center
-                )
-            }
         )
-        Box(
+        CommonJetHubLoginButton(
+            onClick = {
+                intentReducer(LoginChooserClickIntents.BasicAuthentication)
+            },
+            text = stringResource(id = R.string.enterprise),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = JetHubTheme.dimens.spacing16)
                 .padding(top = JetHubTheme.dimens.spacing8)
-                .clickable { intentReducer(LoginChooserClickIntents.BasicAuthentication) }
                 .clip(RoundedCornerShape(JetHubTheme.dimens.spacing12))
                 .background(color = JetHubTheme.colors.background.primary),
-            content = {
-                Text(
-                    text = stringResource(id = R.string.enterprise),
-                    modifier = Modifier
-                        .padding(
-                            horizontal = JetHubTheme.dimens.spacing16,
-                            vertical = JetHubTheme.dimens.spacing16
-                        )
-                        .fillMaxWidth(),
-                    style = JetHubTheme.typography.subtitle2,
-                    color = JetHubTheme.colors.text.primary1,
-                    textAlign = TextAlign.Center
-                )
-            }
         )
         Box(
             modifier = Modifier
@@ -231,7 +198,10 @@ private fun Preview_LoginChooserFragment_LightTheme(@PreviewParameter(LoginChoos
     JetFastHubTheme(isDarkTheme = false) {
         LoginChooserScreen(
             state = state,
-            intentReducer = {}
+            intentReducer = {},
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = JetHubTheme.colors.background.secondary)
         )
     }
 }
@@ -242,7 +212,10 @@ private fun Preview_LoginChooserFragment_DarkTheme(@PreviewParameter(LoginChoose
     JetFastHubTheme(isDarkTheme = true) {
         LoginChooserScreen(
             state = state,
-            intentReducer = {}
+            intentReducer = {},
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = JetHubTheme.colors.background.secondary)
         )
     }
 }

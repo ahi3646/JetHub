@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.core.ui.utils
 
+import android.net.Uri
 import com.hasan.jetfasthub.BuildConfig
 import com.hasan.jetfasthub.core.ui.extensions.EventsType
 
@@ -23,6 +24,20 @@ object Constants {
     const val SHARED_PREF = BuildConfig.SHARED_PREF
     const val TOKEN_KEY = BuildConfig.TOKEN_KEY
     const val USERNAME_KEY = BuildConfig.USERNAME_KEY
+
+    fun getAuthorizationUrl(): Uri {
+        return Uri.Builder()
+            .scheme("https")
+            .authority("github.com")
+            .appendPath("login")
+            .appendPath("oauth")
+            .appendPath("authorize")
+            .appendQueryParameter("client_id", CLIENT_ID)
+            .appendQueryParameter("redirect_uri", REDIRECT_URL)
+            .appendQueryParameter("scope", SCOPE)
+            .appendQueryParameter("state", STATE)
+            .build()
+    }
 
     fun chooseFromEvents(type: String): EventsType {
         return when (type) {

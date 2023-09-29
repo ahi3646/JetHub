@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+
+//TODO maybe should deliver some logic to VM
 class LoginActivity : AppCompatActivity(R.layout.activity_login) {
 
     private val viewModel: LoginViewModel by viewModel()

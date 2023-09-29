@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.core.ui.navigation.DefaultNavigationEventDelegate
 import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
+import com.hasan.jetfasthub.core.ui.navigation.emitNavigation
+import com.hasan.jetfasthub.core.ui.utils.Constants.getAuthorizationUrl
 import com.hasan.jetfasthub.screens.login.domain.AuthRepository
+import com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserClickIntents
 import com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserNavigation
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +25,15 @@ class LoginViewModel(
 
     private val _state: MutableStateFlow<LoginScreenState> = MutableStateFlow(LoginScreenState())
     val state = _state.asStateFlow()
+
+    fun handleIntents(intent: LoginChooserClickIntents){
+        when(intent){
+            LoginChooserClickIntents.BasicAuthentication -> {
+                emitNavigation(LoginChooserNavigation.BasicAuth)
+            }
+            LoginChooserClickIntents.OAuthCLick -> emitNavigation(LoginChooserNavigation.OAuth(getAuthorizationUrl()))
+        }
+    }
 
     fun getAccessToken(code: String): Flow<String> = callbackFlow {
         viewModelScope.launch {
@@ -53,13 +65,10 @@ class LoginViewModel(
     }
 
     fun changeStatus(loadingPageStatus: LoginPageState) {
-        _state.update {
-            it.copy(
-                loadingPageStatus = loadingPageStatus
-            )
-        }
+        _state.update { it.copy(loadingPageStatus = loadingPageStatus) }
     }
 
+    //TODO here maybe use other apis like Either if it matches
     fun getAuthenticatedUser(token: String): Flow<String> = callbackFlow {
         viewModelScope.launch {
             try {

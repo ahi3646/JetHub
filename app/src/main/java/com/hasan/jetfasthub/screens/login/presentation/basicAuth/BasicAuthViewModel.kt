@@ -1,31 +1,46 @@
 package com.hasan.jetfasthub.screens.login.presentation.basicAuth
 
 import androidx.lifecycle.ViewModel
+import com.hasan.jetfasthub.core.ui.navigation.DefaultNavigationEventDelegate
+import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
+import com.hasan.jetfasthub.core.ui.navigation.emitNavigation
+import com.hasan.jetfasthub.core.ui.utils.Constants.getAuthorizationUrl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class BasicAuthViewModel : ViewModel() {
+class BasicAuthViewModel : ViewModel(),
+    NavigationEventDelegate<BasicAuthScreenNavigation> by DefaultNavigationEventDelegate() {
 
     private val _uiState = MutableStateFlow(BasicAuthUiState())
     val uiState: StateFlow<BasicAuthUiState> = _uiState.asStateFlow()
 
-    fun onUsernameChange(newUsername: String) {
-        _uiState.update {
-            it.copy(userName = newUsername)
-        }
-    }
+    fun handleIntents(intent: BasicAuthClickIntents) {
+        when (intent) {
+            is BasicAuthClickIntents.OnUsernameChanged -> {
+                _uiState.update {
+                    it.copy(userName = intent.username)
+                }
+            }
 
-    fun onPasswordChange(newPassword: String) {
-        _uiState.update {
-            it.copy(password = newPassword)
-        }
-    }
+            is BasicAuthClickIntents.OnPasswordChanged -> {
+                _uiState.update {
+                    it.copy(password = intent.password)
+                }
+            }
 
-    fun onPasswordVisibilityChange(newVisibility: Boolean) {
-        _uiState.update {
-            it.copy(passwordVisibility = newVisibility)
+            is BasicAuthClickIntents.BrowserAuth -> {
+                emitNavigation(BasicAuthScreenNavigation.BrowserAuth(getAuthorizationUrl()))
+            }
+
+            BasicAuthClickIntents.GoPreviousScreen -> {
+                emitNavigation(BasicAuthScreenNavigation.GoPreviousScreen)
+            }
+
+            BasicAuthClickIntents.LoginClick -> {
+                //currently not available
+            }
         }
     }
 

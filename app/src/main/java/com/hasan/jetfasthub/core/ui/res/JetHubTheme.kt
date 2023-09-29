@@ -55,8 +55,8 @@ fun JetFastHubTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color(0xFF191C1D).toArgb()
-            //window.navigationBarColor = myColorScheme.secondaryContainer.toArgb()
+            window.statusBarColor = themeColors.background.secondary.toArgb()
+            window.navigationBarColor = themeColors.background.secondary.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
                 !isDarkTheme
             //WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !isDarkTheme
@@ -230,17 +230,15 @@ private fun darkThemeColors(): JetHubColors {
 
 //TODO think about other best ways
 object RippleCustomTheme : RippleTheme {
-
-    //Your custom implementation...
     @Composable
     override fun defaultColor() = RippleTheme.defaultRippleColor(
         contentColor = Color(0xFFC4C7C7),
         lightTheme = true
     )
-
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleTheme.defaultRippleAlpha(
-        Color.Black, lightTheme = true
+        contentColor = Color.Black,
+        lightTheme = true
     )
 }
 

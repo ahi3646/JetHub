@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">JetHub</string>
 
-    <string name="login">login</string>
-    <string name="basic_auth">basic_auth</string>
     <string name="home">Home</string>
     <string name="pull_requests">Pull Requests</string>
     <string name="issues">Issues</string>
@@ -91,8 +88,11 @@
     <string name="fetching_status">Идет получение пользовательских данных, подождите немного :)</string>
     <string name="welcome">Добро пожаловать</string>
     <string name="login_status_error">Что-то пошло не так! Попробуйте повторно войти в систему, пожалуйста</string>
-
-
+    <string name="login">Войти</string>
+    <string name="browser_login">Войдите в систему с помощью браузера по умолчанию</string>
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="previous_screen">Перейти к предыдущему экрану</string>
 
 
 </resources>
