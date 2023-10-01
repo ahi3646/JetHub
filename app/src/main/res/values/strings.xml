@@ -1,11 +1,27 @@
 <resources>
     <string name="app_name">JetHub</string>
+    //TODO remove unnecessary string resources
 
-<!--    TODO remove unnecessary string resources-->
-    <string name="home">Home</string>
+    //Home Screen Bottom Navigation
+    <string name="feeds">Feeds</string>
     <string name="pull_requests">Pull Requests</string>
     <string name="issues">Issues</string>
-    <string name="feeds">Feeds</string>
+
+    //Drawer Menu
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
+    <string name="organizations">Organizations</string>
+    <string name="notifications">Notifications</string>
+    <string name="pinned">Pinned</string>
+    <string name="gists">Gists</string>
+    <string name="trending">Trending</string>
+    <string name="faq">FAQ</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="starred">Starred</string>
+    <string name="repositories">Repositories</string>
+    <string name="add_account">Add account</string>
+    <string name="logout">Logout</string>
 
     // Events
     <string name="released">Released</string>
@@ -22,7 +38,6 @@
     <string name="pr_review_event" translatable="false">Pull Request</string>
     <string name="repo_event" translatable="false">Repository</string>
     <string name="forked" translatable="false">Forked</string>
-    <string name="starred" translatable="false">Starred</string>
     <string name="created_repo">Created</string>
     <string name="committed">Committed</string>
     <string name="downloaded">Downloaded</string>

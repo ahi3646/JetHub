@@ -1,6 +1,5 @@
 package com.hasan.jetfasthub.screens.main.home.presentation.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,11 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,14 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
 import com.hasan.jetfasthub.core.ui.utils.Resource
@@ -45,548 +44,309 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
-fun DrawerHeader(user: Resource<GitHubUser>) {
-
+fun DrawerHeader(
+    modifier: Modifier = Modifier,
+    user: Resource<GitHubUser>
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
+        modifier = modifier,
     ) {
-
         GlideImage(
             failure = { painterResource(id = R.drawable.baseline_account_circle_24) },
             imageModel = { user.data?.avatar_url },
             modifier = Modifier
-                .size(64.dp)
+                .size(JetHubTheme.dimens.size64)
                 .clip(CircleShape)
-                .border(2.dp, Color.Gray, CircleShape),
+                .border(
+                    width = JetHubTheme.dimens.size2,
+                    color = JetHubTheme.colors.stroke.primary,
+                    shape = CircleShape
+                ),
             imageOptions = ImageOptions(
-                contentDescription = "avatar picture",
+                contentDescription = null,
                 contentScale = ContentScale.Crop,
             )
         )
-
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier.padding(start = 24.dp)
+            modifier = Modifier.padding(start = JetHubTheme.dimens.spacing24)
         ) {
-            Text(user.data?.name.toString(), color = MaterialTheme.colorScheme.onSurface)
-            Text(user.data?.login.toString(), color = MaterialTheme.colorScheme.onSurface)
+            Text(user.data?.name.toString(), color = JetHubTheme.colors.text.primary1)
+            Text(user.data?.login.toString(), color = JetHubTheme.colors.text.secondary)
         }
     }
-
 }
 
 @Composable
 fun DrawerBody(
+    modifier: Modifier = Modifier,
     closeDrawer: () -> Unit,
     username: String,
     onLogout: () -> Unit,
     onNavigate: (Int, String?, String?) -> Unit
 ) {
-
     var tabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("MENU", "PROFILE")
-
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+        modifier = modifier,
     ) {
         TabRow(
             selectedTabIndex = tabIndex,
             backgroundColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            contentColor = JetHubTheme.colors.text.primary1
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     text = {
                         if (tabIndex == index) {
-                            Text(title, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(
+                                text = title,
+                                color = JetHubTheme.colors.text.primary1,
+                                style = JetHubTheme.typography.button
+                            )
                         } else {
-                            Text(title, color = MaterialTheme.colorScheme.outline)
+                            Text(
+                                text = title,
+                                color = JetHubTheme.colors.text.primary1,
+                                style = JetHubTheme.typography.button
+                            )
                         }
                     },
                     selected = tabIndex == index,
                     onClick = { tabIndex = index },
-                    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    unselectedContentColor = MaterialTheme.colorScheme.inverseOnSurface
+                    selectedContentColor = JetHubTheme.colors.text.primary1,
+                    unselectedContentColor = JetHubTheme.colors.text.tertiary,
                 )
             }
         }
         when (tabIndex) {
-            0 -> DrawerMenuScreen(closeDrawer, username, onNavigate)
-            1 -> DrawerProfileScreen(username, onNavigate, onLogout)
+            0 -> DrawerMenuScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                closeDrawer = closeDrawer,
+                username = username,
+                onNavigate = onNavigate
+            )
+
+            1 -> DrawerProfileScreen(
+                modifier = Modifier.fillMaxSize(),
+                username = username,
+                onNavigate = onNavigate,
+                onLogout = onLogout
+            )
         }
     }
-
 }
-
 
 @Composable
 fun DrawerMenuScreen(
-    closeDrawer: () -> Unit, username: String, onNavigate: (Int, String?, String?) -> Unit
+    modifier: Modifier = Modifier,
+    closeDrawer: () -> Unit,
+    username: String,
+    onNavigate: (Int, String?, String?) -> Unit
 ) {
-    val scrollState = rememberScrollState()
-
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState),
+        modifier = modifier,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    closeDrawer()
-                }) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_home_24),
-                contentDescription = "home icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Home",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
+        DrawerMenuItem(
+            text = stringResource(id = R.string.home),
+            onClick = { closeDrawer() },
+            icon = painterResource(id = R.drawable.baseline_home_24),
+        )
         Divider()
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface)
-                ) {
-                    closeDrawer()
-                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, null)
-                }) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_person_24),
-                contentDescription = "Profile icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Profile",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { }) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_people_alt_24),
-                contentDescription = "Organizations icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Organizations",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null)
-                }) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_notifications_24),
-                contentDescription = "Notifications icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Notifications",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
+        DrawerMenuItem(
+            text = stringResource(id = R.string.home),
+            onClick = { onNavigate(R.id.action_homeFragment_to_profileFragment, username, null) },
+            icon = painterResource(id = R.drawable.baseline_person_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.organizations),
+            onClick = { },
+            icon = painterResource(id = R.drawable.baseline_people_alt_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.notifications),
+            onClick = { onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_notifications_24),
+        )
         Divider()
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null)
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_bookmark_24),
-                contentDescription = "Pinned icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Pinned",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_trending_up_24),
-                contentDescription = "Trending icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Trending",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 4.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_gistsFragment, username, null)
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_code_24),
-                contentDescription = "Gists icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Gists",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
+        DrawerMenuItem(
+            text = stringResource(id = R.string.pinned),
+            onClick = { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_bookmark_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.trending),
+            onClick = { onNavigate(R.id.action_homeFragment_to_notificationsFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_trending_up_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.gists),
+            onClick = { onNavigate(R.id.action_homeFragment_to_gistsFragment, username, null) },
+            icon = painterResource(id = R.drawable.baseline_code_24),
+        )
         Divider()
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 2.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(
-                        R.id.action_homeFragment_to_repositoryFragment,
-                        Constants.JetHubOwner,
-                        Constants.JetHubRepoName
-                    )
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_fasthub_mascot),
-                contentDescription = "JetHub icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "JetHub",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_info_24),
-                contentDescription = "FAQ icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "FAQ",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_settingsFragment, null, null)
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_settings_24),
-                contentDescription = "Setting icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Setting",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_money),
-                contentDescription = "Restore Purchases icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Restore Purchases",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_aboutFragment, null, null)
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_info_24),
-                contentDescription = "About icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "About",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+        DrawerMenuItem(
+            text = stringResource(id = R.string.app_name),
+            onClick = {
+                onNavigate(
+                    R.id.action_homeFragment_to_repositoryFragment,
+                    Constants.JetHubOwner,
+                    Constants.JetHubRepoName
+                )
+            },
+            icon = painterResource(id = R.drawable.ic_fasthub_mascot),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.faq),
+            onClick = { onNavigate(R.id.action_homeFragment_to_faqFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_info_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.settings),
+            onClick = { onNavigate(R.id.action_homeFragment_to_settingsFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_settings_24),
+        )
+        DrawerMenuItem(
+            text = stringResource(id = R.string.about),
+            onClick = { onNavigate(R.id.action_homeFragment_to_aboutFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_info_24),
+        )
     }
 }
 
 @Composable
 fun DrawerProfileScreen(
-    username: String, onNavigate: (Int, String?, String?) -> Unit, onLogout: () -> Unit
+    modifier: Modifier = Modifier,
+    username: String,
+    onNavigate: (Int, String?, String?) -> Unit,
+    onLogout: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { onLogout() }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_logout),
-                contentDescription = "Logout icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
+        DrawerMenuItem(
+            text = stringResource(id = R.string.logout),
+            onClick = { onLogout() },
+            icon = painterResource(id = R.drawable.ic_logout),
+        )
+        Divider()
+        DrawerMenuItem(
+            text = stringResource(id = R.string.add_account),
+            onClick = { },
+            icon = painterResource(id = R.drawable.ic_add),
+        )
+        Divider()
+        DrawerMenuItem(
+            text = stringResource(id = R.string.repositories),
+            onClick = { onNavigate(R.id.action_homeFragment_to_profileFragment, username, "2") },
+            icon = painterResource(id = R.drawable.baseline_book_24),
+        )
+        Divider()
+        DrawerMenuItem(
+            text = stringResource(id = R.string.starred),
+            onClick = { onNavigate(R.id.action_homeFragment_to_profileFragment, username, "3") },
+            icon = painterResource(id = R.drawable.baseline_star_24),
+        )
+        Divider()
+        DrawerMenuItem(
+            text = stringResource(id = R.string.pinned),
+            onClick = { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) },
+            icon = painterResource(id = R.drawable.baseline_bookmark_border_24),
+        )
+    }
+}
+
+@Composable
+fun DrawerMenuItem(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit,
+    icon: Painter
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(color = JetHubTheme.colors.text.primary2),
+                onClick = { onClick() }
             )
-            Text(
-                text = "Logout",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = null,
+            modifier = Modifier.padding(
+                start = JetHubTheme.dimens.spacing32,
+                top = JetHubTheme.dimens.spacing12,
+                bottom = JetHubTheme.dimens.spacing12,
+            ),
+            tint = JetHubTheme.colors.icon.primary1
+        )
+        Text(
+            text = text,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = JetHubTheme.dimens.spacing24),
+            style = JetHubTheme.typography.button,
+            color = JetHubTheme.colors.text.primary1
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DrawerMenuItemPreview() {
+    JetFastHubTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(JetHubTheme.colors.background.plain)
+        ) {
+            DrawerMenuItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = JetHubTheme.dimens.spacing2,
+                        bottom = JetHubTheme.dimens.spacing2
+                    ),
+                text = stringResource(id = R.string.profile),
+                onClick = { },
+                icon = painterResource(id = R.drawable.ic_profile)
             )
         }
+    }
+}
 
-        Divider()
 
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    //implement action
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_add),
-                contentDescription = "Add Account icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Add Account",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Divider()
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, "2")
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_book_24),
-                contentDescription = "Repositories icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Repositories",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Divider()
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) {
-                    onNavigate(R.id.action_homeFragment_to_profileFragment, username, "3")
-                }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_star_24),
-                contentDescription = "Starred icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Starred",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Divider()
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .fillMaxWidth(1F)
-                .padding(top = 4.dp, bottom = 2.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(color = MaterialTheme.colorScheme.onSurface),
-                ) { onNavigate(R.id.action_homeFragment_to_pinnedFragment, null, null) }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_bookmark_border_24),
-                contentDescription = "Pinned icon",
-                modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-            )
-            Text(
-                text = "Pinned",
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+@Preview
+@Composable
+fun NavigationDrawer_LightPreview() {
+    JetFastHubTheme(isDarkTheme = false) {
+        Column {
+//            DrawerHeader(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .background(MaterialTheme.colorScheme.surface)
+//                    .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
+//            )
+            DrawerBody(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(JetHubTheme.colors.background.plain),
+                closeDrawer = { },
+                username = "HasanAnorov",
+                onLogout = {},
+                onNavigate = { _, _, _ -> }
             )
         }
     }
@@ -594,40 +354,24 @@ fun DrawerProfileScreen(
 
 @Preview
 @Composable
-fun Tests() {
+fun NavigationDrawer_DarkPreview() {
     JetFastHubTheme(isDarkTheme = true) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(Color.White),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
+        Column {
+//            DrawerHeader(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .background(JetHubTheme.colors.background.secondary)
+//                    .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
+//            )
+            DrawerBody(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 2.dp, bottom = 2.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(color = Color.Red),
-                    ) {
-                        //closeDrawer()
-                    }) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_home_24),
-                    contentDescription = "home icon",
-                    modifier = Modifier.padding(start = 32.dp, top = 12.dp, bottom = 12.dp),
-                    colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
-                )
-                Text(
-                    text = "Home",
-                    modifier = Modifier.padding(start = 24.dp, top = 12.dp, bottom = 12.dp),
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+                    .background(JetHubTheme.colors.background.plain),
+                closeDrawer = { },
+                username = "HasanAnorov",
+                onLogout = {},
+                onNavigate = { _, _, _ -> }
+            )
         }
     }
 }

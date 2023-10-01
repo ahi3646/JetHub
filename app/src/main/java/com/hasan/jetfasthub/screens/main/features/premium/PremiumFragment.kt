@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.premium
+package com.hasan.jetfasthub.screens.main.features.premium
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -59,7 +59,7 @@ class PremiumFragment : Fragment() {
 @Composable
 private fun MainContent(onBackPressed: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBarContent(onBackPressed)}
+        topBar = { TopAppBarContent(onBackPressed) }
     ) { paddingValues ->
 
         Surface(modifier = Modifier.padding(paddingValues)) {

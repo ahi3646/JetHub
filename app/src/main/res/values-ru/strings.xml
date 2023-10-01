@@ -2,10 +2,27 @@
 <resources>
     <string name="app_name">JetHub</string>
 
-    <string name="home">Home</string>
-    <string name="pull_requests">Pull Requests</string>
-    <string name="issues">Issues</string>
-    <string name="feeds">Feeds</string>
+    //Home Screen Bottom Nav
+    <string name="feeds">Ленты</string>
+    <string name="pull_requests">Запросы на вытягивание</string>
+    <string name="issues">Проблемы</string>
+
+    //Drawer
+    <string name="home">Дом</string>
+    <string name="profile">Профиль</string>
+    <string name="organizations">Организации</string>
+    <string name="notifications">Уведомления</string>
+    <string name="pinned">Закреплено</string>
+    <string name="gists">Гисты</string>
+    <string name="trending">Тенденции</string>
+    <string name="faq">Часто задаваемые вопросы</string>
+    <string name="settings">Настройки</string>
+    <string name="about">О приложении</string>
+    <string name="starred">Помечено</string>
+    <string name="repositories">Репозитории</string>
+    <string name="add_account">Добавить аккаунт</string>
+    <string name="logout">Выйти</string>
+
 
     // Events
     <string name="released">Released</string>
@@ -22,7 +39,6 @@
     <string name="pr_review_event" translatable="false">Pull Request</string>
     <string name="repo_event" translatable="false">Repository</string>
     <string name="forked" translatable="false">Forked</string>
-    <string name="starred" translatable="false">Starred</string>
     <string name="created_repo">Created</string>
     <string name="committed">Committed</string>
     <string name="downloaded">Downloaded</string>
