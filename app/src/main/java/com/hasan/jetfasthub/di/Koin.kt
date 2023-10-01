@@ -14,7 +14,6 @@ import com.hasan.jetfasthub.data.GistRepository
 import com.hasan.jetfasthub.data.GistRepositoryImpl
 import com.hasan.jetfasthub.data.GistsRepository
 import com.hasan.jetfasthub.data.GistsRepositoryImpl
-import com.hasan.jetfasthub.screens.login.presentation.LoginViewModel
 import com.hasan.jetfasthub.screens.login.presentation.basicAuth.BasicAuthViewModel
 import com.hasan.jetfasthub.data.HomeRepository
 import com.hasan.jetfasthub.data.HomeRepositoryImpl
@@ -38,7 +37,7 @@ import com.hasan.jetfasthub.screens.main.commits.EditCommentViewModel
 import com.hasan.jetfasthub.screens.main.file_view.FileViewVM
 import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
-import com.hasan.jetfasthub.screens.main.home.HomeViewModel
+import com.hasan.jetfasthub.screens.main.home.presentation.HomeViewModel
 import com.hasan.jetfasthub.screens.main.home.data.local.HomeDatabase
 import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
 import com.hasan.jetfasthub.screens.main.home.data.remote.EventsRemoteMediator

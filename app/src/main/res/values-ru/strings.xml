@@ -98,6 +98,4 @@
     <string name="login_network_error">Произошла ошибка сети, попробуйте позже!</string>
     <string name="login_invalid_token">Received invalid token, try later!</string>
 
-
-
 </resources>

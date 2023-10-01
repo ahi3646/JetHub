@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.hasan.jetfasthub.screens.main.home.HomeFragment"
+        android:name="com.hasan.jetfasthub.screens.main.home.presentation.HomeFragment"
         android:label="JetHub" >
 
         <action

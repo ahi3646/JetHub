@@ -23,7 +23,7 @@ interface AuthorizationService {
         @Field("client_secret") clientSecret: String,
         @Field("code") code: String,
         //other parameters are optional
-    ): Response<AccessTokenModelDto>
+    ): AccessTokenModelDto
 
     @Headers("Accept: application/vnd.github+json")
     @GET("user")

@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home
+package com.hasan.jetfasthub.screens.main.home.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

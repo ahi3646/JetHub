@@ -1,7 +1,8 @@
 package com.hasan.jetfasthub.screens.login.presentation
 
 import android.content.Intent
-import android.util.Log
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hasan.jetfasthub.R
@@ -12,10 +13,10 @@ import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
 import com.hasan.jetfasthub.core.ui.navigation.emitNavigation
 import com.hasan.jetfasthub.core.ui.utils.Constants
 import com.hasan.jetfasthub.core.ui.utils.Constants.getAuthorizationUrl
-import com.hasan.jetfasthub.screens.login.data.mapper.mapToAccessToken
 import com.hasan.jetfasthub.screens.login.domain.AuthUseCase
 import com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserClickIntents
 import com.hasan.jetfasthub.screens.login.presentation.loginPage.LoginChooserNavigation
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,18 +30,24 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val authUseCase: AuthUseCase
-) : ViewModel(),
+) : ViewModel(), DefaultLifecycleObserver,
     NavigationEventDelegate<LoginChooserNavigation> by DefaultNavigationEventDelegate() {
 
     private val _state: MutableStateFlow<LoginScreenState> = MutableStateFlow(LoginScreenState())
     val state = _state.asStateFlow()
+
+    override fun onCreate(owner: LifecycleOwner) {
+        super.onCreate(owner)
+        if (authUseCase.isLogged()) {
+            emitNavigation(LoginChooserNavigation.NavigateToMain)
+        }
+    }
 
     fun handleIntents(intent: LoginChooserClickIntents) {
         when (intent) {
             LoginChooserClickIntents.BasicAuthentication -> {
                 emitNavigation(LoginChooserNavigation.BasicAuth)
             }
-
             LoginChooserClickIntents.OAuthCLick -> emitNavigation(
                 LoginChooserNavigation.OAuth(
                     getAuthorizationUrl()
@@ -50,7 +57,6 @@ class LoginViewModel(
     }
 
     fun handleAuthIntent(intent: Intent?) {
-        Log.d("ahi3646", "handleAuthIntent: ")
         if (intent != null && intent.data != null) {
             val uri = intent.data
             if (uri.toString().startsWith(Constants.REDIRECT_URL)) {
@@ -66,19 +72,18 @@ class LoginViewModel(
 
     private fun getAccessToken(code: String) {
         updateLoginFragmentStatus(LoginPageState.Fetching)
-        viewModelScope.launch {
+        viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ ->
+                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
+            }
+        ) {
             try {
                 authUseCase.getAccessToken(code).let { response ->
-                    if (response.isSuccessful) {
-                        if (response.body()!!.accessToken != null) {
-                            val token = response.body()!!.mapToAccessToken()
-                            authUseCase.saveToken(token = token.accessToken)
-                            getAuthenticatedUser(response.body()!!.accessToken!!)
-                        } else {
-                            updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_invalid_token)))
-                        }
+                    if (response.accessToken.isNotEmpty()) {
+                        authUseCase.saveToken(token = response.accessToken)
+                        getAuthenticatedUser(token = response.accessToken)
                     } else {
-                        updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_unsuccessful_response)))
+                        updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_invalid_token)))
                     }
                 }
             } catch (e: Exception) {
@@ -87,9 +92,12 @@ class LoginViewModel(
         }
     }
 
-    //TODO here maybe use other apis like Either if it matches
-    private fun getAuthenticatedUser(token: String){
-        viewModelScope.launch {
+    private fun getAuthenticatedUser(token: String) {
+        viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ ->
+                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
+            }
+        ) {
             try {
                 authUseCase.getAuthenticatedUser(token).let { authenticatedUser ->
                     if (authenticatedUser.isSuccessful) {

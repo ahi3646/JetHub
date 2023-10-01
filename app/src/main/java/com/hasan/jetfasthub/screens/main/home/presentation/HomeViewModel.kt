@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home
+package com.hasan.jetfasthub.screens.main.home.presentation
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

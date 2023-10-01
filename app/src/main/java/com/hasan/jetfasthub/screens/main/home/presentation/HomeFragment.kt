@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.home
+package com.hasan.jetfasthub.screens.main.home.presentation
 
 import android.content.Context
 import android.net.Uri
@@ -109,6 +109,9 @@ import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
 import com.hasan.jetfasthub.core.ui.utils.Resource
+import com.hasan.jetfasthub.screens.main.home.presentation.components.AppBar
+import com.hasan.jetfasthub.screens.main.home.presentation.components.DrawerBody
+import com.hasan.jetfasthub.screens.main.home.presentation.components.DrawerHeader
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch

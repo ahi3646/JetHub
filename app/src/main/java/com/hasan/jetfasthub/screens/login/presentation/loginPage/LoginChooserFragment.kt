@@ -32,6 +32,11 @@ class LoginChooserFragment : Fragment() {
 
     private val viewModel: LoginViewModel by activityViewModel()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycle.addObserver(viewModel)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
