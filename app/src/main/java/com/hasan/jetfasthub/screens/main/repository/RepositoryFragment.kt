@@ -141,7 +141,7 @@ class RepositoryFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
         val owner = arguments?.getString("repository_owner")
         val repo = arguments?.getString("repository_name")
 

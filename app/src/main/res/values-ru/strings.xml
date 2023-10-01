@@ -93,6 +93,11 @@
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="previous_screen">Перейти к предыдущему экрану</string>
+    <string name="login_token_code_not_found">Ошибка: не удалось найти код токена в uri!</string>
+    <string name="login_unsuccessful_response">Получен неудачный ответ, попробуйте позже!</string>
+    <string name="login_network_error">Произошла ошибка сети, попробуйте позже!</string>
+    <string name="login_invalid_token">Received invalid token, try later!</string>
+
 
 
 </resources>

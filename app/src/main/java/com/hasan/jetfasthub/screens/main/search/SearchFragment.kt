@@ -90,7 +90,7 @@ class SearchFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
         val query = arguments?.getString("repo_topic")
 
         if (query != null && query != "") {

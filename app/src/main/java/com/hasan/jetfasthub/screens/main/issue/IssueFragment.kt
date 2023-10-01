@@ -108,7 +108,8 @@ class IssueFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        //TODO fix token
+        token = PreferenceHelper(context).getToken()
 
         val owner = arguments?.getString("issue_owner")
         val repo = arguments?.getString("issue_repo")

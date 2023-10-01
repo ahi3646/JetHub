@@ -1,8 +1,8 @@
 package com.hasan.jetfasthub.screens.login.data
 
-import com.hasan.jetfasthub.screens.login.data.entity.AccessTokenModel
 import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
+import com.hasan.jetfasthub.screens.login.data.entity.AccessTokenModelDto
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -23,7 +23,7 @@ interface AuthorizationService {
         @Field("client_secret") clientSecret: String,
         @Field("code") code: String,
         //other parameters are optional
-    ): Response<AccessTokenModel>
+    ): Response<AccessTokenModelDto>
 
     @Headers("Accept: application/vnd.github+json")
     @GET("user")

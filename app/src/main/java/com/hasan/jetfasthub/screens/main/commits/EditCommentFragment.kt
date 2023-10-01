@@ -41,7 +41,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -85,7 +84,8 @@ class EditCommentFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        token = PreferenceHelper.getToken(requireContext())
+        //TODO fix preference helper later
+        token = PreferenceHelper(requireContext()).getToken()
 
         val owner = arguments?.getString("owner")
         val repo = arguments?.getString("repo")
@@ -184,7 +184,7 @@ class EditCommentFragment : Fragment() {
 
 }
 
-@OptIn( ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
+@OptIn( ExperimentalMaterialApi::class)
 @Composable
 private fun MainContent(
     editComment: String,

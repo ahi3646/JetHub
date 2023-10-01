@@ -120,7 +120,8 @@ class GistFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val token = PreferenceHelper.getToken(requireContext())
+        //TODO fix preference helper later
+        val token = PreferenceHelper(requireContext()).getToken()
         val gistId = arguments?.getString("gist_id")
         val gistOwner = arguments?.getString("gist_owner")
 

@@ -67,7 +67,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
 
         notificationsViewModel.getAllNotifications(token)
         notificationsViewModel.getUnreadNotifications(token, "enter_preferred_date")

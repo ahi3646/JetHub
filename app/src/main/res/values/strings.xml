@@ -93,5 +93,9 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="previous_screen">Go Previous Screen</string>
+    <string name="login_token_code_not_found">Error - can\'t find token code from uri!</string>
+    <string name="login_network_error">Network error occurred, try later!</string>
+    <string name="login_unsuccessful_response">Received unsuccessful response, try later!</string>
+    <string name="login_invalid_token">Received invalid token, try later!</string>
 
 </resources>

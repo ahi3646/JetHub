@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * BasicAuth screen view model
+ *
+ * @author Anorov Hasan on 30/09/2023
+ */
+
 class BasicAuthViewModel : ViewModel(),
     NavigationEventDelegate<BasicAuthScreenNavigation> by DefaultNavigationEventDelegate() {
 

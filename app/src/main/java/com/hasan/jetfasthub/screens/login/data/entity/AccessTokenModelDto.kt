@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.screens.login.data.entity
 
 import com.google.gson.annotations.SerializedName
 
-data class AccessTokenModel(
+data class AccessTokenModelDto(
     @SerializedName("access_token")
-    val access_token: String ? ,
+    val accessToken: String ?
 )

@@ -25,6 +25,12 @@ import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+/**
+ * BasicAuth Fragment
+ *
+ * @author Anorov Hasan on 30/09/2023
+ */
+
 class BasicAuthFragment : Fragment() {
 
     private val viewModel: BasicAuthViewModel by viewModel()

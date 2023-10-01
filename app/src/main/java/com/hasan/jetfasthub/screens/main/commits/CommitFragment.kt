@@ -113,7 +113,8 @@ class CommitFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         // Consider using safe args plugin
-        token = PreferenceHelper.getToken(requireContext())
+        //TODO fix preference helper here
+        token = PreferenceHelper(requireContext()).getToken()
         val owner = arguments?.getString("owner")
         val repo = arguments?.getString("repo")
         val sha = arguments?.getString("sha")

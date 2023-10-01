@@ -1,5 +1,6 @@
 package com.hasan.jetfasthub.screens.login.presentation.loginPage
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,9 +28,21 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.components.CommonJetHubLoginButton
+import com.hasan.jetfasthub.core.ui.extensions.resolveReference
+import com.hasan.jetfasthub.core.ui.extensions.resourceReference
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.screens.login.presentation.LoginPageState
+
+/**
+ * LoginChooserScreen screen
+ *
+ * @param state screen state
+ * @param modifier screen modifier
+ * @param intentReducer generic class to handle all intents
+ *
+ * @author Anorov Hasan on 30/09/2023
+ */
 
 @Composable
 fun LoginChooserScreen(
@@ -44,7 +58,14 @@ fun LoginChooserScreen(
 
         LoginPageState.Fetching -> LoginChooserFetchingContent(modifier = modifier)
         LoginPageState.Success -> LoginChooserSuccessContent(modifier = modifier)
-        LoginPageState.Error -> LoginChooserErrorContent(modifier = modifier)
+        is LoginPageState.Error -> {
+            Toast.makeText(
+                LocalContext.current,
+                state.errorMessage.resolveReference(),
+                Toast.LENGTH_SHORT
+            ).show()
+            LoginChooserErrorContent(modifier = modifier)
+        }
     }
 }
 
@@ -80,9 +101,7 @@ private fun LoginChooserDefaultContent(
                 .background(color = JetHubTheme.colors.background.primary),
         )
         CommonJetHubLoginButton(
-            onClick = {
-                intentReducer(LoginChooserClickIntents.BasicAuthentication)
-            },
+            onClick = { },
             text = stringResource(id = R.string.access_token),
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,9 +111,7 @@ private fun LoginChooserDefaultContent(
                 .background(color = JetHubTheme.colors.background.primary),
         )
         CommonJetHubLoginButton(
-            onClick = {
-                intentReducer(LoginChooserClickIntents.BasicAuthentication)
-            },
+            onClick = { },
             text = stringResource(id = R.string.enterprise),
             modifier = Modifier
                 .fillMaxWidth()
@@ -153,7 +170,6 @@ private fun LoginChooserFetchingContent(
             modifier = Modifier.padding(horizontal = JetHubTheme.dimens.spacing16)
         )
         CircularProgressIndicator(
-            progress = 0.7f,
             color = JetHubTheme.colors.stroke.secondary,
             modifier = Modifier.padding(top = JetHubTheme.dimens.spacing24)
         )
@@ -225,6 +241,6 @@ private class LoginChooserScreenStateProvide : CollectionPreviewParameterProvide
         LoginPageState.Default,
         LoginPageState.Fetching,
         LoginPageState.Success,
-        LoginPageState.Error,
+        LoginPageState.Error(resourceReference(R.string.login_unsuccessful_response)),
     )
 )

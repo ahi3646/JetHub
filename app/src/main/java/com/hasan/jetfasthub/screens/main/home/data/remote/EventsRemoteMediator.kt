@@ -7,6 +7,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.hasan.jetfasthub.data.HomeRepository
+import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.data.local.HomeDatabase
 import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
 import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModelEntity
@@ -16,8 +17,7 @@ import retrofit2.HttpException
 class EventsRemoteMediator(
     private val repository: HomeRepository,
     private val homeDatabase: HomeDatabase,
-    private val token: String,
-    private val username: String
+    private val preferences: PreferenceHelper
 ) : RemoteMediator<Int, ReceivedEventsModelEntity>() {
 
     override suspend fun load(
@@ -43,10 +43,13 @@ class EventsRemoteMediator(
                     }
                 }
             }
-            Log.d("ahi3646", "load events mediator: $token - $username - id-${state.lastItemOrNull()?.id}")
+            Log.d(
+                "ahi3646",
+                "load events mediator: ${preferences.getToken()} - ${preferences.getAuthenticatedUsername()} - id-${state.lastItemOrNull()?.id}"
+            )
             val events = repository.getReceivedUserEvents(
-                token,
-                username,
+                preferences.getToken(),
+                preferences.getAuthenticatedUsername(),
                 loadKey,
                 state.config.pageSize
             )

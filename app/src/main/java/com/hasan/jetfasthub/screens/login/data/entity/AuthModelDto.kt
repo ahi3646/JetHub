@@ -1,6 +1,9 @@
 package com.hasan.jetfasthub.screens.login.data.entity
 
-open class AuthModel(
+/**
+ * this will be used when login feature be available.
+ * */
+open class AuthModelDto(
      private var clientId: String? = null,
      private var clientSecret: String? = null,
      private var redirectUri: String? = null,

@@ -79,7 +79,8 @@ class GistsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val token = PreferenceHelper.getToken(requireContext())
+        //TODO fix preference helper later
+        val token = PreferenceHelper(requireContext()).getToken()
         val username = arguments?.getString("gist_data") ?: ""
 
         gistsViewModel.getUserGists(token = token, username = username, 1)

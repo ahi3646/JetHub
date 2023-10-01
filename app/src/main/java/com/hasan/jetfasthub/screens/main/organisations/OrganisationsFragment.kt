@@ -89,7 +89,7 @@ class OrganisationsFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
 
         val organisation = arguments?.getString("organisation")
 

@@ -4,8 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.login.data.entity.AccessTokenModel
+import com.hasan.jetfasthub.screens.login.domain.model.AccessTokenModel
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
@@ -19,10 +18,11 @@ class AuthenticationInterceptor(private val context: Context) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
 
+        //TODO here preference helper incorrectly used, fix later
         val original = chain.request()
-        PreferenceHelper.getToken(context = context).let { access_token ->
-            token = gson.fromJson(access_token, type)
-        }
+//        PreferenceHelper.getToken(context = context).let { access_token ->
+//            token = gson.fromJson(access_token, type)
+//        }
 
         val refreshRequest = newRequestBuilder(
             original,
@@ -31,7 +31,7 @@ class AuthenticationInterceptor(private val context: Context) : Interceptor {
         )
 
         response = if (original.url.toString()
-                .contains("/oauth2/token") || token.access_token.isNullOrEmpty()
+                .contains("/oauth2/token") || token.accessToken.isNullOrEmpty()
         ) {
             //firs attempt or refresh method
             Log.d("RESPONSE_REFRESH", "refreshing")
@@ -39,7 +39,7 @@ class AuthenticationInterceptor(private val context: Context) : Interceptor {
         } else {
             //normal state
             Log.d("NORMAL_STATE", "token not expired")
-            chain.proceed(newRequestBuilder(original, "Bearer", token.access_token!!).build())
+            chain.proceed(newRequestBuilder(original, "Bearer", token.accessToken!!).build())
         }
 
         /**

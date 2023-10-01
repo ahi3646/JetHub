@@ -121,8 +121,8 @@ class ProfileFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
-        val authUser = PreferenceHelper.getAuthenticatedUsername(context)
+        token = PreferenceHelper(context).getToken()
+        val authUser = PreferenceHelper(context).getAuthenticatedUsername()
 
         val username = arguments?.getString("username")
         val extra = arguments?.getString("start_index") ?: "0"

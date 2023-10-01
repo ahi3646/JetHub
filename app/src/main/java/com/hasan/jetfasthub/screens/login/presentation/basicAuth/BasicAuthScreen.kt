@@ -26,6 +26,16 @@ import com.hasan.jetfasthub.core.ui.components.CommonJetHubLoginTextField
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 
+/**
+ * BasicAuth screen
+ *
+ * @param state screen state
+ * @param modifier screen modifier
+ * @param intentReducer generic class to handle all intents
+ *
+ * @author Anorov Hasan on 30/09/2023
+ */
+
 @Composable
 fun BasicAuthScreen(
     modifier: Modifier = Modifier,

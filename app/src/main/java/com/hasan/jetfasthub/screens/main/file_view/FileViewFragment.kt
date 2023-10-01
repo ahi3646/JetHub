@@ -64,7 +64,8 @@ class FileViewFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        val token = PreferenceHelper.getToken(context)
+        //TODO fix preference helper later
+        val token = PreferenceHelper(context).getToken()
 
         val repoOwner = arguments?.getString("repo_owner")
         val repoName = arguments?.getString("repo_name")
