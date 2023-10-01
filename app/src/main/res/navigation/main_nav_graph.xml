@@ -204,7 +204,7 @@
 
     <fragment
         android:id="@+id/aboutFragment"
-        android:name="com.hasan.jetfasthub.screens.main.about.AboutFragment"
+        android:name="com.hasan.jetfasthub.screens.main.features.about.AboutFragment"
         android:label="AboutFragment" >
 
         <action
@@ -221,7 +221,7 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.hasan.jetfasthub.screens.main.settings.SettingsFragment"
+        android:name="com.hasan.jetfasthub.screens.main.features.settings.SettingsFragment"
         android:label="SettingsFragment" >
 
         <action
@@ -238,7 +238,7 @@
 
     <fragment
         android:id="@+id/faqFragment"
-        android:name="com.hasan.jetfasthub.screens.main.faq.FaqFragment"
+        android:name="com.hasan.jetfasthub.screens.main.features.faq.FaqFragment"
         android:label="FaqFragment" />
 
     <fragment
@@ -281,7 +281,7 @@
 
     <fragment
         android:id="@+id/pinnedFragment"
-        android:name="com.hasan.jetfasthub.screens.main.pinned.PinnedFragment"
+        android:name="com.hasan.jetfasthub.screens.main.features.pinned.PinnedFragment"
         android:label="PinnedFragment" >
 
         <action
@@ -411,7 +411,7 @@
 
     <fragment
         android:id="@+id/searchFilesFragment"
-        android:name="com.hasan.jetfasthub.screens.main.search_files.SearchFilesFragment"
+        android:name="com.hasan.jetfasthub.screens.main.features.searchFiles.SearchFilesFragment"
         android:label="SearchFilesFragment" />
 
     <fragment

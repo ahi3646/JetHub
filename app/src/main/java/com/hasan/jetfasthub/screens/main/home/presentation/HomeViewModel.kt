@@ -36,6 +36,8 @@ class HomeViewModel(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> get() = _isRefreshing.asStateFlow()
 
+
+    //rethink about this later
     init {
         refresh()
     }
@@ -348,36 +350,6 @@ class HomeViewModel(
         }
     }
 
-    /**
-    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
-    viewModelScope.launch {
-    try {
-    repository.getAuthenticatedUser(token).let { authenticatedUser ->
-    if (authenticatedUser.isSuccessful) {
-    trySend(authenticatedUser.body()!!)
-    } else {
-    _state.update {
-    it.copy(
-    user = Resource.Failure(
-    authenticatedUser.errorBody().toString()
-    )
-    )
-    }
-    }
-    }
-    } catch (e: Exception) {
-    _state.update {
-    it.copy(user = Resource.Failure(e.message.toString()))
-    }
-    }
-    }
-    awaitClose {
-    channel.close()
-    Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
-    }
-    }
-     */
-
     fun getUser(token: String, username: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -419,6 +391,36 @@ class HomeViewModel(
             )
         }
     }
+
+    /**
+    fun getAuthenticatedUser(token: String): Flow<AuthenticatedUser> = callbackFlow {
+    viewModelScope.launch {
+    try {
+    repository.getAuthenticatedUser(token).let { authenticatedUser ->
+    if (authenticatedUser.isSuccessful) {
+    trySend(authenticatedUser.body()!!)
+    } else {
+    _state.update {
+    it.copy(
+    user = Resource.Failure(
+    authenticatedUser.errorBody().toString()
+    )
+    )
+    }
+    }
+    }
+    } catch (e: Exception) {
+    _state.update {
+    it.copy(user = Resource.Failure(e.message.toString()))
+    }
+    }
+    }
+    awaitClose {
+    channel.close()
+    Log.d("ahi3646", "getAuthenticatedUser: callback channel stopped ")
+    }
+    }
+     */
 
     /**
     fun getReceivedEvents(token: String, username: String) {

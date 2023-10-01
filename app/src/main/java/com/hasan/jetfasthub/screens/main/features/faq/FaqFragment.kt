@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.faq
+package com.hasan.jetfasthub.screens.main.features.faq
 
 import android.os.Bundle
 import android.view.LayoutInflater

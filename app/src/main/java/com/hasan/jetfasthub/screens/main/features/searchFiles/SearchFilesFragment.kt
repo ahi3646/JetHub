@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.search_files
+package com.hasan.jetfasthub.screens.main.features.searchFiles
 
 import android.os.Bundle
 import android.view.LayoutInflater

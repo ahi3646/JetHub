@@ -1,4 +1,4 @@
-package com.hasan.jetfasthub.screens.main.pinned
+package com.hasan.jetfasthub.screens.main.features.pinned
 
 import android.os.Bundle
 import android.view.LayoutInflater

@@ -64,6 +64,7 @@ data class JetHubDimens internal constructor(
     val size50: Dp = 50.dp,
     val size52: Dp = 52.dp,
     val size56: Dp = 56.dp,
+    val size58: Dp = 58.dp,
     val size62: Dp = 62.dp,
     val size64: Dp = 64.dp,
     val size68: Dp = 68.dp,
