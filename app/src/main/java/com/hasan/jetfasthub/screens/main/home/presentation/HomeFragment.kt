@@ -38,7 +38,7 @@ class HomeFragment : Fragment() {
         super.onAttach(context)
 
         //TODO fix preference helper later
-        val token = PreferenceHelper(context).getToken()
+        token = PreferenceHelper(context).getToken()
         val authenticatedUser = PreferenceHelper(context).getAuthenticatedUsername()
 
         if (token != "" && authenticatedUser != "") {
@@ -230,7 +230,6 @@ class HomeFragment : Fragment() {
                         onBottomBarItemSelected = homeViewModel::onBottomBarItemSelected,
                         onNavigate = { dest, data, extra ->
                             when (dest) {
-
                                 -1 -> {
                                     findNavController().popBackStack()
                                 }

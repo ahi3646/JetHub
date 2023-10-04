@@ -38,9 +38,9 @@ import com.hasan.jetfasthub.screens.main.file_view.FileViewVM
 import com.hasan.jetfasthub.screens.main.gists.GistViewModel
 import com.hasan.jetfasthub.screens.main.gists.GistsViewModel
 import com.hasan.jetfasthub.screens.main.home.presentation.HomeViewModel
-import com.hasan.jetfasthub.screens.main.home.data.local.HomeDatabase
-import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
-import com.hasan.jetfasthub.screens.main.home.data.remote.EventsRemoteMediator
+import com.hasan.jetfasthub.screens.main.home.data.database.HomeDatabase
+import com.hasan.jetfasthub.screens.main.home.data.database.ReceivedEventsModelEntity
+import com.hasan.jetfasthub.screens.main.home.data.models.EventsRemoteMediator
 import com.hasan.jetfasthub.screens.main.issue.IssueViewModel
 import com.hasan.jetfasthub.screens.main.notifications.NotificationsViewModel
 import com.hasan.jetfasthub.screens.main.organisations.OrganisationsViewModel
@@ -118,7 +118,7 @@ val homeModule = module {
         )
     }
 
-    viewModel { HomeViewModel(get(), providesEventPager(get(), get(), get())) }
+    viewModel { HomeViewModel(get(), get(), providesEventPager(get(), get(), get())) }
 }
 
 val issueModule = module {

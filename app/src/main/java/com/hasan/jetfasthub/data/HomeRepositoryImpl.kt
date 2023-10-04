@@ -2,9 +2,9 @@ package com.hasan.jetfasthub.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
-import com.hasan.jetfasthub.screens.main.home.data.remote.received_events_model_dto.ReceivedEventModelDto
+import com.hasan.jetfasthub.screens.main.home.data.models.received_events_model_dto.ReceivedEventModelDto
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
-import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.data.models.user_model.GitHubUser
 import com.hasan.jetfasthub.core.ui.utils.Constants.PERSONAL_ACCESS_TOKEN
 import retrofit2.Response
 

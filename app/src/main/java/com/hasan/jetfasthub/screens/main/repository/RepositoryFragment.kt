@@ -106,9 +106,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
-import com.hasan.jetfasthub.screens.main.home.presentation.IssuesItem
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
 import com.hasan.jetfasthub.screens.main.repository.models.release_download_model.ReleaseDownloadModel
@@ -125,6 +126,7 @@ import com.hasan.jetfasthub.core.ui.utils.IssueState
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
 import com.hasan.jetfasthub.core.ui.utils.Resource
+import com.hasan.jetfasthub.screens.main.home.presentation.issues.IssuesItemCard
 import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -821,18 +823,7 @@ private fun MainContent(
                 ) {
                     when (state.License) {
                         is Resource.Loading -> {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "Loading ...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            LoadingScreen()
                         }
 
                         is Resource.Success -> {
@@ -1528,15 +1519,7 @@ private fun FilesScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 
@@ -1762,15 +1745,7 @@ private fun CommitsScreen(
     when (state.Commits) {
 
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -1885,15 +1860,7 @@ private fun CommitsScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -2069,15 +2036,7 @@ private fun ReleasesScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
 
     }
@@ -2358,15 +2317,7 @@ private fun ContributorsScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -2525,7 +2476,7 @@ private fun IssuesScreenContent(
                     verticalArrangement = Arrangement.Top
                 ) {
                     items(issues) { issue ->
-                        IssuesItem(issue = issue, onIssueItemClicked = onIssueItemClicked)
+                        IssuesItemCard(issue = issue, onIssuesItemClicked = onIssueItemClicked)
                     }
                 }
             } else {
@@ -2540,13 +2491,7 @@ private fun IssuesScreenContent(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -2642,15 +2587,7 @@ private fun PullRequestScreenContent(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }

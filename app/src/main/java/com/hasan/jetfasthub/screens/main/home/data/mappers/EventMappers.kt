@@ -1,8 +1,8 @@
 package com.hasan.jetfasthub.screens.main.home.data.mappers
 
-import com.hasan.jetfasthub.screens.main.home.data.local.ReceivedEventsModelEntity
-import com.hasan.jetfasthub.screens.main.home.data.remote.received_events_model_dto.ReceivedEventModelDto
-import com.hasan.jetfasthub.screens.main.home.domain.ReceivedEventsModel
+import com.hasan.jetfasthub.screens.main.home.data.database.ReceivedEventsModelEntity
+import com.hasan.jetfasthub.screens.main.home.data.models.received_events_model_dto.ReceivedEventModelDto
+import com.hasan.jetfasthub.screens.main.home.domain.model.ReceivedEventsModel
 
 fun ReceivedEventModelDto.toReceivedEventsModelEntity():ReceivedEventsModelEntity{
     return ReceivedEventsModelEntity(
@@ -17,7 +17,7 @@ fun ReceivedEventModelDto.toReceivedEventsModelEntity():ReceivedEventsModelEntit
     )
 }
 
-fun ReceivedEventsModelEntity.toReceivedEventsModel(): ReceivedEventsModel{
+fun ReceivedEventsModelEntity.toReceivedEventsModel(): ReceivedEventsModel {
     return ReceivedEventsModel(
         id = id,
         eventType = eventType,

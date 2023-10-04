@@ -23,6 +23,33 @@
     <string name="add_account">Добавить аккаунт</string>
     <string name="logout">Выйти</string>
 
+    //LogoutSheet
+    <string name="are_you_sure">Вы уверены ?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+
+    //Loading Screen
+    <string name="loading">Загрузка…</string>
+
+    //Error Screen
+    <string name="could_not_load_data">Не удалось загрузить данные!</string>
+
+    //Empty Secreen
+    <string name="no_feeds">В настоящее время нет каналов для загрузки :)</string>
+    <string name="no_issues">На данный момент проблем с загрузкой нет :)</string>
+    <string name="no_pull">В настоящее время не найдено ни одного запроса на загрузку :)</string>
+    <string name="no_data_to_load">На данный момент нет данных для загрузки :)</string>
+
+    //Tab Items
+    <string name="closed_upper">Закрыто</string>
+    <string name="opened_upper">Открыто</string>
+    <string name="closed_lower">закрыто</string>
+    <string name="opened_lower">открыт</string>
+    <string name="created_all_caps">СОЗДАННЫЙ</string>
+    <string name="assigned_all_caps">НАЗНАЧЕННЫЙ</string>
+    <string name="mentioned_all_caps">УПОМЯНУЛ</string>
+    <string name="review_requests_all_caps">ЗАПРОСЫ НА РАССМОТРЕНИЕ</string>
+    <string name="participated_all_caps">ПРИНИМАЛА УЧАСТИЕ</string>
 
     // Events
     <string name="released">Released</string>

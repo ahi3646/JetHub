@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
-import com.hasan.jetfasthub.screens.main.home.data.remote.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.home.data.models.user_model.GitHubUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
 import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
@@ -110,7 +110,7 @@ fun DrawerBody(
                         } else {
                             Text(
                                 text = title,
-                                color = JetHubTheme.colors.text.primary1,
+                                color = JetHubTheme.colors.text.secondary,
                                 style = JetHubTheme.typography.button
                             )
                         }
@@ -161,7 +161,7 @@ fun DrawerMenuScreen(
         )
         Divider()
         DrawerMenuItem(
-            text = stringResource(id = R.string.home),
+            text = stringResource(id = R.string.profile),
             onClick = { onNavigate(R.id.action_homeFragment_to_profileFragment, username, null) },
             icon = painterResource(id = R.drawable.baseline_person_24),
         )
@@ -342,7 +342,7 @@ fun NavigationDrawer_LightPreview() {
             DrawerBody(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(JetHubTheme.colors.background.plain),
+                    .background(JetHubTheme.colors.background.primary),
                 closeDrawer = { },
                 username = "HasanAnorov",
                 onLogout = {},

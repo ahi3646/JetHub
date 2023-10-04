@@ -2,7 +2,7 @@ package com.hasan.jetfasthub.screens.login.data
 
 import android.content.Context
 import com.hasan.jetfasthub.networking.RestClient
-import com.hasan.jetfasthub.screens.main.home.data.remote.authenticated_user_model.AuthenticatedUser
+import com.hasan.jetfasthub.screens.main.home.data.models.authenticated_user_model.AuthenticatedUser
 import com.hasan.jetfasthub.core.ui.utils.Constants
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.login.data.mapper.mapToAccessToken

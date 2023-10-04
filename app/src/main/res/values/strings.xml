@@ -23,6 +23,34 @@
     <string name="add_account">Add account</string>
     <string name="logout">Logout</string>
 
+    //LogoutSheet
+    <string name="are_you_sure">Are you sure ?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    //Loading Screen
+    <string name="loading">Loading …</string>
+
+    //Error Screen
+    <string name="could_not_load_data">Could not load data!</string>
+
+    //Empty Screen
+    <string name="no_data_to_load">Currently, no data to load :)</string>
+    <string name="no_feeds">Currently, no feeds to load :)</string>
+    <string name="no_issues">Currently, no issues to load :)</string>
+    <string name="no_pull">Currently, no pull requests found to load :)</string>
+
+    //Tab Items
+    <string name="closed_upper">Closed</string>
+    <string name="opened_upper">Opened</string>
+    <string name="closed_lower">closed</string>
+    <string name="opened_lower">opened</string>
+    <string name="created_all_caps">CREATED</string>
+    <string name="assigned_all_caps">ASSIGNED</string>
+    <string name="mentioned_all_caps">MENTIONED</string>
+    <string name="review_requests_all_caps">REVIEW REQUESTS</string>
+    <string name="participated_all_caps">PARTICIPATED</string>
+
     // Events
     <string name="released">Released</string>
     <string name="pull_request" translatable="false">Pull Request</string>
