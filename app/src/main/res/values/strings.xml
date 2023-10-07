@@ -22,6 +22,8 @@
     <string name="repositories">Repositories</string>
     <string name="add_account">Add account</string>
     <string name="logout">Logout</string>
+    <string name="menu_all_caps">MENU</string>
+    <string name="profile_all_caps">PROFILE</string>
 
     //LogoutSheet
     <string name="are_you_sure">Are you sure ?</string>

@@ -1,21 +1,28 @@
 package com.hasan.jetfasthub.screens.main.home.domain
 
-import com.hasan.jetfasthub.data.HomeRepository
+import arrow.core.Either
+import arrow.core.raise.either
+import com.hasan.jetfasthub.screens.main.home.data.models.user_model.GitHubUser
+import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 
-class HomeUseCase(
-    private val repository: HomeRepository
-) {
+class HomeUseCase(private val repository: HomeRepository) {
 
-    suspend fun getUser(token: String, username: String) {
-        repository.getUser(token, username)
+    suspend fun getAuthenticatedUserData():Either<Exception, GitHubUser>{
+        return either {
+            repository.getUser()
+        }
     }
 
-    suspend fun getIssuesWithCount(token: String, query: String, page: Int){
-        repository.getIssuesWithCount(token, query, page)
+    suspend fun getIssuesWithCount(query: String, page: Int): Either<Exception, IssuesModel> {
+        return either {
+            repository.getIssuesWithCount(query, page)
+        }
     }
 
-    suspend fun getPullsWithCount(token: String, query: String, page: Int) {
-        repository.getPullsWithCount(token, query, page)
+    suspend fun getPullsWithCount( query: String, page: Int): Either<Exception, IssuesModel> {
+        return either {
+            repository.getPullsWithCount(query, page)
+        }
     }
 
 }

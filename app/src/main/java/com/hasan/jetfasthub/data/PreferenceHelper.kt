@@ -9,7 +9,7 @@ class PreferenceHelper (val context: Context){
 
     fun saveToken(token:String){
         with(sharedPref.edit()) {
-            putString(Constants.TOKEN_KEY, token)
+            putString(Constants.TOKEN_KEY, "Bearer $token")
             apply()
         }
     }

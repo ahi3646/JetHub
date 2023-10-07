@@ -26,7 +26,7 @@ class AuthRepositoryImpl(private val context: Context, private val preferences: 
 
     override suspend fun getAuthenticatedUser(token: String): Response<AuthenticatedUser> {
         return RestClient(context = context).authorizationService.getAuthenticatedUser(
-            token = "Bearer ${Constants.PERSONAL_ACCESS_TOKEN}"
+            token = preferences.getToken()
         )
     }
 

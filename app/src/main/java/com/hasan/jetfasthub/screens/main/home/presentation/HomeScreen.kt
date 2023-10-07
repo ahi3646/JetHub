@@ -10,23 +10,16 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.pullrefresh.PullRefreshState
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
-import com.hasan.jetfasthub.core.ui.utils.IssueState
-import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
 import com.hasan.jetfasthub.screens.main.home.presentation.components.AppBar
 import com.hasan.jetfasthub.screens.main.home.presentation.components.BottomNav
 import com.hasan.jetfasthub.screens.main.home.presentation.components.DrawerBody
@@ -35,37 +28,38 @@ import com.hasan.jetfasthub.screens.main.home.presentation.components.LogoutShee
 import com.hasan.jetfasthub.screens.main.home.presentation.feeds.FeedsScreen
 import com.hasan.jetfasthub.screens.main.home.presentation.issues.IssuesScreen
 import com.hasan.jetfasthub.screens.main.home.presentation.pull_requests.PullRequestScreen
+import com.hasan.jetfasthub.screens.main.home.configs.HomeScreenPreview
+import com.hasan.jetfasthub.screens.main.home.configs.state.AppScreens
+import com.hasan.jetfasthub.screens.main.home.configs.state.HomeScreenStateConfig
+import com.hasan.jetfasthub.screens.main.home.configs.state.bottom_sheet.HomeScreenBottomSheets
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun HomeScreen(
-    state: HomeScreenState,
-    pullRefreshState: PullRefreshState,
-    isRefreshing: Boolean,
-    onBottomBarItemSelected: (AppScreens) -> Unit,
-    onNavigate: (Int, String?, String?) -> Unit,
-    onIssueItemClicked: (Int, String, String, String) -> Unit,
-    onIssuesStateChanged: (Int, MyIssuesType, IssueState) -> Unit,
-    onPullsStateChanged: (Int, MyIssuesType, IssueState) -> Unit,
-    scaffoldState: ScaffoldState,
-    onNavigationClick: () -> Unit
-) {
+fun HomeScreen(state: HomeScreenStateConfig) {
     val sheetScope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
     val sheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
-
     BottomSheetScaffold(
         scaffoldState = sheetScaffoldState,
         sheetContent = {
-            LogoutSheetContent(
-                modifier = Modifier
-                    .background(JetHubTheme.colors.background.primary)
-                    .padding(JetHubTheme.dimens.spacing16),
-                sheetState = sheetState
-            )
+            state.bottomSheetConfig?.let { config ->
+                if (config.isShow) {
+                    when (config.content) {
+                        // use HomeScreenBottomSheets for other sheets implementation
+                        is HomeScreenBottomSheets.LogoutSheet -> {
+                            LogoutSheetContent(
+                                modifier = Modifier
+                                    .background(JetHubTheme.colors.background.primary)
+                                    .padding(JetHubTheme.dimens.spacing16),
+                                sheetState = sheetState
+                            )
+                        }
+                    }
+                }
+            }
         },
         sheetPeekHeight = JetHubTheme.dimens.size0,
         sheetShape = JetHubTheme.shapes.bottomSheet,
@@ -96,39 +90,30 @@ fun HomeScreen(
                         }
                     )
                 },
-            scaffoldState = scaffoldState,
             topBar = {
+                val elevation = when (state.bottomNavBarConfig.selectedBottomBarItem) {
+                    AppScreens.Feeds -> JetHubTheme.dimens.elevation8
+                    AppScreens.Issues, AppScreens.PullRequests -> JetHubTheme.dimens.elevation0
+                }
                 AppBar(
-                    onNavigationClick = onNavigationClick,
-                    onToolbarItemCLick = onNavigate
+                    elevation = elevation,
+                    config = state.topAppBarConfig
                 )
             },
-            drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+            drawerGesturesEnabled = state.drawerScreenConfig.isOpen,
             drawerContent = {
                 DrawerHeader(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(color = JetHubTheme.colors.background.secondary)
                         .padding(all = JetHubTheme.dimens.spacing16),
-                    user = state.user
+                    state = state.drawerScreenConfig.drawerHeaderConfig
                 )
                 DrawerBody(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(color = JetHubTheme.colors.background.secondary),
-                    closeDrawer = onNavigationClick,
-                    username = state.user.data?.login ?: "",
-                    onLogout = {
-                        onNavigationClick()
-                        sheetScope.launch {
-                            if (sheetState.isCollapsed) {
-                                sheetState.expand()
-                            } else {
-                                sheetState.collapse()
-                            }
-                        }
-                    },
-                    onNavigate = onNavigate
+                    state = state.drawerScreenConfig.drawerBodyConfig,
                 )
             },
             bottomBar = {
@@ -137,77 +122,47 @@ fun HomeScreen(
                         .navigationBarsPadding()
                         .fillMaxWidth()
                         .heightIn(min = JetHubTheme.dimens.size58),
-                    onBottomBarItemSelected = onBottomBarItemSelected,
+                    config = state.bottomNavBarConfig,
+                    elevation = JetHubTheme.dimens.elevation16
                 )
             },
         ) {
-            when (state.selectedBottomBarItem) {
+            when (state.bottomNavBarConfig.selectedBottomBarItem) {
                 AppScreens.Feeds -> FeedsScreen(
                     contentPaddingValues = it,
-                    isRefreshing = isRefreshing,
-                    pullRefreshState = pullRefreshState,
-                    onNavigate = onNavigate,
-                    events = state.events.collectAsLazyPagingItems()
+                    state = state.feedsScreenConfig,
                 )
 
                 AppScreens.Issues -> IssuesScreen(
                     contentPaddingValues = it,
-                    state = state,
-                    onIssueItemClicked = onIssueItemClicked,
-                    onIssuesStateChanged = onIssuesStateChanged
+                    config = state.issuesScreenConfig,
                 )
 
                 AppScreens.PullRequests -> PullRequestScreen(
                     contentPaddingValues = it,
-                    state = state,
-                    onNavigate = onNavigate,
-                    onPullsStateChanges = onPullsStateChanged
+                    config = state.pullRequestsScreenConfig,
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun HomeScreen_LightPreview() {
     JetFastHubTheme(isDarkTheme = false) {
         HomeScreen(
-            state = HomeScreenState(),
-            pullRefreshState = rememberPullRefreshState(
-                refreshing = false,
-                onRefresh = { /*TODO*/ }),
-            isRefreshing = false,
-            onBottomBarItemSelected = {},
-            onNavigate = { _, _, _ -> },
-            onIssueItemClicked = { _, _, _, _ -> },
-            onIssuesStateChanged = { _, _, _ -> },
-            onPullsStateChanged = { _, _, _ -> },
-            scaffoldState = rememberScaffoldState(),
-            onNavigationClick = {}
+            state = HomeScreenPreview.homeScreenPreview
         )
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun HomeScreen_DarkPreview() {
     JetFastHubTheme(isDarkTheme = true) {
         HomeScreen(
-            state = HomeScreenState(),
-            pullRefreshState = rememberPullRefreshState(
-                refreshing = false,
-                onRefresh = { /*TODO*/ }),
-            isRefreshing = false,
-            onBottomBarItemSelected = {},
-            onNavigate = { _, _, _ -> },
-            onIssueItemClicked = { _, _, _, _ -> },
-            onIssuesStateChanged = { _, _, _ -> },
-            onPullsStateChanged = { _, _, _ -> },
-            scaffoldState = rememberScaffoldState(),
-            onNavigationClick = {}
+            state = HomeScreenPreview.homeScreenPreview
         )
     }
 }

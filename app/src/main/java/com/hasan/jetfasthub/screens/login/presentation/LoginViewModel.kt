@@ -64,17 +64,17 @@ class LoginViewModel(
                 if (tokenCode!!.isNotBlank()) {
                     getAccessToken(tokenCode)
                 } else {
-                    updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_token_code_not_found)))
+                    updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_token_code_not_found)))
                 }
             }
         }
     }
 
     private fun getAccessToken(code: String) {
-        updateLoginFragmentStatus(LoginPageState.Fetching)
+        updateLoginStatus(LoginPageState.Fetching)
         viewModelScope.launch(
             CoroutineExceptionHandler { _, _ ->
-                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
+                updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
             }
         ) {
             try {
@@ -83,11 +83,11 @@ class LoginViewModel(
                         authUseCase.saveToken(token = response.accessToken)
                         getAuthenticatedUser(token = response.accessToken)
                     } else {
-                        updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_invalid_token)))
+                        updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_invalid_token)))
                     }
                 }
             } catch (e: Exception) {
-                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_network_error)))
+                updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_network_error)))
             }
         }
     }
@@ -95,26 +95,26 @@ class LoginViewModel(
     private fun getAuthenticatedUser(token: String) {
         viewModelScope.launch(
             CoroutineExceptionHandler { _, _ ->
-                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
+                updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_status_error)))
             }
         ) {
             try {
                 authUseCase.getAuthenticatedUser(token).let { authenticatedUser ->
                     if (authenticatedUser.isSuccessful) {
                         authUseCase.saveAuthenticatedUser(authenticatedUser.body()!!.login)
-                        updateLoginFragmentStatus(LoginPageState.Success)
+                        updateLoginStatus(LoginPageState.Success)
                         emitNavigation(LoginChooserNavigation.NavigateToMain)
                     } else {
-                        updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_unsuccessful_response)))
+                        updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_unsuccessful_response)))
                     }
                 }
             } catch (e: Exception) {
-                updateLoginFragmentStatus(LoginPageState.Error(resourceReference(R.string.login_network_error)))
+                updateLoginStatus(LoginPageState.Error(resourceReference(R.string.login_network_error)))
             }
         }
     }
 
-    private fun updateLoginFragmentStatus(loadingPageStatus: LoginPageState) {
+    private fun updateLoginStatus(loadingPageStatus: LoginPageState) {
         _state.update { it.copy(loadingPageStatus = loadingPageStatus) }
     }
 

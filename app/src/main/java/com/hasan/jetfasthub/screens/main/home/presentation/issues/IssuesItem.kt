@@ -27,7 +27,7 @@ import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
 fun IssuesItemCard(
     issue: IssuesItem,
     modifier: Modifier = Modifier,
-    onIssuesItemClicked: (Int, String, String, String) -> Unit
+//    intentReducer: (HomeScreenClickIntents) -> Unit
 ) {
     val repoUrl = Uri.parse(issue.repository_url).pathSegments
     val repoName = repoUrl[repoUrl.lastIndex - 1] + "/" + repoUrl[repoUrl.lastIndex]
@@ -37,12 +37,14 @@ fun IssuesItemCard(
         modifier = modifier
             .clickable(
                 onClick = {
-                    onIssuesItemClicked(
-                        R.id.action_fromFragment_to_issueFragment,
-                        repoUrl[repoUrl.lastIndex - 1],
-                        repoUrl[repoUrl.lastIndex],
-                        issue.number.toString()
-                    )
+                    // FIXME:
+//                    intentReducer(
+//                        HomeScreenClickIntents.OpenIssueFragment(
+//                            issueOwner = repoUrl[repoUrl.lastIndex - 1],
+//                            issueRepo = repoUrl[repoUrl.lastIndex],
+//                            issueNumber = issue.number.toString(),
+//                        )
+//                    )
                 }
             )
     ) {

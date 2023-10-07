@@ -38,7 +38,8 @@ import java.util.Locale
 @Composable
 fun FeedsItem(
     eventItem: ReceivedEventsModel,
-    onNavigate: (Int, String?, String?) -> Unit
+    onItemClick: (repoOwner: String, repoName: String) -> Unit
+    //intentReducer: (HomeScreenClickIntents) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -47,27 +48,42 @@ fun FeedsItem(
                 val parentUsername = Uri.parse(eventItem.eventRepoUrl).pathSegments[1]
                 when (eventItem.eventType) {
                     "ForkEvent" -> {
-                        onNavigate(
-                            R.id.action_homeFragment_to_repositoryFragment,
+                        onItemClick(
                             eventItem.eventActorLogin,
-                            eventItem.eventPayloadForkeeName,
+                            eventItem.eventPayloadForkeeName
                         )
+//                        intentReducer(
+//                            HomeScreenClickIntents.OpenRepositoryFragment(
+//                                repoOwner = eventItem.eventActorLogin,
+//                                repoName = eventItem.eventPayloadForkeeName
+//                            )
+//                        )
                     }
 
                     "ReleaseEvent" -> {
-                        onNavigate(
-                            R.id.action_homeFragment_to_repositoryFragment,
+                        onItemClick(
                             parentUsername,
-                            uri,
+                            uri!!
                         )
+//                        intentReducer(
+//                            HomeScreenClickIntents.OpenRepositoryFragment(
+//                                repoOwner = parentUsername,
+//                                repoName = uri!!
+//                            )
+//                        )
                     }
 
                     else -> {
-                        onNavigate(
-                            R.id.action_homeFragment_to_repositoryFragment,
+                        onItemClick(
                             parentUsername,
-                            uri,
+                            uri!!
                         )
+//                        intentReducer(
+//                            HomeScreenClickIntents.OpenRepositoryFragment(
+//                                repoOwner = parentUsername,
+//                                repoName = uri!!
+//                            )
+//                        )
                     }
                 }
             },
@@ -86,11 +102,8 @@ fun FeedsItem(
                     .size(width = JetHubTheme.dimens.size48, height = JetHubTheme.dimens.size48)
                     .clip(CircleShape)
                     .clickable {
-                        onNavigate(
-                            R.id.action_homeFragment_to_profileFragment,
-                            eventItem.eventActorLogin,
-                            null
-                        )
+                        //TODO implement later
+                        //intentReducer(HomeScreenClickIntents.OpenProfileFragment(eventItem.eventActorLogin))
                     },
                 imageOptions = ImageOptions(
                     contentScale = ContentScale.Crop,
@@ -163,7 +176,8 @@ fun FeedsItem_LightPreview() {
                 eventType = "CreateEvent",
                 id = 1
             ),
-            onNavigate = { _, _, _ -> }
+            onItemClick = {_, _ -> }
+            //intentReducer = { _ -> }
         )
     }
 }
@@ -183,7 +197,8 @@ fun FeedsItem_DarkPreview() {
                 eventType = "CreateEvent",
                 id = 1
             ),
-            onNavigate = { _, _, _ -> }
+            onItemClick = {_, _ -> }
+//            intentReducer = { _ -> }
         )
     }
 }

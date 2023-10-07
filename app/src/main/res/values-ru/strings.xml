@@ -22,6 +22,8 @@
     <string name="repositories">Репозитории</string>
     <string name="add_account">Добавить аккаунт</string>
     <string name="logout">Выйти</string>
+    <string name="menu_all_caps">МЕНЮ</string>
+    <string name="profile_all_caps">ПРОФИЛЬ</string>
 
     //LogoutSheet
     <string name="are_you_sure">Вы уверены ?</string>

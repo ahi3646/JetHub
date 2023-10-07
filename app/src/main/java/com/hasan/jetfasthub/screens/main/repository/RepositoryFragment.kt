@@ -126,7 +126,6 @@ import com.hasan.jetfasthub.core.ui.utils.IssueState
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
 import com.hasan.jetfasthub.core.ui.utils.Resource
-import com.hasan.jetfasthub.screens.main.home.presentation.issues.IssuesItemCard
 import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -2476,7 +2475,8 @@ private fun IssuesScreenContent(
                     verticalArrangement = Arrangement.Top
                 ) {
                     items(issues) { issue ->
-                        IssuesItemCard(issue = issue, onIssuesItemClicked = onIssueItemClicked)
+                    //TODO fix
+                    //IssuesItemCard(issue = issue, onIssuesItemClicked = onIssueItemClicked)
                     }
                 }
             } else {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
@@ -22,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
@@ -33,17 +31,16 @@ import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.screens.main.home.domain.model.ReceivedEventsModel
+import com.hasan.jetfasthub.screens.main.home.configs.state.FeedsScreenConfig
+import com.hasan.jetfasthub.screens.main.home.configs.state.HomeScreenPullToRefreshConfig
 import kotlinx.coroutines.flow.flowOf
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FeedsScreen(
     contentPaddingValues: PaddingValues,
-    isRefreshing: Boolean,
-    pullRefreshState: PullRefreshState,
-    events: LazyPagingItems<ReceivedEventsModel>,
-    onNavigate: (Int, String?, String?) -> Unit
+    state: FeedsScreenConfig,
 ) {
+    val events = state.feeds.collectAsLazyPagingItems()
     val context = LocalContext.current
     LaunchedEffect(key1 = events.loadState) {
         if (events.loadState.refresh is LoadState.Error) {
@@ -65,11 +62,10 @@ fun FeedsScreen(
                 )
             else
                 Content(
-                    pullRefreshState = pullRefreshState,
+                    feedsScreenPullToRefreshState = state.pullToRefreshConfig,
                     contentPaddingValues = contentPaddingValues,
-                    events = events,
-                    onNavigate = onNavigate,
-                    isRefreshing = isRefreshing
+                    events = state.feeds.collectAsLazyPagingItems(),
+                    onItemClick = { _, _ -> }
                 )
         }
 
@@ -82,13 +78,16 @@ fun FeedsScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun Content(
-    modifier: Modifier = Modifier,
-    pullRefreshState: PullRefreshState,
     contentPaddingValues: PaddingValues,
+    modifier: Modifier = Modifier,
+    onItemClick: (String, String) -> Unit,
+    feedsScreenPullToRefreshState: HomeScreenPullToRefreshConfig,
     events: LazyPagingItems<ReceivedEventsModel>,
-    onNavigate: (Int, String?, String?) -> Unit,
-    isRefreshing: Boolean
 ) {
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = feedsScreenPullToRefreshState.isRefreshing,
+        onRefresh = feedsScreenPullToRefreshState.onRefresh,
+    )
     Box(modifier = modifier.pullRefresh(pullRefreshState)) {
         LazyColumn(
             modifier = Modifier
@@ -100,7 +99,7 @@ private fun Content(
         ) {
             items(events) { eventItem ->
                 if (eventItem != null) {
-                    FeedsItem(eventItem, onNavigate)
+                    FeedsItem(eventItem, onItemClick = onItemClick)
                 }
             }
             item {
@@ -110,39 +109,41 @@ private fun Content(
             }
         }
         PullRefreshIndicator(
-            refreshing = isRefreshing,
+            refreshing = feedsScreenPullToRefreshState.isRefreshing,
             state = pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun FeedsScreen_LightPreview() {
     JetFastHubTheme {
         FeedsScreen(
             contentPaddingValues = PaddingValues(all = JetHubTheme.dimens.spacing0),
-            isRefreshing = false,
-            pullRefreshState = rememberPullRefreshState(refreshing = false, onRefresh = { }),
-            events = flowOf<PagingData<ReceivedEventsModel>>(PagingData.empty()).collectAsLazyPagingItems(),
-            onNavigate = { _, _, _ -> }
+            state = FeedsScreenConfig(
+                feeds = flowOf(),
+                pullToRefreshConfig = HomeScreenPullToRefreshConfig(
+                    isRefreshing = false,
+                    onRefresh = {})
+            ),
         )
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 fun FeedsScreen_DarkPreview() {
     JetFastHubTheme(isDarkTheme = true) {
         FeedsScreen(
             contentPaddingValues = PaddingValues(all = JetHubTheme.dimens.spacing0),
-            isRefreshing = false,
-            pullRefreshState = rememberPullRefreshState(refreshing = false, onRefresh = { }),
-            events = flowOf<PagingData<ReceivedEventsModel>>(PagingData.empty()).collectAsLazyPagingItems(),
-            onNavigate = { _, _, _ -> }
+            state = FeedsScreenConfig(
+                feeds = flowOf(),
+                pullToRefreshConfig = HomeScreenPullToRefreshConfig(
+                    isRefreshing = false,
+                    onRefresh = {})
+            ),
         )
     }
 }

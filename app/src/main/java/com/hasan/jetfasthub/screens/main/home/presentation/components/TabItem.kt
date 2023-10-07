@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.extensions.TextReference
+import com.hasan.jetfasthub.core.ui.extensions.resolveReference
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.core.ui.utils.IssueState
@@ -34,12 +36,10 @@ import com.hasan.jetfasthub.core.ui.utils.IssueState
 @Composable
 fun TabItem(
     issuesCount: Int,
-    tabIndex: Int,
-    index: Int,
-    isOpened: Boolean,
-    tabName: String,
-    onItemClick: () -> Unit,
-    onStateChanged: (Int, IssueState) -> Unit,
+    state: IssueState,
+    tabName: TextReference,
+    onClick:() -> Unit,
+    onStateChanged: (IssueState) -> Unit,
 ) {
     var isContextMenuVisible by rememberSaveable {
         mutableStateOf(false)
@@ -48,6 +48,10 @@ fun TabItem(
         mutableStateOf(0.dp)
     }
     val density = LocalDensity.current
+    val isOpen = when(state){
+        IssueState.All, IssueState.Open -> true
+        IssueState.Closed -> false
+    }
 
     Column(
         modifier = Modifier.onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
@@ -55,10 +59,9 @@ fun TabItem(
         Box(
             modifier = Modifier
                 .clickable {
-                    onItemClick()
+                    onClick()
                     isContextMenuVisible = !isContextMenuVisible
                 }
-                .background(JetHubTheme.colors.background.secondary)
                 .padding(JetHubTheme.dimens.spacing16)
         ) {
             Row(
@@ -67,20 +70,18 @@ fun TabItem(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_issue_opened_small),
-                    tint = if (isOpened) colorResource(id = R.color.material_green_700) else colorResource(
+                    tint = if (isOpen) colorResource(id = R.color.material_green_700) else colorResource(
                         id = R.color.material_red_700
                     ),
                     contentDescription = null
                 )
                 Text(
                     modifier = Modifier.padding(start = JetHubTheme.dimens.spacing4),
-                    text = "$tabName ($issuesCount)",
-                    color = if (tabIndex == index) JetHubTheme.colors.text.primary1 else JetHubTheme.colors.text.secondary
+                    text = "${tabName.resolveReference()} ($issuesCount)",
                 )
                 Icon(
                     modifier = Modifier.padding(start = JetHubTheme.dimens.spacing4),
                     painter = painterResource(id = R.drawable.ic_dropdown_icon),
-                    tint = if (tabIndex == index) JetHubTheme.colors.text.primary1 else JetHubTheme.colors.text.secondary,
                     contentDescription = null
                 )
             }
@@ -91,7 +92,7 @@ fun TabItem(
             ) {
                 DropdownMenuItem(
                     onClick = {
-                        onStateChanged(index, IssueState.Open)
+                        onStateChanged(IssueState.Open)
                         isContextMenuVisible = false
                     },
                     content = {
@@ -103,7 +104,7 @@ fun TabItem(
                 )
                 DropdownMenuItem(
                     onClick = {
-                        onStateChanged(index, IssueState.Closed)
+                        onStateChanged(IssueState.Closed)
                         isContextMenuVisible = false
                     },
                     content = {
@@ -124,12 +125,10 @@ fun TabItem_LightPreview() {
     JetFastHubTheme(isDarkTheme = false) {
         TabItem(
             issuesCount = 100,
-            tabIndex = 0,
-            index = 0,
-            isOpened = true,
-            tabName = "Closed",
-            onItemClick = { /*TODO*/ },
-            onStateChanged = { _, _ -> }
+            state = IssueState.Closed,
+            tabName = TextReference.Res(id = R.string.created_all_caps),
+            onClick = {},
+            onStateChanged = {_ -> }
         )
     }
 }
@@ -140,12 +139,10 @@ fun TabItem_DarkPreview() {
     JetFastHubTheme(isDarkTheme = true) {
         TabItem(
             issuesCount = 100,
-            tabIndex = 0,
-            index = 0,
-            isOpened = true,
-            tabName = "Closed",
-            onItemClick = { /*TODO*/ },
-            onStateChanged = { _, _ -> }
+            state = IssueState.All,
+            tabName = TextReference.Res(id = R.string.created_all_caps),
+            onClick = {},
+            onStateChanged = {_ -> }
         )
     }
 }
