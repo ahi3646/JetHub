@@ -89,6 +89,7 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModelItem
@@ -113,9 +114,9 @@ class IssueFragment : Fragment() {
         //TODO fix token
         token = PreferenceHelper(context).getToken()
 
-        val owner = arguments?.getString("issue_owner")
-        val repo = arguments?.getString("issue_repo")
-        val issueNumber = arguments?.getString("issue_number")
+        val owner = arguments?.getString(NavigationConstants.ISSUE_OWNER)
+        val repo = arguments?.getString(NavigationConstants.ISSUE_REPO)
+        val issueNumber = arguments?.getString(NavigationConstants.ISSUE_NUMBER)
 
         if (issueNumber != null && owner != null && repo != null) {
             issueViewModel.init(owner, repo, issueNumber)

@@ -3,6 +3,7 @@ package com.hasan.jetfasthub.screens.main.home.di
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.room.Room
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.home.data.HomeRepositoryImpl
@@ -12,6 +13,7 @@ import com.hasan.jetfasthub.screens.main.home.data.models.EventsRemoteMediator
 import com.hasan.jetfasthub.screens.main.home.domain.HomeRepository
 import com.hasan.jetfasthub.screens.main.home.domain.HomeUseCase
 import com.hasan.jetfasthub.screens.main.home.presentation.HomeScreenViewModel
+import kotlinx.coroutines.flow.Flow
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -28,15 +30,13 @@ val homeModule = module {
             "events.db"
         ).build()
     }
-//    single { PreferenceHelper.getToken(androidApplication()) }
-//    single { PreferenceHelper.getAuthenticatedUsername(androidApplication()) }
     single { EventsRemoteMediator(get(), get(), get() ) }
 
     fun providesEventPager(
         eventsDb: HomeDatabase,
         eventApi: HomeRepository,
         preferences: PreferenceHelper
-    ): Pager<Int, ReceivedEventsModelEntity>{
+    ): Flow<PagingData<ReceivedEventsModelEntity>>{
         return  Pager(
             config = PagingConfig(pageSize = 30),
             remoteMediator = EventsRemoteMediator(
@@ -47,7 +47,7 @@ val homeModule = module {
             pagingSourceFactory = {
                 eventsDb.dao.pagingSource()
             }
-        )
+        ).flow
     }
     single { HomeUseCase(get()) }
     viewModel { HomeScreenViewModel(get(), providesEventPager(get(), get(), get())) }

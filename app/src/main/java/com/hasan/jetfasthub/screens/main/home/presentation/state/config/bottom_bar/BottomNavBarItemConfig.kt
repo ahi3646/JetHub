@@ -2,7 +2,6 @@ package com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_
 
 import androidx.annotation.DrawableRes
 import com.hasan.jetfasthub.core.ui.extensions.TextReference
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
 
 data class BottomNavBarItemConfig(
     val screen: AppScreens,

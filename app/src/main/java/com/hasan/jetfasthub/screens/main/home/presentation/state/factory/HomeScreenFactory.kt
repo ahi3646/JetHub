@@ -3,17 +3,22 @@ package com.hasan.jetfasthub.screens.main.home.presentation.state.factory
 import androidx.paging.PagingData
 import arrow.core.Either
 import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
+import com.hasan.jetfasthub.screens.main.home.data.models.user_model.GitHubUser
 import com.hasan.jetfasthub.screens.main.home.domain.NetworkErrors
 import com.hasan.jetfasthub.screens.main.home.presentation.state.Provider
-import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.LoadedPullRequestConverter
+import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.PullRequestsStateConverter
 import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.HomeScreenStateConverter
-import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.LoadedBottomBarConverter
-import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.LoadedFeedsStateConverter
-import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.LoadedIssuesStateConverter
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
+import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.BottomNavBarConverter
+import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.FeedsStateConverter
+import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.IssuesStateConverter
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
 import com.hasan.jetfasthub.screens.main.home.domain.model.ReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.presentation.HomeScreenIntents
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.AppScreens
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_sheet.HomeScreenBottomSheetConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_sheet.HomeScreenBottomSheets
+import com.hasan.jetfasthub.screens.main.home.presentation.state.converters.DrawerStateConverter
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import kotlinx.coroutines.flow.Flow
 
@@ -22,77 +27,138 @@ class HomeScreenFactory(
     private val clickIntents: HomeScreenIntents
 ) {
 
-    private val skeletonStateConverter by lazy {
+    private val homeScreenStateConverter by lazy {
         HomeScreenStateConverter(clickIntents = clickIntents)
     }
 
-    private val loadedBottomNavBarConverter by lazy {
-        LoadedBottomBarConverter(
+    private val drawerStateConverter by lazy {
+        DrawerStateConverter(currentStateProvider = currentStateProvider)
+    }
+
+    private val bottomNavBarConverter by lazy {
+        BottomNavBarConverter(
             currentStateProvider = currentStateProvider
         )
     }
 
-    private val loadedFeedsScreenStateConverter by lazy {
-        LoadedFeedsStateConverter(
+    private val feedsStateConverter by lazy {
+        FeedsStateConverter(
             currentStateProvider = currentStateProvider,
             clickIntents = clickIntents
         )
     }
 
-    private val loadedPullRequestStateConverter by lazy {
-        LoadedPullRequestConverter(currentStateProvider = currentStateProvider)
+    private val pullRequestStateConverter by lazy {
+        PullRequestsStateConverter(currentStateProvider = currentStateProvider)
     }
 
-    private val loadedIssuesStateConverter by lazy {
-        LoadedIssuesStateConverter(currentStateProvider = currentStateProvider)
+    private val issuesStateConverter by lazy {
+        IssuesStateConverter(currentStateProvider = currentStateProvider)
     }
 
-    fun changeIssuesTab(index: Int): HomeScreenStateConfig {
+    fun getStateWithLogoutBottomSheet(): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            issuesScreenConfig = loadedIssuesStateConverter.updateTabs(index)
+            bottomSheetConfig = HomeScreenBottomSheetConfig(
+                isShow = true,
+                onDismissRequest = clickIntents::onDismissBottomSheet,
+                content = HomeScreenBottomSheets.LogoutSheet(
+                    onRegret = clickIntents::onDismissBottomSheet,
+                    onAccept = clickIntents::onDismissBottomSheet
+                )
+            )
         )
     }
 
-    fun updateIssueTabState(index: Int, state: IssueState): HomeScreenStateConfig {
+    fun getStateWithClosedBottomSheet(): HomeScreenStateConfig{
+        val state = currentStateProvider()
+        return state.copy(
+            bottomSheetConfig =state.bottomSheetConfig?.copy(isShow = false)
+        )
+    }
+
+    fun updateIssuesTab(index: Int): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            issuesScreenConfig = loadedIssuesStateConverter.updateIssueTabState(index, state)
+            issuesScreenConfig = issuesStateConverter.updateTabs(index)
+        )
+    }
+
+    fun updatePullsTab(index: Int): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            pullRequestsScreenConfig = pullRequestStateConverter.updateTabs(index)
+        )
+    }
+
+    fun updateDrawerTab(index: Int): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            drawerScreenConfig = drawerStateConverter.updateTab(index)
+        )
+    }
+
+    fun updateIssueTabState(type: MyIssuesType, state: IssueState): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            issuesScreenConfig = issuesStateConverter.updateIssueTabState(type, state)
+        )
+    }
+
+    fun updatePullsTabState(type: MyIssuesType, state: IssueState): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            pullRequestsScreenConfig = pullRequestStateConverter.updateIssueTabState(type, state)
         )
     }
 
     fun getRefreshedState(): HomeScreenStateConfig {
-        val state = currentStateProvider()
-        return state.copy(
-            feedsScreenConfig = loadedFeedsScreenStateConverter.getRefreshedState(
+        return currentStateProvider().copy(
+            feedsScreenConfig = feedsStateConverter.getRefreshedState(
                 false
             )
         )
     }
 
-    fun getInitialState(): HomeScreenStateConfig {
-        return skeletonStateConverter.convert("")
+    fun getRefreshingState(): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            feedsScreenConfig = feedsStateConverter.getRefreshedState(
+                true
+            )
+        )
+    }
+
+    fun getInitialState(username: String): HomeScreenStateConfig {
+        return homeScreenStateConverter.convert(username)
     }
 
     fun getBottomBarScreenState(screen: AppScreens): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            bottomNavBarConfig = loadedBottomNavBarConverter(screen)
+            bottomNavBarConfig = bottomNavBarConverter(screen)
         )
     }
 
-    fun getLoadedEvents(feeds: Flow<PagingData<ReceivedEventsModel>>): HomeScreenStateConfig {
+    fun getFeeds(feeds: Flow<PagingData<ReceivedEventsModel>>): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            feedsScreenConfig = loadedFeedsScreenStateConverter.convert(feeds)
+            feedsScreenConfig = feedsStateConverter.convert(feeds)
         )
     }
 
-    fun getPullRequests(eitherIssuesModel: Either<NetworkErrors, IssuesModel>): HomeScreenStateConfig {
+    fun getPullRequestsWithType(
+        eitherIssuesModel: Either<NetworkErrors, IssuesModel>,
+        type: MyIssuesType
+    ): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            pullRequestsScreenConfig = loadedPullRequestStateConverter.convert(eitherIssuesModel)
+            pullRequestsScreenConfig = pullRequestStateConverter(eitherIssuesModel, type)
         )
     }
 
-    fun getIssues(eitherIssuesModel: Either<NetworkErrors, IssuesModel>): HomeScreenStateConfig {
+    fun getIssuesWithType(
+        eitherIssuesModel: Either<NetworkErrors, IssuesModel>,
+        type: MyIssuesType
+    ): HomeScreenStateConfig {
         return currentStateProvider().copy(
-            issuesScreenConfig = loadedIssuesStateConverter.convert(eitherIssuesModel)
+            issuesScreenConfig = issuesStateConverter(eitherIssuesModel, type)
+        )
+    }
+
+    fun getUserData(eitherUserData: Either<NetworkErrors, GitHubUser>): HomeScreenStateConfig {
+        return currentStateProvider().copy(
+            drawerScreenConfig = drawerStateConverter.convert(eitherUserData)
         )
     }
 

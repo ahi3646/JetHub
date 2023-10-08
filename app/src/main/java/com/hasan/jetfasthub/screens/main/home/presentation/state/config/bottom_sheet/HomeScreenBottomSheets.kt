@@ -2,7 +2,6 @@ package com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_
 
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.extensions.TextReference
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenBottomSheetConfigContent
 
 //TODO
 sealed class HomeScreenBottomSheets(

@@ -104,6 +104,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.Starre
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModelItem
 import com.hasan.jetfasthub.core.ui.utils.Constants.chooseFromEvents
 import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
@@ -126,7 +127,7 @@ class ProfileFragment : Fragment() {
         token = PreferenceHelper(context).getToken()
         val authUser = PreferenceHelper(context).getAuthenticatedUsername()
 
-        val username = arguments?.getString("username")
+        val username = arguments?.getString(NavigationConstants.PROFILE_USERNAME)
         val extra = arguments?.getString("start_index") ?: "0"
 
         if (username != null) {

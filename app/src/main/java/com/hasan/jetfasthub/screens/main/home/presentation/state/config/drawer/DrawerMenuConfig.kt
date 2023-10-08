@@ -8,15 +8,6 @@ sealed class DrawerMenuConfig(val config: DrawerMenuItemConfig) {
     /** Lambda be invoked when manage button is clicked */
     abstract val onClick: () -> Unit
 
-    data class Home(override val onClick: () -> Unit) : DrawerMenuConfig(
-        config = DrawerMenuItemConfig(
-            title = TextReference.Res(id = R.string.home),
-            iconResId = R.drawable.ic_home,
-            textColorProvider = { JetHubTheme.colors.text.primary1 },
-            onClick = onClick
-        )
-    )
-
     data class Profile(override val onClick: () -> Unit) : DrawerMenuConfig(
         config = DrawerMenuItemConfig(
             title = TextReference.Res(id = R.string.profile),

@@ -10,6 +10,8 @@ import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 
 class HomeRepositoryImpl(private val context: Context,  private val preferences: PreferenceHelper) : HomeRepository {
 
+    override fun getAuthenticatedUsername(): String = preferences.getAuthenticatedUsername()
+
     override suspend fun getPullsWithCount(
         query: String,
         page: Int

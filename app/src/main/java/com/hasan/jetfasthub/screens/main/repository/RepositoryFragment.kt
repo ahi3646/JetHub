@@ -106,9 +106,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.EmptyScreen
 import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.repository.models.commits_model.CommitsModelItem
 import com.hasan.jetfasthub.screens.main.repository.models.file_models.FileModel
@@ -123,9 +125,11 @@ import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesItem
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
 import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
 import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
 import com.hasan.jetfasthub.core.ui.utils.Resource
+import com.hasan.jetfasthub.screens.main.home.presentation.ui.issues.IssuesItemCard
 import com.mukesh.MarkDown
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -143,8 +147,8 @@ class RepositoryFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         token = PreferenceHelper(context).getToken()
-        val owner = arguments?.getString("repository_owner")
-        val repo = arguments?.getString("repository_name")
+        val owner = arguments?.getString(NavigationConstants.REPOSITORY_OWNER)
+        val repo = arguments?.getString(NavigationConstants.REPOSITORY_NAME)
 
         if (owner != null && repo != null) {
 
@@ -896,6 +900,7 @@ private fun MainContent(
                     paddingValues = paddingValues,
                     state = state,
                 )
+
                 RepositoryScreens.Projects -> {
                     if ((state.Repository.data != null) && state.Repository.data.has_projects) {
                         ProjectsScreen(paddingValues = paddingValues)
@@ -1089,6 +1094,7 @@ private fun CodeScreen(
                 onCurrentSheetChanged = onCurrentSheetChanged,
                 onNavigate = onNavigate
             )
+
             2 -> CommitsScreen(state, onAction, onNavigate)
             3 -> ReleasesScreen(
                 onDownload = onDownload,
@@ -2245,7 +2251,7 @@ private fun ReadMeScreen(state: RepositoryScreenState) {
         ) {
             Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    } else if(state.HasMarkdown){
+    } else if (state.HasMarkdown) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -2259,7 +2265,7 @@ private fun ReadMeScreen(state: RepositoryScreenState) {
                 modifier = Modifier.fillMaxSize()
             )
         }
-    }else{
+    } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -2456,15 +2462,7 @@ private fun IssuesScreenContent(
     modifier: Modifier
 ) {
     when (state) {
-        is Resource.Loading -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        is Resource.Loading -> LoadingScreen()
 
         is Resource.Success -> {
             val issues = state.data!!.items
@@ -2475,24 +2473,27 @@ private fun IssuesScreenContent(
                     verticalArrangement = Arrangement.Top
                 ) {
                     items(issues) { issue ->
-                    //TODO fix
-                    //IssuesItemCard(issue = issue, onIssuesItemClicked = onIssueItemClicked)
+                        IssuesItemCard(
+                            issue = issue,
+                            onIssueItemClicked = { owner, repo, number ->
+                                onIssueItemClicked(
+                                    R.id.action_fromFragment_to_issueFragment,
+                                    owner,
+                                    repo,
+                                    number
+                                )
+                            }
+                        )
                     }
                 }
-            } else {
-                Column(
-                    modifier = modifier,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "No issues", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
             }
+            else EmptyScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = JetHubTheme.colors.background.primary),
+            )
         }
-
-        is Resource.Failure -> {
-            ErrorScreen()
-        }
+        is Resource.Failure -> ErrorScreen()
     }
 }
 

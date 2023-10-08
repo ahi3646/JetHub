@@ -1,21 +1,23 @@
 package com.hasan.jetfasthub.screens.main.home.presentation.state
 
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.DrawerBodyConfig
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.DrawerHeaderConfig
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.DrawerScreenConfig
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.FeedsScreenConfig
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenBottomSheetConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenPullToRefreshConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenTopAppBarConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.IssuesScreenConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.PullRequestsScreenConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.AppScreens
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.BottomNavBarButtons
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.BottomNavBarConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_sheet.HomeScreenBottomSheetConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_sheet.HomeScreenBottomSheets
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.drawer.DrawerBodyConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.drawer.DrawerHeaderConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.drawer.DrawerMenuConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.drawer.DrawerProfileConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.drawer.DrawerScreenConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.top_app_bar.DrawerTabConfig
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.top_app_bar.HomeScreenTabConfig
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.flowOf
@@ -25,41 +27,54 @@ object HomeScreenPreview {
     private val issuesTabs = persistentListOf(
         HomeScreenTabConfig.Created(
             onTabChange = { },
-            onTabStateChange = {}
+            onTabStateChange = {_, _ -> }
         ),
         HomeScreenTabConfig.Assigned(
             onTabChange = {},
-            onTabStateChange = {}
+            onTabStateChange = {_, _ -> }
         ),
         HomeScreenTabConfig.Mentioned(
             onTabChange = {},
-            onTabStateChange = {}
+            onTabStateChange = {_, _ -> }
         ),
         HomeScreenTabConfig.Participated(
             onTabChange = {},
-            onTabStateChange = {}
+            onTabStateChange = {_, _ -> }
         )
     )
 
-    private val issueScreenPreview = IssuesScreenConfig.Loading(
+    private val issueScreenPreview = IssuesScreenConfig(
         tabIndex = 0,
-        actionTabs = issuesTabs
+        onIssueItemClick =  {_, _, _ -> },
+        actionTabs = issuesTabs,
+        issuesCreated = Resource.Loading(),
+        issuesAssigned = Resource.Loading(),
+        issuesMentioned = Resource.Loading(),
+        issuesParticipated = Resource.Loading(),
+    )
+
+    val drawerTabs = persistentListOf(
+        DrawerTabConfig.Menu(onTabChange = {}),
+        DrawerTabConfig.Profile(onTabChange = {})
     )
 
     private val pullRequestsTabs = persistentListOf(
-        HomeScreenTabConfig.Created(onTabChange = {}, onTabStateChange = {}),
-        HomeScreenTabConfig.Assigned(onTabChange = {}, onTabStateChange = {}),
-        HomeScreenTabConfig.Mentioned(onTabChange = {}, onTabStateChange = {}),
-        HomeScreenTabConfig.ReviewRequest(onTabChange = {}, onTabStateChange = {}),
+        HomeScreenTabConfig.Created(onTabChange = {}, onTabStateChange = {_, _ ->}),
+        HomeScreenTabConfig.Assigned(onTabChange = {}, onTabStateChange = {_, _ ->}),
+        HomeScreenTabConfig.Mentioned(onTabChange = {}, onTabStateChange = {_, _ ->}),
+        HomeScreenTabConfig.ReviewRequest(onTabChange = {}, onTabStateChange = {_, _ ->}),
     )
 
-    private val pullRequestsScreenPreview = PullRequestsScreenConfig.Loading(
+    private val pullRequestsScreenPreview = PullRequestsScreenConfig(
         tabIndex = 0,
-        actionTabs = pullRequestsTabs
+        actionTabs = pullRequestsTabs,
+        pullCreated = Resource.Loading(),
+        pullAssigned = Resource.Loading(),
+        pullMentioned = Resource.Loading(),
+        pullReviewRequest = Resource.Loading(),
     )
 
     val drawerMenuPreview = persistentListOf(
-        DrawerMenuConfig.Home(onClick = {}),
         DrawerMenuConfig.Profile(onClick = {}),
         DrawerMenuConfig.Organizations(onClick = {}),
         DrawerMenuConfig.Notifications(onClick = {}),
@@ -81,17 +96,16 @@ object HomeScreenPreview {
     )
 
     private val drawerScreenConfig = DrawerScreenConfig(
-        isOpen = false,
         drawerHeaderConfig = DrawerHeaderConfig.Loading,
         drawerBodyConfig = DrawerBodyConfig(
             tabIndex = 0,
+            drawerTabs = drawerTabs,
             drawerMenuConfig = drawerMenuPreview,
             drawerProfileConfig = drawerProfilePreview
         )
     )
 
     val topAppBarPreview: HomeScreenTopAppBarConfig = HomeScreenTopAppBarConfig(
-        onDrawerClick = {},
         onSearchClick = {},
         onNotificationClick = {}
     )

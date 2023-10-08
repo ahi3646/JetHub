@@ -8,11 +8,13 @@ interface HomeRepository {
 
     suspend fun getUser(): GitHubUser
 
+    fun getAuthenticatedUsername(): String
+
     suspend fun getReceivedUserEvents(
         username: String,
         page: Int,
         perPage: Int
-    ):List<ReceivedEventModelDto>
+    ): List<ReceivedEventModelDto>
 
     suspend fun getIssuesWithCount(
         query: String,

@@ -7,13 +7,15 @@ import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
 
 sealed class HomeScreenTabConfig(val config: TabButtonConfig) {
 
-    /** Lambda be invoked when manage button is clicked */
+    /** Lambda be invoked when tab button is clicked */
     abstract val onTabChange: (tabIndex: Int) -> Unit
-    abstract val onTabStateChange: (state: IssueState) -> Unit
+
+    /** Lambda be invoked when dropdown tab button is clicked */
+    abstract val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
 
     data class Created(
         override val onTabChange: (tabIndex: Int) -> Unit,
-        override val onTabStateChange: (state: IssueState) -> Unit
+        override val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
     ) : HomeScreenTabConfig(
         config = TabButtonConfig(
             tabIndex = 0,
@@ -27,7 +29,7 @@ sealed class HomeScreenTabConfig(val config: TabButtonConfig) {
 
     data class Assigned(
         override val onTabChange: (tabIndex: Int) -> Unit,
-        override val onTabStateChange: (state: IssueState) -> Unit
+        override val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
     ) : HomeScreenTabConfig(
         config = TabButtonConfig(
             tabIndex = 1,
@@ -41,7 +43,7 @@ sealed class HomeScreenTabConfig(val config: TabButtonConfig) {
 
     data class Mentioned(
         override val onTabChange: (tabIndex: Int) -> Unit,
-        override val onTabStateChange: (state: IssueState) -> Unit
+        override val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
     ) : HomeScreenTabConfig(
         config = TabButtonConfig(
             tabIndex = 1,
@@ -55,7 +57,7 @@ sealed class HomeScreenTabConfig(val config: TabButtonConfig) {
 
     data class Participated(
         override val onTabChange: (tabIndex: Int) -> Unit,
-        override val onTabStateChange: (state: IssueState) -> Unit
+        override val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
     ) : HomeScreenTabConfig(
         config = TabButtonConfig(
             tabIndex = 2,
@@ -69,7 +71,7 @@ sealed class HomeScreenTabConfig(val config: TabButtonConfig) {
 
     data class ReviewRequest(
         override val onTabChange: (tabIndex: Int) -> Unit,
-        override val onTabStateChange: (state: IssueState) -> Unit
+        override val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
     ) : HomeScreenTabConfig(
         config = TabButtonConfig(
             tabIndex = 3,
@@ -89,5 +91,31 @@ data class TabButtonConfig(
     var state: IssueState,
     val type: MyIssuesType,
     val onTabChange: (tabIndex: Int) -> Unit,
-    val onTabStateChange: (state: IssueState) -> Unit
+    val onTabStateChange: (type: MyIssuesType, state: IssueState) -> Unit
+)
+
+sealed class DrawerTabConfig(val config: DrawerTabButtonConfig) {
+    /** Lambda be invoked when tab button is clicked */
+    abstract val onTabChange: (tabIndex: Int) -> Unit
+
+    data class Menu(override val onTabChange: (tabIndex: Int) -> Unit) : DrawerTabConfig(
+        config = DrawerTabButtonConfig(
+            tabIndex = 0,
+            text = TextReference.Res(id = R.string.menu_all_caps),
+            onTabChange = onTabChange
+        )
+    )
+    data class Profile(override val onTabChange: (tabIndex: Int) -> Unit) : DrawerTabConfig(
+        config = DrawerTabButtonConfig(
+            tabIndex = 1,
+            text = TextReference.Res(id = R.string.profile_all_caps),
+            onTabChange = onTabChange
+        )
+    )
+}
+
+data class DrawerTabButtonConfig(
+    val tabIndex: Int,
+    val text: TextReference,
+    val onTabChange: (tabIndex: Int) -> Unit,
 )

@@ -8,10 +8,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
+import androidx.paging.PagingData
 import androidx.paging.map
 import com.hasan.jetfasthub.core.ui.navigation.DefaultNavigationEventDelegate
 import com.hasan.jetfasthub.core.ui.navigation.NavigationEventDelegate
+import com.hasan.jetfasthub.core.ui.navigation.emitNavigation
 import com.hasan.jetfasthub.core.ui.utils.IssueState
 import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
@@ -19,119 +20,122 @@ import com.hasan.jetfasthub.screens.main.home.data.database.ReceivedEventsModelE
 import com.hasan.jetfasthub.screens.main.home.domain.HomeUseCase
 import com.hasan.jetfasthub.screens.main.home.presentation.state.Provider
 import com.hasan.jetfasthub.screens.main.home.presentation.state.factory.HomeScreenFactory
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
 import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.AppScreens
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-const val TAG = "ahi3646"
-
 class HomeScreenViewModel(
     private val homeUseCase: HomeUseCase,
-    private val pager: Pager<Int, ReceivedEventsModelEntity>
+    private val pager: Flow<PagingData<ReceivedEventsModelEntity>>,
 ) : ViewModel(), HomeScreenIntents, DefaultLifecycleObserver,
     NavigationEventDelegate<HomeScreenNavigation> by DefaultNavigationEventDelegate() {
 
-    //private var userData by Delegates.notNull<GitHubUser>()
+    private val username = homeUseCase.getAuthenticatedUsername()
 
     private val stateFactory = HomeScreenFactory(
         currentStateProvider = Provider { uiState },
         clickIntents = this,
     )
 
-    var uiState: HomeScreenStateConfig by mutableStateOf(stateFactory.getInitialState())
+    var uiState: HomeScreenStateConfig by mutableStateOf(stateFactory.getInitialState(username))
         private set
 
     override fun onCreate(owner: LifecycleOwner) {
         super.onCreate(owner)
-        Log.d(TAG, "onCreate: vm")
         getUserData()
         loadFeeds(pager)
         loadIssues()
         loadPullRequests()
     }
 
+    override fun onIssueItemClick(issueOwner: String, issueRepo: String, issueNumber: String) {
+        emitNavigation(HomeScreenNavigation.OpenIssueFragmentFragment(issueOwner, issueRepo, issueNumber))
+    }
+
     override fun onRefreshSwipe() {
-        Log.d(TAG, "onRefreshSwipe: ")
+        uiState = stateFactory.getRefreshingState()
         viewModelScope.launch {
             loadFeeds(pager)
             uiState = stateFactory.getRefreshedState()
         }
     }
 
-    override fun onDrawerClick() {
-        Log.d(TAG, "onDrawerClick: ")
-    }
-
-
     private fun getUserData() {
         viewModelScope.launch {
-            homeUseCase.getAuthenticatedUserData().fold(
-                ifLeft = {},
-                ifRight = {
-                    //userData = it
-                    Log.d(TAG, "getUserData: $it ")
-                }
-            )
+            uiState = stateFactory.getUserData(homeUseCase.getAuthenticatedUserData())
         }
     }
 
-    private fun loadFeeds(value: Pager<Int, ReceivedEventsModelEntity>){
-        val events = value.flow.map { pagingData ->
+    private fun loadFeeds(value:Flow<PagingData<ReceivedEventsModelEntity>>) {
+        val events = value.map { pagingData ->
             pagingData.map {
                 it.toReceivedEventsModel()
             }
         }
-        uiState = stateFactory.getLoadedEvents(events)
+        uiState = stateFactory.getFeeds(events)
     }
 
-    private fun loadIssues(){
-        Log.d(TAG, "loadIssues: ")
-        getIssues(
-            query = getUrlForIssues(
-                issueType = MyIssuesType.CREATED,
-                issueState = IssueState.Open,
-                login = "ahi3646"
-            ),
-            page = 1,
-            issuesType = MyIssuesType.CREATED
-        )
+    private fun loadIssues() {
+        uiState.issuesScreenConfig.actionTabs.forEach {
+            getIssuesWithType(
+                query = getUrlForIssues(
+                    issueType = it.config.type,
+                    issueState = IssueState.Open,
+                    login = username
+                ),
+                page = 1,
+                issuesType = it.config.type
+            )
+        }
     }
 
     private fun loadPullRequests() {
-        Log.d(TAG, "loadPulls: ")
-        getPullsWithCount(
+        getPullsWithType(
             query = getUrlForPulls(
                 issueState = IssueState.All,
                 issueType = MyIssuesType.CREATED,
-                login = "ahi3646"
+                login = username
             ),
             page = 1,
             issuesType = MyIssuesType.CREATED
         )
     }
 
-    private fun getIssues(query: String, page: Int, issuesType: MyIssuesType) {
+    @Suppress("SameParameterValue")
+    //TODO implement pagination for issues screen
+    private fun getIssuesWithType(query: String, page: Int, issuesType: MyIssuesType) {
         viewModelScope.launch {
-            uiState = stateFactory.getIssues(homeUseCase.getIssuesWithCount(query, page))
+            uiState = stateFactory.getIssuesWithType(
+                homeUseCase.getIssuesWithCount(query, page),
+                issuesType
+            )
         }
-    }
-
-    override fun onTabChange(tabIndex: Int) {
-        Log.d(TAG, "onTabChange: $tabIndex")
-        uiState = stateFactory.changeIssuesTab(tabIndex)
-    }
-
-    override fun onTabStateChange(state: IssueState) {
-        uiState = stateFactory.updateIssueTabState(index = 0, state)
     }
 
     @Suppress("SameParameterValue")
-    private fun getPullsWithCount(query: String, page: Int, issuesType: MyIssuesType) {
+    //TODO implement pagination for issues screen
+    private fun getPullsWithType(query: String, page: Int, issuesType: MyIssuesType) {
         viewModelScope.launch {
-            uiState = stateFactory.getPullRequests(homeUseCase.getPullsWithCount(query, page))
+            uiState = stateFactory.getPullRequestsWithType(
+                homeUseCase.getPullsWithCount(query, page),
+                issuesType
+            )
         }
+    }
+
+    override fun onIssuesTabChange(tabIndex: Int) {
+        uiState = stateFactory.updateIssuesTab(tabIndex)
+    }
+
+    override fun onPullsTabChange(tabIndex: Int) {
+        uiState = stateFactory.updatePullsTab(tabIndex)
+    }
+
+    override fun onDrawerTabChange(tabIndex: Int) {
+        uiState = stateFactory.updateDrawerTab(tabIndex)
     }
 
     private fun getUrlForPulls(
@@ -181,65 +185,83 @@ class HomeScreenViewModel(
         }
     }
 
-    override fun onIssuesStateChanged(issueState: IssueState, issuesType: MyIssuesType) {
-        Log.d(TAG, "onClick ")
+    override fun onIssuesStateChanged(type: MyIssuesType, state: IssueState) {
+        uiState = stateFactory.updateIssueTabState(type, state)
+        getIssuesWithType(
+            query = getUrlForIssues(
+                issueType = type,
+                issueState = state,
+                login = "ahi3646"
+            ),
+            page = 1,
+            issuesType = type
+        )
     }
 
-    override fun onPullRequestsStateChanged(
-        pullState: IssueState,
-        issuesType: MyIssuesType
-    ) {
-        Log.d(TAG, "onClick ")
+    override fun onPullRequestsStateChanged(type: MyIssuesType, state: IssueState) {
+        uiState = stateFactory.updatePullsTabState(type, state)
+        getPullsWithType(
+            query = getUrlForPulls(
+                issueState = state,
+                issueType = type,
+                login = "ahi3646"
+            ),
+            page = 1,
+            issuesType = type
+        )
     }
 
     override fun onLogoutClick() {
-        Log.d(TAG, "onClick ")
+        Log.d("ahi3636", "onLogoutClick: ")
+        uiState = stateFactory.getStateWithLogoutBottomSheet()
+    }
+
+    override fun onDismissBottomSheet() {
+        uiState = stateFactory.getStateWithClosedBottomSheet()
     }
 
     override fun openProfileFragment(username: String, profileTabStartIndex: String) {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenProfileFragment(username, profileTabStartIndex))
     }
 
     override fun onBottomBarItemClick(screen: AppScreens) {
         uiState = stateFactory.getBottomBarScreenState(screen)
-        Log.d(TAG, "onBottomBarItemClick: $screen")
     }
 
     override fun openPinnedFragment() {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenPinnedFragment)
     }
 
     override fun openGistsFragment(username: String) {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenGistsFragment(username))
     }
 
     override fun openRepositoryFragment(repoOwner: String, repoName: String) {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenRepositoryFragment(repoOwner, repoName))
     }
 
     override fun openFaqFragment() {
-        Log.d(TAG, "onClick ")
+        HomeScreenNavigation.OpenFaqFragment
     }
 
     override fun openSearchFragment() {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenSearchFragment)
     }
 
     override fun openIssueFragment(issueOwner: String, issueRepo: String, issueNumber: String) {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenIssueFragmentFragment(issueOwner, issueRepo, issueNumber))
     }
 
     override fun openSettingsFragment() {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenSettingsFragment)
     }
 
     override fun openAboutFragment() {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenAboutFragment)
     }
 
     override fun openNotificationFragment() {
-        Log.d(TAG, "onClick ")
+        emitNavigation(HomeScreenNavigation.OpenNotificationFragment)
     }
-
 
 }

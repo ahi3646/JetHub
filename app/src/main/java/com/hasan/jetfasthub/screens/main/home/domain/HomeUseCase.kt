@@ -17,6 +17,8 @@ class HomeUseCase(private val repository: HomeRepository) {
         }
     }
 
+    fun getAuthenticatedUsername(): String = repository.getAuthenticatedUsername()
+
     suspend fun getIssuesWithCount(query: String, page: Int): Either<NetworkErrors, IssuesModel> {
         return either {
             catch(

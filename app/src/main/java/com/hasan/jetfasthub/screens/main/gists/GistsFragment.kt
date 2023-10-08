@@ -58,6 +58,7 @@ import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModelItem
@@ -81,9 +82,8 @@ class GistsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        //TODO fix preference helper later
         val token = PreferenceHelper(requireContext()).getToken()
-        val username = arguments?.getString("gist_data") ?: ""
+        val username = arguments?.getString(NavigationConstants.GIST_DATA) ?: ""
 
         gistsViewModel.getUserGists(token = token, username = username, 1)
         gistsViewModel.getStarredGists(token = token, 1)

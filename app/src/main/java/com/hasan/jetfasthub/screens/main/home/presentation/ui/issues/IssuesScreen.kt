@@ -26,7 +26,8 @@ import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.core.ui.res.RippleCustomTheme
-import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
+import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.hasan.jetfasthub.screens.main.home.presentation.ui.components.TabItem
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.IssuesScreenConfig
 import com.hasan.jetfasthub.screens.main.search.models.issues_model.IssuesModel
@@ -36,8 +37,12 @@ fun IssuesScreen(
     contentPaddingValues: PaddingValues,
     config: IssuesScreenConfig,
 ) {
-    when (config) {
-        is IssuesScreenConfig.Loading -> {
+    Column(
+        modifier = Modifier
+            .padding(contentPaddingValues)
+            .fillMaxWidth()
+            .background(color = JetHubTheme.colors.background.primary),
+        content = {
             CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
                 ScrollableTabRow(
                     containerColor = JetHubTheme.colors.background.secondary,
@@ -45,118 +50,59 @@ fun IssuesScreen(
                     edgePadding = JetHubTheme.dimens.size0,
                     selectedTabIndex = config.tabIndex
                 ) {
-                    config.actionTabs.forEachIndexed { index, tab ->
-                        Tab(
-                            selected = config.tabIndex == index,
-                            onClick = {  },
-                            content = {
-                                TabItem(
-                                    issuesCount = 0,
-                                    state = IssueState.Open,
-                                    tabName = tab.config.text,
-                                    onClick = {},
-                                    onStateChanged = { _ -> },
-                                )
+                    config.actionTabs.forEachIndexed { index, tabType ->
+                        val totalCount = when (tabType.config.type) {
+                            MyIssuesType.CREATED -> {
+                                config.issuesCreated.data?.total_count
                             }
-                        )
-                    }
-                }
-            }
-            when (config.tabIndex) {
-                0,
-                1,
-                2,
-                3 -> LoadingScreen()
-            }
-        }
 
-        is IssuesScreenConfig.Error -> {
-            CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
-                ScrollableTabRow(
-                    containerColor = JetHubTheme.colors.background.secondary,
-                    contentColor = JetHubTheme.colors.text.primary1,
-                    edgePadding = JetHubTheme.dimens.size0,
-                    selectedTabIndex = config.tabIndex
-                ) {
-                    config.actionTabs.forEachIndexed { index, tab ->
-                        Tab(
-                            selected = config.tabIndex == index,
-                            onClick = {  },
-                            content = {
-                                TabItem(
-                                    issuesCount = 0,
-                                    state = IssueState.Open,
-                                    tabName = tab.config.text,
-                                    onClick = {},
-                                    onStateChanged = { _ -> },
-                                )
+                            MyIssuesType.ASSIGNED -> {
+                                config.issuesAssigned.data?.total_count
                             }
-                        )
-                    }
-                }
-            }
-            when (config.tabIndex) {
-                0,
-                1,
-                2,
-                3 -> ErrorScreen()
-            }
-        }
 
-        is IssuesScreenConfig.Content -> {
-            Column(
-                modifier = Modifier
-                    .padding(contentPaddingValues)
-                    .fillMaxWidth()
-                    .background(color = JetHubTheme.colors.background.primary),
-                content = {
-                    CompositionLocalProvider(LocalRippleTheme provides RippleCustomTheme) {
-                        ScrollableTabRow(
-                            containerColor = JetHubTheme.colors.background.secondary,
-                            contentColor = JetHubTheme.colors.text.primary1,
-                            edgePadding = JetHubTheme.dimens.size0,
-                            selectedTabIndex = config.tabIndex
-                        ) {
-                            config.actionTabs.forEachIndexed { index, tabType ->
-                                Tab(
-                                    selected = config.tabIndex == index,
-                                    onClick = {},
-                                    content = {
-                                        TabItem(
-                                            //fixme
-                                            issuesCount = config.issuesCreated.total_count ?: 0,
-                                            state = tabType.config.state,
-                                            tabName = tabType.config.text,
-                                            onClick = {
-                                                tabType.onTabChange(index)
-                                                //tabIndex = index
-                                            },
-                                            onStateChanged = { state ->
-                                                tabType.onTabStateChange(state)
-                                            },
-                                        )
-                                    }
-                                )
+                            MyIssuesType.MENTIONED -> {
+                                config.issuesMentioned.data?.total_count
+                            }
+
+                            MyIssuesType.PARTICIPATED, MyIssuesType.REVIEW -> {
+                                config.issuesParticipated.data?.total_count
                             }
                         }
-                    }
-                    when (config.tabIndex) {
-                        0 -> IssuesScreenContent(config.issuesCreated)
-
-                        1 -> IssuesScreenContent(config.issuesAssigned)
-
-                        2 -> IssuesScreenContent(config.issuesMentioned)
-
-                        3 -> IssuesScreenContent(config.issuesParticipated)
+                        Tab(
+                            selected = config.tabIndex == index,
+                            onClick = {},
+                            content = {
+                                TabItem(
+                                    issuesCount = totalCount ?: 0,
+                                    config = tabType.config,
+                                    index = index
+                                )
+                            }
+                        )
                     }
                 }
-            )
+            }
+            when (config.tabIndex) {
+                0 -> IssuesScreenContent(config.issuesCreated, config.onIssueItemClick)
+                1 -> IssuesScreenContent(config.issuesAssigned, config.onIssueItemClick)
+                2 -> IssuesScreenContent(config.issuesMentioned, config.onIssueItemClick)
+                3 -> IssuesScreenContent(config.issuesParticipated, config.onIssueItemClick)
+            }
         }
+    )
+}
+
+@Composable
+fun IssuesScreenContent(issuesModel: Resource<IssuesModel>, onIssueItemClick: (String, String,String) -> Unit) {
+    when(issuesModel){
+        is Resource.Loading -> LoadingScreen()
+        is Resource.Failure -> ErrorScreen()
+        is Resource.Success -> ContentScreen(issuesModel.data!!, onIssueItemClick)
     }
 }
 
 @Composable
-fun IssuesScreenContent(issuesModel: IssuesModel) {
+private fun ContentScreen(issuesModel: IssuesModel, onIssueItemClick: (String, String, String) -> Unit){
     if (issuesModel.items.isNotEmpty()) {
         LazyColumn(
             modifier = Modifier
@@ -168,7 +114,7 @@ fun IssuesScreenContent(issuesModel: IssuesModel) {
             itemsIndexed(issuesModel.items) { index, issue ->
                 IssuesItemCard(
                     issue = issue,
-                    // FIXME:
+                    onIssueItemClicked = onIssueItemClick
                 )
                 if (index < issuesModel.items.lastIndex) {
                     Divider(
@@ -187,3 +133,4 @@ fun IssuesScreenContent(issuesModel: IssuesModel) {
         )
     }
 }
+

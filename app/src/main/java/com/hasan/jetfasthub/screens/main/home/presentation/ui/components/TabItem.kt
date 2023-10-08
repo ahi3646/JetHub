@@ -33,21 +33,21 @@ import com.hasan.jetfasthub.core.ui.extensions.resolveReference
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.core.ui.utils.IssueState
+import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.top_app_bar.TabButtonConfig
 
 @Composable
 fun TabItem(
     issuesCount: Int,
-    state: IssueState,
-    tabName: TextReference,
-    onClick: () -> Unit,
-    onStateChanged: (IssueState) -> Unit,
+    config: TabButtonConfig,
+    index: Int
 ) {
     var isContextMenuVisible by rememberSaveable {
         mutableStateOf(false)
     }
-    var isOpen  by remember {
+    var isOpen by remember {
         mutableStateOf(
-            when(state){
+            when (config.state) {
                 IssueState.Closed -> false
                 IssueState.All, IssueState.Open -> true
             }
@@ -64,7 +64,7 @@ fun TabItem(
     ) {
         Box(
             modifier = Modifier
-                .clickable { onClick() }
+                .clickable { config.onTabChange(index) }
                 .padding(horizontal = JetHubTheme.dimens.spacing8)
         ) {
             Row(
@@ -80,7 +80,7 @@ fun TabItem(
                 )
                 Text(
                     modifier = Modifier.padding(start = JetHubTheme.dimens.spacing4),
-                    text = "${tabName.resolveReference()} ($issuesCount)",
+                    text = "${config.text.resolveReference()} ($issuesCount)",
                 )
                 IconButton(onClick = { isContextMenuVisible = !isContextMenuVisible }) {
                     Icon(
@@ -97,8 +97,9 @@ fun TabItem(
             ) {
                 DropdownMenuItem(
                     onClick = {
-                        if(!isOpen){
-                            onStateChanged(IssueState.Open)
+                        if (!isOpen) {
+                            config.onTabStateChange(config.type, IssueState.Open)
+                            //onStateChanged(config.type, IssueState.Open)
                             isOpen = true
                         }
                         isContextMenuVisible = false
@@ -112,8 +113,8 @@ fun TabItem(
                 )
                 DropdownMenuItem(
                     onClick = {
-                        if(isOpen){
-                            onStateChanged(IssueState.Closed)
+                        if (isOpen) {
+                            config.onTabStateChange(config.type, IssueState.Closed)
                             isOpen = false
                         }
                         isContextMenuVisible = false
@@ -135,11 +136,16 @@ fun TabItem(
 fun TabItem_LightPreview() {
     JetFastHubTheme(isDarkTheme = false) {
         TabItem(
+            index = 0,
             issuesCount = 100,
-            state = IssueState.Closed,
-            tabName = TextReference.Res(id = R.string.created_all_caps),
-            onClick = {},
-            onStateChanged = { _ -> }
+            config = TabButtonConfig(
+                0,
+                TextReference.Res(id = R.string.created_all_caps),
+                IssueState.All,
+                MyIssuesType.CREATED,
+                { _ -> },
+                { _, _ -> }
+            )
         )
     }
 }
@@ -149,11 +155,16 @@ fun TabItem_LightPreview() {
 fun TabItem_DarkPreview() {
     JetFastHubTheme(isDarkTheme = true) {
         TabItem(
+            index = 0,
             issuesCount = 100,
-            state = IssueState.All,
-            tabName = TextReference.Res(id = R.string.created_all_caps),
-            onClick = {},
-            onStateChanged = { _ -> }
+            config = TabButtonConfig(
+                0,
+                TextReference.Res(id = R.string.created_all_caps),
+                IssueState.All,
+                MyIssuesType.CREATED,
+                { _ -> },
+                { _, _ -> }
+            )
         )
     }
 }

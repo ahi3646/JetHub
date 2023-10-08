@@ -1,11 +1,11 @@
 package com.hasan.jetfasthub.screens.main.home.presentation.state.converters
 
 import com.hasan.jetfasthub.screens.main.home.presentation.state.Provider
-import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.AppScreens
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.BottomNavBarConfig
 
-class LoadedBottomBarConverter(
+class BottomNavBarConverter(
     private val currentStateProvider: Provider<HomeScreenStateConfig>,
 ) : Converter<AppScreens, BottomNavBarConfig> {
 
