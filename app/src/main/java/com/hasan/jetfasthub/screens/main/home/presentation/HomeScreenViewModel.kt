@@ -17,10 +17,10 @@ import com.hasan.jetfasthub.core.ui.utils.MyIssuesType
 import com.hasan.jetfasthub.core.ui.utils.RepoQueryProvider
 import com.hasan.jetfasthub.screens.main.home.data.database.ReceivedEventsModelEntity
 import com.hasan.jetfasthub.screens.main.home.domain.HomeUseCase
-import com.hasan.jetfasthub.screens.main.home.configs.Provider
-import com.hasan.jetfasthub.screens.main.home.configs.factory.HomeScreenFactory
-import com.hasan.jetfasthub.screens.main.home.configs.state.AppScreens
-import com.hasan.jetfasthub.screens.main.home.configs.state.HomeScreenStateConfig
+import com.hasan.jetfasthub.screens.main.home.presentation.state.Provider
+import com.hasan.jetfasthub.screens.main.home.presentation.state.factory.HomeScreenFactory
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.AppScreens
+import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
 import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -124,7 +124,7 @@ class HomeScreenViewModel(
     }
 
     override fun onTabStateChange(state: IssueState) {
-        Log.d(TAG, "onTabStateChange: $state")
+        uiState = stateFactory.updateIssueTabState(index = 0, state)
     }
 
     @Suppress("SameParameterValue")
@@ -173,15 +173,12 @@ class HomeScreenViewModel(
                 false
             )
 
-            MyIssuesType.PARTICIPATED -> return RepoQueryProvider.getParticipated(
+            MyIssuesType.PARTICIPATED, MyIssuesType.REVIEW -> return RepoQueryProvider.getParticipated(
                 login,
                 issueState,
                 false
             )
-
-            else -> {}
         }
-        return RepoQueryProvider.getMyIssuesPullRequestQuery(login, issueState, false)
     }
 
     override fun onIssuesStateChanged(issueState: IssueState, issuesType: MyIssuesType) {

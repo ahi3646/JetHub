@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import com.hasan.jetfasthub.core.ui.extensions.executeWithLifecycle
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.screens.main.home.presentation.ui.HomeScreen
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment() {
