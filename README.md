@@ -81,6 +81,10 @@ https://github.com/HasanAnorov/JetHub/assets/61424161/95302a9b-7401-470f-a130-e7
 
 | Feeds | Drawer |
 |:-:|:-:|
+| ![First]() | ![Sec](https://github.com/ahi3646/JetHub/blob/main/app/src/main/res/drawable/sec.png) |
+
+| Feeds | Drawer |
+|:-:|:-:|
 | ![First](https://github.com/ahi3646/JetHub/blob/main/app/src/main/res/drawable/first.png) | ![Sec](https://github.com/ahi3646/JetHub/blob/main/app/src/main/res/drawable/sec.png) |
 
 | Repo | Profile |
