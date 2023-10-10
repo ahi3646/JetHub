@@ -1,6 +1,6 @@
 # !!! Quick reminder, due to optimization
 - app/src/main/java/com/hasan/jetfasthub/screens/login
-- app/src/main/java/com/hasan/jetfasthub/screens/main/home
+- app/src/main/java/com/hasan/jetfasthub/screens/main/home - This module is built with the same architecture used in [Tangem](https://github.com/tangem/tangem-app-android) open source
  
 packages include real clean code base, other packages will also be optimized later ...
 
