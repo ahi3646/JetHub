@@ -34,7 +34,7 @@ class EventsRemoteMediator(
                     if (lastItem == null) {
                         1
                     } else {
-                        Log.d("ahi3646", "load append condition : ${lastItem.id} ")
+                        Log.d("ahi3646", "load last item : ${lastItem.id} ")
                         (lastItem.id / state.config.pageSize) + 1
                     }
                 }

@@ -38,7 +38,7 @@ val homeModule = module {
         preferences: PreferenceHelper
     ): Flow<PagingData<ReceivedEventsModelEntity>>{
         return  Pager(
-            config = PagingConfig(pageSize = 30),
+            config = PagingConfig(pageSize = 30, initialLoadSize = 30),
             remoteMediator = EventsRemoteMediator(
                 repository = eventApi,
                 homeDatabase = eventsDb,

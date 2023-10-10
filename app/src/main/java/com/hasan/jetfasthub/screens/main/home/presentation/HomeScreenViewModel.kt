@@ -23,6 +23,8 @@ import com.hasan.jetfasthub.screens.main.home.presentation.state.factory.HomeScr
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.HomeScreenStateConfig
 import com.hasan.jetfasthub.screens.main.home.data.mappers.toReceivedEventsModel
 import com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_bar.AppScreens
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -43,10 +45,14 @@ class HomeScreenViewModel(
     var uiState: HomeScreenStateConfig by mutableStateOf(stateFactory.getInitialState(username))
         private set
 
+    init {
+        refresh()
+    }
+
     override fun onCreate(owner: LifecycleOwner) {
         super.onCreate(owner)
         getUserData()
-        loadFeeds(pager)
+        //loadFeeds(pager)
         loadIssues()
         loadPullRequests()
     }
@@ -55,10 +61,20 @@ class HomeScreenViewModel(
         emitNavigation(HomeScreenNavigation.OpenIssueFragmentFragment(issueOwner, issueRepo, issueNumber))
     }
 
-    override fun onRefreshSwipe() {
-        uiState = stateFactory.getRefreshingState()
+    private fun refresh(){
         viewModelScope.launch {
             loadFeeds(pager)
+            uiState = stateFactory.getRefreshedState()
+        }
+    }
+
+    override fun onRefreshSwipe() {
+        Log.d("ahi3646", "onRefreshSwipe: ")
+        //uiState = stateFactory.getRefreshingState()
+        viewModelScope.launch(Dispatchers.IO) {
+            async {
+            loadFeeds(pager)
+            }.await()
             uiState = stateFactory.getRefreshedState()
         }
     }
@@ -212,7 +228,6 @@ class HomeScreenViewModel(
     }
 
     override fun onLogoutClick() {
-        Log.d("ahi3636", "onLogoutClick: ")
         uiState = stateFactory.getStateWithLogoutBottomSheet()
     }
 

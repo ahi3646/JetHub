@@ -3,17 +3,18 @@ package com.hasan.jetfasthub.screens.main.home.presentation.state.config.bottom_
 import com.hasan.jetfasthub.R
 import com.hasan.jetfasthub.core.ui.extensions.TextReference
 
-//TODO
+
 sealed class HomeScreenBottomSheets(
     open val title: TextReference,
     open val subtitle: TextReference,
     val acceptButtonConfig: ButtonConfig,
     val regretButtonConfig: ButtonConfig,
-): HomeScreenBottomSheetConfigContent {
+) : HomeScreenBottomSheetConfigContent {
     data class ButtonConfig(
         val text: TextReference,
         val onClick: () -> Unit,
     )
+
     data class LogoutSheet(
         val onRegret: () -> Unit,
         val onAccept: () -> Unit
