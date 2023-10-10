@@ -79,9 +79,10 @@ https://github.com/HasanAnorov/JetHub/assets/61424161/95302a9b-7401-470f-a130-e7
 
 ## Screenshots
 
-| Feeds | Drawer |
-|:-:|:-:|
-| ![First]() | ![Sec](https://github.com/ahi3646/JetHub/blob/main/app/src/main/res/drawable/sec.png) |
+| OAuth login | OAuth login |OAuth login |
+|:-:|:-:|:-:|
+| ![OAuth login](https://github.com/ahi3646/JetHub/assets/143841121/9e0a06bd-dbef-428e-8ba7-68533097e27d) | ![OAuth login](https://github.com/ahi3646/JetHub/assets/143841121/08114b25-c6b2-465b-b4c9-5dbc922cfa79) | ![OAuth login](https://github.com/ahi3646/JetHub/assets/143841121/1b6c3b51-e00c-46dd-ba89-f38e3ba86a53) 
+
 
 | Feeds | Drawer |
 |:-:|:-:|
