@@ -55,7 +55,10 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModel
 import com.hasan.jetfasthub.screens.main.gists.model.StarredGistModelItem
@@ -79,8 +82,8 @@ class GistsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val token = PreferenceHelper.getToken(requireContext())
-        val username = arguments?.getString("gist_data") ?: ""
+        val token = PreferenceHelper(requireContext()).getToken()
+        val username = arguments?.getString(NavigationConstants.GIST_DATA) ?: ""
 
         gistsViewModel.getUserGists(token = token, username = username, 1)
         gistsViewModel.getStarredGists(token = token, 1)
@@ -185,18 +188,7 @@ private fun MyGists(
 ) {
     when (state) {
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Loading ...",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -237,18 +229,7 @@ private fun MyGists(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Can't load data!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ErrorScreen()
         }
     }
 }
@@ -315,18 +296,7 @@ private fun Starred(
 ) {
     when (state) {
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Loading ...",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -367,18 +337,7 @@ private fun Starred(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Can't load data!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ErrorScreen()
         }
     }
 }
@@ -474,18 +433,7 @@ private fun PublicGists(
 ) {
     when (state) {
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Loading ...",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -526,18 +474,7 @@ private fun PublicGists(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Can't load data!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ErrorScreen()
         }
     }
 }

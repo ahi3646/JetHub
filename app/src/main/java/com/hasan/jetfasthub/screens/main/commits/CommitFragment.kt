@@ -90,6 +90,8 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.commits.models.commit_comments_model.CommitCommentsModel
@@ -113,7 +115,8 @@ class CommitFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         // Consider using safe args plugin
-        token = PreferenceHelper.getToken(requireContext())
+        //TODO fix preference helper here
+        token = PreferenceHelper(requireContext()).getToken()
         val owner = arguments?.getString("owner")
         val repo = arguments?.getString("repo")
         val sha = arguments?.getString("sha")
@@ -502,15 +505,7 @@ private fun FilesScreen(
 ) {
     when (state) {
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = (MaterialTheme.colorScheme.onSurfaceVariant))
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -557,15 +552,7 @@ private fun CommentsScreen(
     when (state) {
 
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -748,18 +735,7 @@ private fun CommentsScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Can't load data!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ErrorScreen()
         }
     }
 }

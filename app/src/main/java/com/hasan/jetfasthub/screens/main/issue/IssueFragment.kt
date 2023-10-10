@@ -86,7 +86,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModel
 import com.hasan.jetfasthub.screens.main.issue.comments_model.IssueCommentsModelItem
@@ -108,11 +111,12 @@ class IssueFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        //TODO fix token
+        token = PreferenceHelper(context).getToken()
 
-        val owner = arguments?.getString("issue_owner")
-        val repo = arguments?.getString("issue_repo")
-        val issueNumber = arguments?.getString("issue_number")
+        val owner = arguments?.getString(NavigationConstants.ISSUE_OWNER)
+        val repo = arguments?.getString(NavigationConstants.ISSUE_REPO)
+        val issueNumber = arguments?.getString(NavigationConstants.ISSUE_NUMBER)
 
         if (issueNumber != null && owner != null && repo != null) {
             issueViewModel.init(owner, repo, issueNumber)
@@ -1037,15 +1041,7 @@ private fun CommentsScreen(
     when (state) {
 
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -1233,18 +1229,7 @@ private fun CommentsScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Can't load data!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ErrorScreen()
         }
     }
 }

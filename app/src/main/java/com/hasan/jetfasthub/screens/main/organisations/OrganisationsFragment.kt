@@ -67,6 +67,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.organisations.model.OrganisationMemberModel
@@ -89,7 +90,7 @@ class OrganisationsFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
 
         val organisation = arguments?.getString("organisation")
 
@@ -488,15 +489,7 @@ private fun Overview(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                androidx.compose.material3.Text(text = "Something went wrong ...")
-            }
+            ErrorScreen()
         }
     }
 
@@ -545,15 +538,7 @@ private fun Repositories(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                androidx.compose.material3.Text(text = "Something went wrong ...")
-            }
+            ErrorScreen()
         }
     }
 }
@@ -708,15 +693,7 @@ private fun People(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                androidx.compose.material3.Text(text = "Something went wrong ...")
-            }
+            ErrorScreen()
         }
     }
 }

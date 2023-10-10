@@ -9,7 +9,6 @@ import com.hasan.jetfasthub.networking.services.CommentService
 import com.hasan.jetfasthub.networking.services.CommitService
 import com.hasan.jetfasthub.networking.services.FileViewService
 import com.hasan.jetfasthub.networking.services.GistService
-import com.hasan.jetfasthub.networking.services.HomeService
 import com.hasan.jetfasthub.networking.services.IssueService
 import com.hasan.jetfasthub.networking.services.NotificationsService
 import com.hasan.jetfasthub.networking.services.OrganisationService
@@ -17,6 +16,7 @@ import com.hasan.jetfasthub.networking.services.ProfileService
 import com.hasan.jetfasthub.networking.services.RepositoryService
 import com.hasan.jetfasthub.networking.services.SearchService
 import com.hasan.jetfasthub.core.ui.utils.Constants
+import com.hasan.jetfasthub.screens.main.home.data.HomeService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -30,7 +30,7 @@ class RestClient(context: Context) {
             .addInterceptor(
                 ChuckerInterceptor.Builder(context)
                     .collector(ChuckerCollector(context))
-                    .maxContentLength(250000L)
+                    .maxContentLength(25000L)
                     .redactHeaders(emptySet())
                     .alwaysReadResponseBody(false)
                     .build()

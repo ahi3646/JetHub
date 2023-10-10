@@ -51,6 +51,7 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.core.ui.utils.Resource
@@ -64,7 +65,8 @@ class FileViewFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        val token = PreferenceHelper.getToken(context)
+        //TODO fix preference helper later
+        val token = PreferenceHelper(context).getToken()
 
         val repoOwner = arguments?.getString("repo_owner")
         val repoName = arguments?.getString("repo_name")
@@ -329,18 +331,7 @@ private fun MainContent(
             }
 
             is Resource.Failure -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Can't load data!",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                ErrorScreen()
             }
         }
         Box(modifier = Modifier.padding(contentPadding)) {

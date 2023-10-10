@@ -1,11 +1,57 @@
 <resources>
     <string name="app_name">JetHub</string>
+    //TODO remove unnecessary string resources
 
-<!--    TODO remove unnecessary string resources-->
-    <string name="home">Home</string>
+    //Home Screen Bottom Navigation
+    <string name="feeds">Feeds</string>
     <string name="pull_requests">Pull Requests</string>
     <string name="issues">Issues</string>
-    <string name="feeds">Feeds</string>
+
+    //Drawer Menu
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
+    <string name="organizations">Organizations</string>
+    <string name="notifications">Notifications</string>
+    <string name="pinned">Pinned</string>
+    <string name="gists">Gists</string>
+    <string name="trending">Trending</string>
+    <string name="faq">FAQ</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="starred">Starred</string>
+    <string name="repositories">Repositories</string>
+    <string name="add_account">Add account</string>
+    <string name="logout">Logout</string>
+    <string name="menu_all_caps">MENU</string>
+    <string name="profile_all_caps">PROFILE</string>
+
+    //LogoutSheet
+    <string name="are_you_sure">Are you sure ?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    //Loading Screen
+    <string name="loading">Loading …</string>
+
+    //Error Screen
+    <string name="could_not_load_data">Could not load data!</string>
+
+    //Empty Screen
+    <string name="no_data_to_load">Currently, no data to load :)</string>
+    <string name="no_feeds">Currently, no feeds to load :)</string>
+    <string name="no_issues">Currently, no issues to load :)</string>
+    <string name="no_pull">Currently, no pull requests found to load :)</string>
+
+    //Tab Items
+    <string name="closed_upper">Closed</string>
+    <string name="opened_upper">Opened</string>
+    <string name="closed_lower">closed</string>
+    <string name="opened_lower">opened</string>
+    <string name="created_all_caps">CREATED</string>
+    <string name="assigned_all_caps">ASSIGNED</string>
+    <string name="mentioned_all_caps">MENTIONED</string>
+    <string name="review_requests_all_caps">REVIEW REQUESTS</string>
+    <string name="participated_all_caps">PARTICIPATED</string>
 
     // Events
     <string name="released">Released</string>
@@ -22,7 +68,6 @@
     <string name="pr_review_event" translatable="false">Pull Request</string>
     <string name="repo_event" translatable="false">Repository</string>
     <string name="forked" translatable="false">Forked</string>
-    <string name="starred" translatable="false">Starred</string>
     <string name="created_repo">Created</string>
     <string name="committed">Committed</string>
     <string name="downloaded">Downloaded</string>
@@ -93,5 +138,9 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="previous_screen">Go Previous Screen</string>
+    <string name="login_token_code_not_found">Error - can\'t find token code from uri!</string>
+    <string name="login_network_error">Network error occurred, try later!</string>
+    <string name="login_unsuccessful_response">Received unsuccessful response, try later!</string>
+    <string name="login_invalid_token">Received invalid token, try later!</string>
 
 </resources>

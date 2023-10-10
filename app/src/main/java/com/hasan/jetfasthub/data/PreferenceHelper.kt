@@ -1,33 +1,33 @@
 package com.hasan.jetfasthub.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.hasan.jetfasthub.core.ui.utils.Constants
 
-object PreferenceHelper {
+class PreferenceHelper (val context: Context){
+    private val sharedPref: SharedPreferences = context.getSharedPreferences(Constants.SHARED_PREF, Context.MODE_PRIVATE)
 
-    fun saveToken(context: Context, token:String){
-        val sharedPref = context.getSharedPreferences(Constants.SHARED_PREF, Context.MODE_PRIVATE)
+    fun saveToken(token:String){
         with(sharedPref.edit()) {
-            putString(Constants.TOKEN_KEY, token)
+            putString(Constants.TOKEN_KEY, "Bearer $token")
             apply()
         }
     }
 
-    fun saveAuthenticatedUser(context: Context, username: String){
-        val sharedPref = context.getSharedPreferences(Constants.SHARED_PREF, Context.MODE_PRIVATE)
+    fun isLogged(): Boolean{
+        return getToken().isNotEmpty()
+    }
+
+    fun saveAuthenticatedUser(username: String){
         with(sharedPref.edit()) {
             putString(Constants.USERNAME_KEY, username)
             apply()
         }
     }
-
-    fun getToken(context: Context): String {
-        val sharedPref = context.getSharedPreferences(Constants.SHARED_PREF, Context.MODE_PRIVATE)
+    fun getToken(): String {
         return sharedPref.getString(Constants.TOKEN_KEY, "")!!
     }
-
-    fun getAuthenticatedUsername(context: Context): String {
-        val sharedPref = context.getSharedPreferences(Constants.SHARED_PREF, Context.MODE_PRIVATE)
+    fun getAuthenticatedUsername(): String {
         return sharedPref.getString(Constants.USERNAME_KEY, "")!!
     }
 }

@@ -2,10 +2,56 @@
 <resources>
     <string name="app_name">JetHub</string>
 
-    <string name="home">Home</string>
-    <string name="pull_requests">Pull Requests</string>
-    <string name="issues">Issues</string>
-    <string name="feeds">Feeds</string>
+    //Home Screen Bottom Nav
+    <string name="feeds">Ленты</string>
+    <string name="pull_requests">Запросы на вытягивание</string>
+    <string name="issues">Проблемы</string>
+
+    //Drawer
+    <string name="home">Дом</string>
+    <string name="profile">Профиль</string>
+    <string name="organizations">Организации</string>
+    <string name="notifications">Уведомления</string>
+    <string name="pinned">Закреплено</string>
+    <string name="gists">Гисты</string>
+    <string name="trending">Тенденции</string>
+    <string name="faq">Часто задаваемые вопросы</string>
+    <string name="settings">Настройки</string>
+    <string name="about">О приложении</string>
+    <string name="starred">Помечено</string>
+    <string name="repositories">Репозитории</string>
+    <string name="add_account">Добавить аккаунт</string>
+    <string name="logout">Выйти</string>
+    <string name="menu_all_caps">МЕНЮ</string>
+    <string name="profile_all_caps">ПРОФИЛЬ</string>
+
+    //LogoutSheet
+    <string name="are_you_sure">Вы уверены ?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+
+    //Loading Screen
+    <string name="loading">Загрузка…</string>
+
+    //Error Screen
+    <string name="could_not_load_data">Не удалось загрузить данные!</string>
+
+    //Empty Secreen
+    <string name="no_feeds">В настоящее время нет каналов для загрузки :)</string>
+    <string name="no_issues">На данный момент проблем с загрузкой нет :)</string>
+    <string name="no_pull">В настоящее время не найдено ни одного запроса на загрузку :)</string>
+    <string name="no_data_to_load">На данный момент нет данных для загрузки :)</string>
+
+    //Tab Items
+    <string name="closed_upper">Закрыто</string>
+    <string name="opened_upper">Открыто</string>
+    <string name="closed_lower">закрыто</string>
+    <string name="opened_lower">открыт</string>
+    <string name="created_all_caps">СОЗДАННЫЙ</string>
+    <string name="assigned_all_caps">НАЗНАЧЕННЫЙ</string>
+    <string name="mentioned_all_caps">УПОМЯНУЛ</string>
+    <string name="review_requests_all_caps">ЗАПРОСЫ НА РАССМОТРЕНИЕ</string>
+    <string name="participated_all_caps">ПРИНИМАЛА УЧАСТИЕ</string>
 
     // Events
     <string name="released">Released</string>
@@ -22,7 +68,6 @@
     <string name="pr_review_event" translatable="false">Pull Request</string>
     <string name="repo_event" translatable="false">Repository</string>
     <string name="forked" translatable="false">Forked</string>
-    <string name="starred" translatable="false">Starred</string>
     <string name="created_repo">Created</string>
     <string name="committed">Committed</string>
     <string name="downloaded">Downloaded</string>
@@ -93,6 +138,9 @@
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="previous_screen">Перейти к предыдущему экрану</string>
-
+    <string name="login_token_code_not_found">Ошибка: не удалось найти код токена в uri!</string>
+    <string name="login_unsuccessful_response">Получен неудачный ответ, попробуйте позже!</string>
+    <string name="login_network_error">Произошла ошибка сети, попробуйте позже!</string>
+    <string name="login_invalid_token">Received invalid token, try later!</string>
 
 </resources>

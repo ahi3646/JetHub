@@ -84,6 +84,8 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.profile.model.event_model.UserEvents
@@ -102,6 +104,7 @@ import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.Starre
 import com.hasan.jetfasthub.screens.main.profile.model.starred_repo_model.StarredRepoModelItem
 import com.hasan.jetfasthub.core.ui.utils.Constants.chooseFromEvents
 import com.hasan.jetfasthub.core.ui.utils.FileSizeCalculator
+import com.hasan.jetfasthub.core.ui.utils.NavigationConstants
 import com.hasan.jetfasthub.core.ui.utils.ParseDateFormat
 import com.hasan.jetfasthub.core.ui.utils.Resource
 import com.skydoves.landscapist.ImageOptions
@@ -121,10 +124,10 @@ class ProfileFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        token = PreferenceHelper.getToken(requireContext())
-        val authUser = PreferenceHelper.getAuthenticatedUsername(context)
+        token = PreferenceHelper(context).getToken()
+        val authUser = PreferenceHelper(context).getAuthenticatedUsername()
 
-        val username = arguments?.getString("username")
+        val username = arguments?.getString(NavigationConstants.PROFILE_USERNAME)
         val extra = arguments?.getString("start_index") ?: "0"
 
         if (username != null) {
@@ -524,16 +527,7 @@ fun OverviewScreen(
 
     when (state.OverviewScreenState) {
         is UserOverviewScreen.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is UserOverviewScreen.Content -> {
@@ -896,15 +890,7 @@ fun OverviewScreen(
         }
 
         is UserOverviewScreen.Error -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -953,13 +939,7 @@ fun FeedScreen(
 ) {
     when (userEvents) {
         is Resource.Loading -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -992,13 +972,7 @@ fun FeedScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -1155,15 +1129,7 @@ fun RepositoriesScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -1340,15 +1306,7 @@ fun StarredScreen(
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -1519,15 +1477,7 @@ fun GistsScreen(userGists: Resource<GistsModel>, onNavigate: (Int, String, Strin
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }

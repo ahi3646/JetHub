@@ -151,3 +151,16 @@ object Constants {
         }
     }
 }
+
+object NavigationConstants{
+
+    const val GIST_DATA = "gist_data"
+    const val ISSUE_OWNER = "issue_owner"
+    const val ISSUE_REPO = "issue_repo"
+    const val ISSUE_NUMBER = "issue_number"
+    const val PROFILE_USERNAME = "username"
+    const val PROFILE_START_TAB_INDEX = "start_index"
+    const val REPOSITORY_OWNER = "repository_owner"
+    const val REPOSITORY_NAME = "repository_name"
+
+}

@@ -19,11 +19,23 @@ import com.hasan.jetfasthub.core.ui.extensions.executeWithLifecycle
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.core.ui.res.JetHubTheme
 import com.hasan.jetfasthub.screens.login.presentation.LoginViewModel
+import com.hasan.jetfasthub.screens.main.AppActivity
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+
+/**
+ * LoginChooser Fragment
+ *
+ * @author Anorov Hasan on 30/09/2023
+ */
 
 class LoginChooserFragment : Fragment() {
 
     private val viewModel: LoginViewModel by activityViewModel()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycle.addObserver(viewModel)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +79,14 @@ class LoginChooserFragment : Fragment() {
                 requireContext().startActivity(
                     Intent(Intent.ACTION_VIEW, navigation.uri)
                 )
+            }
+
+            LoginChooserNavigation.NavigateToMain -> {
+                Intent(requireActivity(), AppActivity::class.java).also { intent ->
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(intent)
+                }
+                activity?.finish()
             }
         }
     }

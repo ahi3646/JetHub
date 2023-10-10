@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.hasan.jetfasthub.R
+import com.hasan.jetfasthub.core.ui.components.ErrorScreen
+import com.hasan.jetfasthub.core.ui.components.LoadingScreen
 import com.hasan.jetfasthub.core.ui.res.JetFastHubTheme
 import com.hasan.jetfasthub.data.PreferenceHelper
 import com.hasan.jetfasthub.screens.main.notifications.model.Notification
@@ -67,7 +69,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        token = PreferenceHelper.getToken(requireContext())
+        token = PreferenceHelper(context).getToken()
 
         notificationsViewModel.getAllNotifications(token)
         notificationsViewModel.getUnreadNotifications(token, "enter_preferred_date")
@@ -209,15 +211,7 @@ fun TabScreen(
 fun UnreadNotifications(unreadNotifications: Resource<Notification>, markAsRead: (String) -> Unit) {
     when (unreadNotifications) {
         is Resource.Loading -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Loading ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            LoadingScreen()
         }
 
         is Resource.Success -> {
@@ -251,15 +245,7 @@ fun UnreadNotifications(unreadNotifications: Resource<Notification>, markAsRead:
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -311,15 +297,7 @@ fun AllNotifications(allNotifications: Resource<Notification>) {
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
@@ -352,15 +330,7 @@ fun JetHubNotifications(jetHubNotifications: Resource<Notification>) {
         }
 
         is Resource.Failure -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Can't load data!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            ErrorScreen()
         }
     }
 }
